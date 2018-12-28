@@ -1,1 +1,2 @@
 *.pyc
+pocketrockets/settings_secret.py
