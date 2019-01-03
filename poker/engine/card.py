@@ -23,6 +23,21 @@ RANK_MAP = {
     }
 
 class Card:
+
+    @staticmethod
+    def to_card_id(rank, suit):
+        if rank not in RANK_MAP.values() or suit not in SUIT_MAP.values():
+            raise Exception('Card is malformed')
+
+        _id = 0
+        for rank_id, card_rank in RANK_MAP.items():
+            if rank == card_rank:
+                _id += rank_id
+        for suit_id, card_suit in SUIT_MAP.items():
+            if suit == card_suit:
+                _id += (suit_id * 13)
+        return _id
+
     def __init__(self, _id):
         if _id < 0 or _id >= 52 or type(_id) != int:
             raise Exception('Card id must be an integer in [0, 51]')
