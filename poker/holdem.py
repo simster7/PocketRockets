@@ -72,7 +72,7 @@ def boat_check(hand):
 def flush_check(hand):
     suits = [card.s_id for card in hand]
     frequencies = [s_id for s_id in set(suits) if suits.count(s_id) >= 5] 
-    hit = len(frequencies) >= 1 
+    hit = len(frequencies) == 1 
     if not hit:
         return hit, None
     suit = frequencies[0]
@@ -87,19 +87,15 @@ def trip_check(hand):
     values = [card.v_id for card in hand]
     frequencies = [v_id for v_id in set(values) if values.count(v_id) >= 3]
     hit = len(frequencies) > 0
-    trip = frequencies[0]
+    trip = max(frequencies)
     remaining = sorted(list(set(values) - {trip}))
     kicker1 = remaining.pop() 
     kicker2 = remaining.pop()
     return hit, (trip, kicker1, kicker2)
 
 def two_pair_check(hand):
-    #TODO
-    return False, None 
-
-def pair_check(hand):
     values = [card.v_id for card in hand]
-    frequencies = [v_id for v_id in set(values) if values.count(v_id) >= 2]
+    frequencies = sorted([v_id for v_id in set(values) if values.count(v_id) >= 2], lambda x: -x)
     hit = len(frequencies) >= 2
     if not hit:
         return hit, None
@@ -108,6 +104,17 @@ def pair_check(hand):
     remaining = sorted(list(set(values) - {pair1, pair2}))
     kicker = remaining.pop()
     return hit, (pair1, pair2, kicker)
+
+def pair_check(hand):
+    values = [card.v_id for card in hand]
+    frequencies = [v_id for v_id in set(values) if values.count(v_id) >= 2]
+    hit = len(frequencies) >= 1 
+    if not hit:
+        return hit, None
+    pair = max(frequencies)
+    remaining = sorted(list(set(values) - {pair}))
+    kickers = [remaining.pop(), remaining.pop(), remaining.pop()]
+    return hit, (pair1, pair2, *kickers)
 
 def high_card_check(hand):
     values = tuple(sorted(list(set([card.v_id for card in hand])), lambda x: -x))
