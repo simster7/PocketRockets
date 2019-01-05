@@ -87,6 +87,8 @@ def trip_check(hand):
     values = [card.v_id for card in hand]
     frequencies = [v_id for v_id in set(values) if values.count(v_id) >= 3]
     hit = len(frequencies) > 0
+    if not hit:
+        return hit, None
     trip = max(frequencies)
     remaining = sorted(list(set(values) - {trip}))
     kicker1 = remaining.pop() 
@@ -95,7 +97,7 @@ def trip_check(hand):
 
 def two_pair_check(hand):
     values = [card.v_id for card in hand]
-    frequencies = sorted([v_id for v_id in set(values) if values.count(v_id) >= 2], lambda x: -x)
+    frequencies = sorted([v_id for v_id in set(values) if values.count(v_id) >= 2], key=lambda x: -x)
     hit = len(frequencies) >= 2
     if not hit:
         return hit, None
@@ -117,7 +119,7 @@ def pair_check(hand):
     return hit, (pair1, pair2, *kickers)
 
 def high_card_check(hand):
-    values = tuple(sorted(list(set([card.v_id for card in hand])), lambda x: -x))
+    values = tuple(sorted(list(set([card.v_id for card in hand])), key=lambda x: -x))
     return True, values[:5]
 
 HAND_CHECKS = [straight_flush_check, quad_check, boat_check, flush_check, straight_check,
