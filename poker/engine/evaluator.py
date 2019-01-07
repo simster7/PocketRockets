@@ -3,51 +3,65 @@ if __name__ == '__main__':
 else:
     from .card import Card
 
-def straight_flush_check(hand):
-    suits = [card.s_id for card in hand]
+def check_straight_flush(hand):
+    """
+    Returns True if the hand conatins a straight flush.
+    Returns composition of four of a kind for tie-breaking, it is structured as ([rank id])
+    """
+    suits = [card.suit_id for card in hand]
     frequencies = [s_id for s_id in set(suits) if suits.count(s_id) >= 5] 
-    flush_hit = len(frequencies) == 1 
-    if not flush_hit:
-        return flush_hit, None
+    if not len(frequencies) == 1:
+        print(frequencies)
+        return False, None
     suit = frequencies[0]
-    cards = [card for card in hand if card.s_id == suit]
-    return straight_check(cards)
+    cards = [card for card in hand if card.suit_id == suit]
+    print(cards)
+    return check_straight(cards)
 
-def quad_check(hand):
-    values = [card.rank for card in hand]
+def check_four_of_a_kind(hand):
+    """
+    Returns True if the hand conatins a four of a kind, hand could be better than a four of a kind and check_four_of_a_kind would still return true.
+    Returns composition of four of a kind for tie-breaking, it is structured as ([rank id])
+    """
+    values = [card.rank_id for card in hand]
     frequencies = [v_id for v_id in set(values) if values.count(v_id) == 4]
-    hit = len(frequencies) == 1 
-    if not hit:
+    if not len(frequencies) == 1:
         return False, None
-    return hit, (frequencies[0])
+    return True, (frequencies[0])
 
-def boat_check(hand):
-    values = [card.rank for card in hand]
-    trips = [v_id for v_id in set(values) if values.count(v_id) >= 3]
-    if not trips:
-        return False, None
-    top_trip = max(trips)
-    pairs = [v_id for v_id in set(values) if values.count(v_id) >= 2 and v_id != top_trip]
-    if not pairs:
-        return False, None
-    top_pair = max(pairs)
-    return True, (top_trip, top_pair)
+def check_full_house(hand):
+    """
+    Returns True if the hand conatins a full house, hand could be better than a full house and check_full_house would still return true.
+    Returns composition of full house for tie-breaking, it is structured as ([trip rank id], [pair rank id])
+    """
+    trip_check = check_three_of_a_kind(hand)
+    pair_check = check_pair(hand)
+    if trip_check[0] and pair_check[0]:
+        return True, (trip_check[1][0], pair_check[1][0])
+    if trip_check[0]:
+        new_hand = [card for card in hand if card.rank_id != trip_check[1][0]]
+        second_trip_check = check_three_of_a_kind(new_hand)
+        if second_trip_check[0]:
+            return True, (trip_check[1][0], second_trip_check[1][0])
+    return False, None
 
-def flush_check(hand):
-    suits = [card.suit for card in hand]
+def check_flush(hand):
+    """
+    Returns True if the hand conatins a flush, hand could be better than a flush and check_flush would still return true.
+    Returns high card for tie-breaking, it is structured as ([high card rank id],)
+    """
+    suits = [card.suit_id for card in hand]
     frequencies = [s_id for s_id in set(suits) if suits.count(s_id) >= 5] 
-    hit = len(frequencies) == 1 
-    if not hit:
-        return hit, None
+    if not len(frequencies) == 1:
+        return False, None
     suit = frequencies[0]
-    order = sorted(hand, lambda x: -x)
-    return hit, (card.rank for card in order if card.suit == suit)[:5]
+    ordered_flush = sorted([card.rank_id for card in hand if card.suit_id == suit], key=lambda x: -x)
+    return True, (ordered_flush[0],)
 
 def check_straight(hand):
     """
     Returns True if the hand conatins a straight, hand could be better than a straight and check_straight would still return true.
     Returns high card for tie-breaking, it is structured as ([high card rank id],)
-    If hand is actually better than a three of a kind, this function returns undefined behavior.
     """
     values = sorted(list(set([card.rank_id for card in hand])), key=lambda x: -x)
     if len(values) <  5:

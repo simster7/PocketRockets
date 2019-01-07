@@ -215,3 +215,143 @@ class TestCheckStraight:
             pair_hand = hand_generator(' '.join([RANK_MAP[card % 13] + 'S' for card in range(start, start + 5)]))
             result = check_straight(pair_hand)
             assert result == (False, None)
+
+class TestCheckFlush:
+    """
+    check_flush
+    """
+
+    def test_check_flush(self):
+        """
+        Flush check works correctly
+        """
+        pair_hand = hand_generator('JS 3S TS 5S 6S')
+        result = check_flush(pair_hand)
+        assert result == (True, (9,))
+
+    def test_check_flush_with_seven(self):
+        """
+        Flush check works correctly with seven cards, gets high card correctly
+        """
+        pair_hand = hand_generator('JS 3S TS 5S 6S AS 8C')
+        result = check_flush(pair_hand)
+        assert result == (True, (12,))
+
+    def test_check_flush_with_no_flush(self):
+        """
+        Flush not detected when there is no flush
+        """
+        pair_hand = hand_generator('JS 3S TS 5S 6C AC 8C')
+        result = check_flush(pair_hand)
+        assert result == (False, None)
+
+class TestCheckFullHouse:
+    """
+    check_full_house
+    """
+
+    def test_check_full_house(self):
+        """
+        Full house check works correctly
+        """
+        pair_hand = hand_generator('JS JC JD 6C 6S')
+        result = check_full_house(pair_hand)
+        assert result == (True, (9, 4))
+
+    def test_check_full_house_seven(self):
+        """
+        Full house check works correctly with seven cards
+        """
+        pair_hand = hand_generator('AS AC AD 6C 6S 2S KC')
+        result = check_full_house(pair_hand)
+        assert result == (True, (12, 4))
+
+    def test_check_full_house_seven_two_trip(self):
+        """
+        Full house check works correctly with seven cards and two three of a kinds
+        """
+        pair_hand = hand_generator('JS JC JD 6C 6S 6D KC')
+        result = check_full_house(pair_hand)
+        assert result == (True, (9, 4))
+
+    def test_check_full_house_seven_two_pair(self):
+        """
+        No full house when there is no full house
+        """
+        pair_hand = hand_generator('JS JC KD 6C 6S 5D KC')
+        result = check_full_house(pair_hand)
+        assert result == (False, None)
+
+class TestCheckFourOfAKind:
+    """
+    check_four_of_a_kind
+    """
+
+    def test_check_four_of_a_kind(self):
+        """
+        Four of a kind check works correctly
+        """
+        pair_hand = hand_generator('JS JC JD JH AS')
+        result = check_four_of_a_kind(pair_hand)
+        assert result == (True, (9))
+
+    def test_check_four_of_a_kind_with_seven(self):
+        """
+        Four of a kind check works correctly with seven cards
+        """
+        pair_hand = hand_generator('2S 2C 2D 2H AS KC 7C')
+        result = check_four_of_a_kind(pair_hand)
+        assert result == (True, (0))
+
+    def test_check_four_of_a_kind_with_seven_and_trips(self):
+        """
+        Four of a kind check works correctly with seven cards and extra trips
+        """
+        pair_hand = hand_generator('5S 5C 5D 5H AS AC AH')
+        result = check_four_of_a_kind(pair_hand)
+        assert result == (True, (3))
+
+    def test_check_four_of_a_kind_with_seven_no_four(self):
+        """
+        No four of a kind when there is none
+        """
+        pair_hand = hand_generator('JS JC JD 6C 6S 6D KC')
+        result = check_four_of_a_kind(pair_hand)
+        assert result == (False, None)
+
+class TestStraightFlush:
+    """
+    check_straight_flush
+    """
+
+    def test_check_straight_flush(self):
+        """
+        Straight flush check works correctly
+        """
+        pair_hand = hand_generator('4S 5S 6S 7S 8S')
+        result = check_straight_flush(pair_hand)
+        assert result == (True, (6,))
+
+    def test_check_straight_flush_seven(self):
+        """
+        Straight flush check works correctly even with seven cards
+        """
+        pair_hand = hand_generator('7S 8S 9S TS JS AH TC')
+        result = check_straight_flush(pair_hand)
+        assert result == (True, (9,))
+
+    def test_check_straight_flush_seven_no_flush(self):
+        """
+        No straight flush if there is no flush
+        """
+        pair_hand = hand_generator('7S 8S 9H TS JS AH TC')
+        result = check_straight_flush(pair_hand)
+        assert result == (False, None)
+
+    def test_check_straight_flush_seven_no_straight(self):
+        """
+        No straight flush if there is no straight
+        """
+        pair_hand = hand_generator('6S 8S 9S TS JS AH TC')
+        result = check_straight_flush(pair_hand)
+        assert result == (False, None)
