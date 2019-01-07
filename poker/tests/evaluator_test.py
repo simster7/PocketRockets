@@ -64,7 +64,6 @@ class TestCheckTwoPair:
         """
         pair_hand = hand_generator('8S 8H TH TD 4C')
         result = check_two_pair(pair_hand)
-        print(result)
         assert result == (True, (8, 6, 2))
 
     def test_two_pair_correct_with_seven(self):
@@ -73,7 +72,6 @@ class TestCheckTwoPair:
         """
         pair_hand = hand_generator('8S 8H TH TD 4C 6C 9S')
         result = check_two_pair(pair_hand)
-        print(result)
         assert result == (True, (8, 6, 7))
 
     def test_two_pair_correct_with_seven_and_three_fair(self):
@@ -82,7 +80,6 @@ class TestCheckTwoPair:
         """
         pair_hand = hand_generator('8S 8H TH TD 9C 9S 6C')
         result = check_two_pair(pair_hand)
-        print(result)
         assert result == (True, (8, 7, 6))
 
     def test_no_pair_not_evaluated(self):
@@ -91,7 +88,6 @@ class TestCheckTwoPair:
         """
         pair_hand = hand_generator('8S 7H KH TD QC 2S 4H')
         result = check_two_pair(pair_hand)
-        print(result)
         assert result == (False, None)
 
     def test_no_pair_not_evaluated_with_pair(self):
@@ -100,7 +96,6 @@ class TestCheckTwoPair:
         """
         pair_hand = hand_generator('8S 8H KH TD QC 2S 4H')
         result = check_two_pair(pair_hand)
-        print(result)
         assert result == (False, None)
 
 class TestCheckThreeOfAKind:
@@ -114,7 +109,6 @@ class TestCheckThreeOfAKind:
         """
         pair_hand = hand_generator('8S 8H 8C TD 4C')
         result = check_three_of_a_kind(pair_hand)
-        print(result)
         assert result == (True, (6, 8, 2))
 
     def test_three_of_a_kind_correct_with_seven(self):
@@ -123,7 +117,6 @@ class TestCheckThreeOfAKind:
         """
         pair_hand = hand_generator('8S 8H 8C TD 4C JC 2S')
         result = check_three_of_a_kind(pair_hand)
-        print(result)
         assert result == (True, (6, 9, 8))
 
     def test_no_three_of_a_kind_evaluated_with_seven(self):
@@ -141,7 +134,6 @@ class TestCheckThreeOfAKind:
         """
         pair_hand = hand_generator('8S 8H 8C TD TC JC 2S')
         result = check_three_of_a_kind(pair_hand)
-        print(result)
         assert result == (True, (6, 9, 8))
 
     def test_three_of_a_kind_correct_with_seven_and_three(self):
@@ -151,7 +143,6 @@ class TestCheckThreeOfAKind:
         """
         pair_hand = hand_generator('8S 8H 8C TD TC TS 2S')
         result = check_three_of_a_kind(pair_hand)
-        print(result)
         assert result == (True, (8, 0))
 
 class TestCheckStraight:

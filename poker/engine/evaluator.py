@@ -11,11 +11,9 @@ def check_straight_flush(hand):
     suits = [card.suit_id for card in hand]
     frequencies = [s_id for s_id in set(suits) if suits.count(s_id) >= 5] 
     if not len(frequencies) == 1:
-        print(frequencies)
         return False, None
     suit = frequencies[0]
     cards = [card for card in hand if card.suit_id == suit]
-    print(cards)
     return check_straight(cards)
 
 def check_four_of_a_kind(hand):
@@ -70,7 +68,6 @@ def check_straight(hand):
         values.append(-1)
     for i in range(len(values) - 4):
         constraints = all([(values[j] - values[j+1] == 1) for j in range(i, i+4)])
-        print(constraints, i, values)
         if constraints:
             return True, (values[i],)
 
