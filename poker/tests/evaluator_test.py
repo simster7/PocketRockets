@@ -265,6 +265,14 @@ class TestCheckFullHouse:
         result = check_full_house(pair_hand)
         assert result == (True, (9, 4))
 
+    def test_check_full_house_seven_two_trip_order_agnostic(self):
+        """
+        Full house check works correctly with seven cards and two three of a kinds, order agnostic
+        """
+        pair_hand = hand_generator('6C 6S 6D JS JC JD KC')
+        result = check_full_house(pair_hand)
+        assert result == (True, (9, 4))
+
     def test_check_full_house_seven_two_pair(self):
         """
         No full house when there is no full house
