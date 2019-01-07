@@ -218,7 +218,7 @@ class TestCheckFlush:
         """
         pair_hand = hand_generator('JS 3S TS 5S 6S')
         result = check_flush(pair_hand)
-        assert result == (True, (9,))
+        assert result == (True, (9, 8, 4, 3, 1))
 
     def test_check_flush_with_seven(self):
         """
@@ -226,7 +226,7 @@ class TestCheckFlush:
         """
         pair_hand = hand_generator('JS 3S TS 5S 6S AS 8C')
         result = check_flush(pair_hand)
-        assert result == (True, (12,))
+        assert result == (True, (12, 9, 8, 4, 3))
 
     def test_check_flush_with_no_flush(self):
         """

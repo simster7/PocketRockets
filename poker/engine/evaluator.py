@@ -53,15 +53,15 @@ def check_flush(hand):
     if not len(frequencies) == 1:
         return False, None
     suit = frequencies[0]
-    ordered_flush = sorted([card.rank_id for card in hand if card.suit_id == suit], key=lambda x: -x)
-    return True, (ordered_flush[0],)
+    ordered_flush = sorted([card.rank_id for card in hand if card.suit_id == suit], reverse=True)[:5]
+    return True, tuple(ordered_flush)
 
 def check_straight(hand):
     """
     Returns True if the hand conatins a straight, hand could be better than a straight and check_straight would still return true.
     Returns high card for tie-breaking, it is structured as ([high card rank id],)
     """
-    values = sorted(list(set([card.rank_id for card in hand])), key=lambda x: -x)
+    values = sorted(list(set([card.rank_id for card in hand])), reverse=True)
     if len(values) <  5:
         return False, None
     if 12 in values:
@@ -80,11 +80,11 @@ def check_three_of_a_kind(hand):
     If hand is actually better than a three of a kind, this function returns undefined behavior.
     """
     values = [card.rank_id for card in hand]
-    frequencies = sorted([v_id for v_id in set(values) if values.count(v_id) == 3], key=lambda x: -x)
+    frequencies = sorted([v_id for v_id in set(values) if values.count(v_id) == 3], reverse=True)
     if not len(frequencies) >= 1:
         return False, None
     trip = frequencies[0]
-    remaining = sorted([value for value in values if value not in frequencies], key=lambda x: -x)[:2]
+    remaining = sorted([value for value in values if value not in frequencies], reverse=True)[:2]
     return True, (trip, *remaining)
 
 def check_two_pair(hand):
@@ -94,12 +94,12 @@ def check_two_pair(hand):
     If hand is actually better than two pair, this function returns undefined behavior.
     """
     values = [card.rank_id for card in hand]
-    frequencies = sorted([v_id for v_id in set(values) if values.count(v_id) == 2], key=lambda x: -x)
+    frequencies = sorted([v_id for v_id in set(values) if values.count(v_id) == 2], reverse=True)
     if not len(frequencies) >= 2:
         return False, None
     pair1 = frequencies[0]
     pair2 = frequencies[1]
-    remaining = sorted([value for value in values if value not in [pair1, pair2]], key=lambda x: -x)[:1]
+    remaining = sorted([value for value in values if value not in [pair1, pair2]], reverse=True)[:1]
     return True, (pair1, pair2, remaining[0])
 
 def check_pair(hand):
@@ -112,14 +112,14 @@ def check_pair(hand):
     if not len(frequencies) == 1:
         return False, None
     pair = frequencies[0]
-    remaining = sorted([value for value in values if value != pair], key=lambda x: -x)[:3]
+    remaining = sorted([value for value in values if value != pair], reverse=True)[:3]
     return True, (pair, *remaining)
 
 def check_high_card(hand):
     """
     Always returns True, because hand is always at least high card good. Returns ordered cards for tie-breaking
     """
-    values = sorted([card.rank_id for card in hand], key=lambda x: -x)
+    values = sorted([card.rank_id for card in hand], reverse=True)
     return True, values[:5]
 
 
