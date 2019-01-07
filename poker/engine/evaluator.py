@@ -25,7 +25,7 @@ def check_four_of_a_kind(hand):
     frequencies = [v_id for v_id in set(values) if values.count(v_id) == 4]
     if not len(frequencies) == 1:
         return False, None
-    return True, (frequencies[0])
+    return True, (frequencies[0],)
 
 def check_full_house(hand):
     """

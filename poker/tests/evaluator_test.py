@@ -292,7 +292,7 @@ class TestCheckFourOfAKind:
         """
         pair_hand = hand_generator('JS JC JD JH AS')
         result = check_four_of_a_kind(pair_hand)
-        assert result == (True, (9))
+        assert result == (True, (9,))
 
     def test_check_four_of_a_kind_with_seven(self):
         """
@@ -300,7 +300,7 @@ class TestCheckFourOfAKind:
         """
         pair_hand = hand_generator('2S 2C 2D 2H AS KC 7C')
         result = check_four_of_a_kind(pair_hand)
-        assert result == (True, (0))
+        assert result == (True, (0,))
 
     def test_check_four_of_a_kind_with_seven_and_trips(self):
         """
@@ -308,7 +308,7 @@ class TestCheckFourOfAKind:
         """
         pair_hand = hand_generator('5S 5C 5D 5H AS AC AH')
         result = check_four_of_a_kind(pair_hand)
-        assert result == (True, (3))
+        assert result == (True, (3,))
 
     def test_check_four_of_a_kind_with_seven_no_four(self):
         """
