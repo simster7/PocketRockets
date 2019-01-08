@@ -108,7 +108,7 @@ def check_pair(hand):
     Returns remaining cards for tie-breaking, it is structured as ([pair rank id], *[sorted kicker rank ids])
     """
     values = [card.rank_id for card in hand]
-    frequencies = [v_id for v_id in set(values) if values.count(v_id) == 2]
+    frequencies = [rank_id for rank_id in set(values) if values.count(rank_id) == 2]
     if not len(frequencies) == 1:
         return False, None
     pair = frequencies[0]
