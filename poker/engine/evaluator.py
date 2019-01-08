@@ -108,7 +108,7 @@ def check_pair(hand):
     Returns remaining cards for tie-breaking, it is structured as ([pair rank id], *[sorted kicker rank ids])
     """
     values = [card.rank_id for card in hand]
-    frequencies = [v_id for v_id in set(values) if values.count(v_id) == 2]
+    frequencies = [rank_id for rank_id in set(values) if values.count(rank_id) == 2]
     if not len(frequencies) == 1:
         return False, None
     pair = frequencies[0]
@@ -123,12 +123,21 @@ def check_high_card(hand):
     return True, values[:5]
 
 
-# HAND_CHECKS = [straight_flush_check, quad_check, boat_check, flush_check, straight_check,
-#                trip_check, two_pair_check, check_pair, high_card_check]
+HAND_CHECKS = [ check_straight_flush,   # 9
+                check_four_of_a_kind,   # 8
+                check_full_house,       # 7
+                check_flush,            # 6
+                check_straight,         # 5
+                check_three_of_a_kind,  # 4
+                check_two_pair,         # 3
+                check_pair,             # 2
+                check_high_card         # 1
+            ]
 
-# def calculate_hand(hand):
-#     for index, check in enumerate(HAND_CHECKS):
-#         hit, state = check(hand)
-#         if hit:
-#             score = len(HAND_CHECKS) - index
-#             return (score, *state)
+def calculate_hand(hand):
+    POSSIBLE_HANDS = len(HAND_CHECKS)
+    for index, check in enumerate(HAND_CHECKS):
+        hit, state = check(hand)
+        if hit:
+            score = POSSIBLE_HANDS - index
+            return (score, *state)

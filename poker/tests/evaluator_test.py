@@ -354,3 +354,26 @@ class TestStraightFlush:
         pair_hand = hand_generator('6S 8S 9S TS JS AH TC')
         result = check_straight_flush(pair_hand)
         assert result == (False, None)
+
+class TestHandEvaluator:
+    """
+    Test hand evaluator
+    """
+    def test_hand_calculator(self):
+        """
+        Test hand calculator
+        """
+        BOARD = '9S TS JS AH AC'
+        flush_aj = calculate_hand(hand_generator('6S 8S ' + BOARD))
+        assert flush_aj == (6, 9, 8, 7, 6, 4)
+        flush_ak = calculate_hand(hand_generator('KS 8S ' + BOARD))
+        assert flush_ak == (6, 11, 9, 8, 7, 6)
+        assert flush_ak > flush_aj
+        boat_at = calculate_hand(hand_generator('AS TH ' + BOARD))
+        assert boat_at == (7, 12, 8)
+        straight_a = calculate_hand(hand_generator('QS KH ' + BOARD))
+        assert straight_a == (5, 12)
+
+        # HANDS = [hand_generator('6S 8S ' + BOARD), hand_generator('KS 8S ' + BOARD), hand_generator('AS TH ' + BOARD), hand_generator('QS KH ' + BOARD)]
+        # print(sorted(HANDS, key=calculate_hand, reverse=True))
+        # assert False
