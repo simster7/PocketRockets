@@ -1,5 +1,6 @@
 from player import Player
 from card import Card
+from enum import Enum
 
 from random import shuffle
 
@@ -8,9 +9,9 @@ ACTIONS = Enum('Actions', 'none check fold bet')
 class Action:
 
     def __init__(self, action, value = None):
-        self.action = ACTION[action]
+        self.action = action 
 
-        if self.action = ACTION.bet and value == None:
+        if self.action == ACTIONS.bet and value == None:
             raise Exception("A bet value is requiered when betting")
 
         self.value = value
@@ -34,21 +35,35 @@ class Action:
             else:
                 return False
 
+    def __eq__(self, other):
+        if self.action != other.action:
+            return False
+        else:
+            if self.action == ACTIONS.bet:
+                return self.value == other.value
+            return True
+    
+    def __str__(self):
+        return self.action.name if self.action != ACTIONS.bet else self.action.name + " " + str(self.value)
 
-def prompt(player):
+
+def prompt(player, bet_round, lead_action, lead_player):
+    print("Current round: {}".format(bet_round))
+    print("Lead action: {}: {}".format(lead_player.name, lead_action))
     print("Acting as player {}".format(player.name))
     print("""
         F - Fold
         C - Check
         [Number] - Bet [Number] (currently, use this to call, bet, and raise)
     """)
-    action = input("Enter action")
-    if action == "F":
-        return Action(ACTIONS.fold)
-    elif action == "C":
-        return Action(ACTIONS.check)
-    elif action.replace('.','',1).isdigit():
-        return Action(ACTIONS.bet, float(action))
+    while True:
+        action = input("Enter action: ")
+        if action == "F":
+            return Action(ACTIONS.fold), False
+        elif action == "C":
+            return Action(ACTIONS.check), True
+        elif action.replace('.','',1).isdigit():
+            return Action(ACTIONS.bet, float(action)), True
 
 class Game:
 
@@ -73,7 +88,6 @@ class Game:
         shuffle(deck) # TODO: replace this with more e n t r o p y
 
         # Deal cards
-        print(deck)
         for i, player in enumerate(players):
             player_hole_cards = [deck[i], deck[i + num_players]]
             player.recieve_cards(player_hole_cards)
@@ -84,12 +98,23 @@ class Game:
                 acting_player = 2 % num_players
                 lead_player = 1
             else:
-                round_bets = [Action(ACTIONS.none)] * num_players
+                round_bets = [Action(ACTIONS.none) if old_action != Action(ACTIONS.fold) else old_action for old_action in round_bets]
                 acting_player = 0
                 lead_player = 0
 
             while any(map(lambda x: x.requires_action(round_bets[lead_player]), round_bets)):
-                players[acting_player] = prompt(players[acting_player])
+                if not round_bets[acting_player].requires_action(round_bets[lead_player]):
+                    acting_player = (acting_player + 1) % num_players
+
+                round_bets[acting_player], takes_lead = prompt(players[acting_player],
+                                                               bet_round,
+                                                               round_bets[lead_player],
+                                                               players[lead_player])
+                if takes_lead:
+                    lead_player = acting_player
+
+                acting_player = (acting_player + 1) % num_players
+
 
 
 
