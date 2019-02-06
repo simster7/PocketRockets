@@ -4,47 +4,23 @@ from enum import Enum
 
 from random import shuffle
 
-ACTIONS = Enum('Actions', 'none check fold bet')
+class GameState:
+    def __init__(self, players, big_blind, small_blind, deck):
+        self.players = players
+        self.bet_vector = [small_blind, big_blind] + [0] * (len(players) - 2)
+        self.pot = 0
+        self.acting_player = 2 % len(plyaers)
+        self.leading_player = 1
+        self.deck = []
+        self.round = 0
 
-class Action:
+    def is_round_over(self):
+        return self.acting_player == self.leading_player
 
-    def __init__(self, action, value = None):
-        self.action = action 
+    def get_player_cards(self, player_index):
+        return [deck[i], deck[i + len(players)]]
 
-        if self.action == ACTIONS.bet and value == None:
-            raise Exception("A bet value is requiered when betting")
-
-        self.value = value
-
-    def requires_action(self, lead_action):
-        if self.action == ACTIONS.none:
-            return True
-
-        if self.action == ACTIONS.fold:
-            return False
-
-        if lead_action.action == ACTIONS.check:
-            if self.action == ACTIONS.check:
-                return False
-
-        if lead_action.action == ACTIONS.bet:
-            if self.action != ACTIONS.bet:
-                return True
-            if lead_action.value != self.value:
-                return True
-            else:
-                return False
-
-    def __eq__(self, other):
-        if self.action != other.action:
-            return False
-        else:
-            if self.action == ACTIONS.bet:
-                return self.value == other.value
-            return True
-    
-    def __str__(self):
-        return self.action.name if self.action != ACTIONS.bet else self.action.name + " " + str(self.value)
+    def next(self, action):
 
 
 
@@ -83,27 +59,13 @@ class Game:
 
     def deal_hand(self):
         players = [player for player in self.seats if player != None]
-        # TODO: shift players for button
-        num_players = len(players)
         deck = [Card(i) for i in range(52)]
         shuffle(deck) # TODO: replace this with more e n t r o p y
 
-        # Deal cards
-        for i, player in enumerate(players):
-            player_hole_cards = [deck[i], deck[i + num_players]]
-            player.recieve_cards(player_hole_cards)
+        game_state = GameState(players, big_blind_amount, small_blind_amount, deck)
 
         for bet_round in ["PRE", "FLOP", "TURN", "RIVER"]:
-            if bet_round == "PRE":
-                round_bets = [Action(ACTIONS.bet, self.small_blind), Action(ACTIONS.bet, self.big_blind)] + ([Action(ACTIONS.none)] * (num_players - 2))
-                acting_player = 2 % num_players
-                lead_player = 1
-            else:
-                round_bets = [Action(ACTIONS.none) if old_action != Action(ACTIONS.fold) else old_action for old_action in round_bets]
-                acting_player = 0
-                lead_player = 0
-
-            while any(map(lambda x: x.requires_action(round_bets[lead_player]), round_bets)):
+            while not game_state.is_round_over():
                 if not round_bets[acting_player].requires_action(round_bets[lead_player]):
                     acting_player = (acting_player + 1) % num_players
                     continue
