@@ -47,6 +47,7 @@ class Action:
         return self.action.name if self.action != ACTIONS.bet else self.action.name + " " + str(self.value)
 
 
+
 def prompt(player, bet_round, lead_action, lead_player):
     print("Current round: {}".format(bet_round))
     print("Lead action: {}: {}".format(lead_player.name, lead_action))
@@ -105,6 +106,7 @@ class Game:
             while any(map(lambda x: x.requires_action(round_bets[lead_player]), round_bets)):
                 if not round_bets[acting_player].requires_action(round_bets[lead_player]):
                     acting_player = (acting_player + 1) % num_players
+                    continue
 
                 round_bets[acting_player], takes_lead = prompt(players[acting_player],
                                                                bet_round,
