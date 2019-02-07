@@ -74,6 +74,9 @@ class GameState:
             cards.extend([self.deck[2 * num_players + 7]])
         return cards
 
+    def get_acting_index(self):
+        return self.acting_player
+
     def get_acting_player(self):
         return self.players[self.acting_player]
 
@@ -102,6 +105,7 @@ class GameState:
             showdown_hands = [(player_index, self.get_player_cards(player_index) + self.get_community_cards()) for player_index in showdown]
             ranked_hands = rank_hands(showdown_hands)
             winner = self.players[ranked_hands[0].player_index]
+            winner.recieve_pot(self.pot)
             winner_hand = ranked_hands[0].hand_name
             print(winner.name, "won with a", winner_hand)
             print("Other showdown hands:", ", ".join([self.players[r_hand.player_index].name + " had a " + r_hand.hand_name for r_hand in ranked_hands[1:]]))
@@ -143,10 +147,14 @@ class GameState:
             self.move_acting_player()
             return GameState(self)
         if action.action == actions.bet:
+            lead_action = self.get_lead_action()
+            to_call = 0
+            if lead_action.action == actions.bet:
+                to_call = max(lead_action.value - self.bet_vector[self.acting_player], 0)
             if self.players[self.acting_player].stack < action.value:
                 raise Exception("Illegal game state: player doesn\'t have enough chips to make that bet")
-            self.players[self.acting_player].make_bet(action.value)
-            self.bet_vector[self.acting_player] = action.value
+            self.players[self.acting_player].make_bet(action.value + to_call)
+            self.bet_vector[self.acting_player] += action.value + to_call
             self.leading_player = self.acting_player
             self.move_acting_player()
             return GameState(self)
@@ -167,13 +175,14 @@ def prompt(game_state):
     print()
     print("Current round: {}".format(bet_round))
     print("Lead action: {}: {}".format(lead_player.name, lead_action))
-    print("Acting as player {}".format(player.name))
+    print("Acting as player: {}".format(player.name))
+    print("With hand: {}".format(game_state.get_player_cards(game_state.get_acting_index())))
     print("""
         F - Fold
         C - Check
         L - Call
-        [Number] - Bet [Number] (currently, use this to call, bet, and raise)
-    """)
+        [Number] - {} 
+    """.format("Call {} and raise [Number]".format(lead_action.value) if lead_action.action == actions.bet else "Bet [Number]"))
     while True:
         action = input("Enter action: ")
         if action == "F":
@@ -216,8 +225,11 @@ class Game:
 
 
 game = Game(1, 2)
-game.sit_player(Player("Simon", 20), 0)
-game.sit_player(Player("Hersh", 20), 1)
-game.sit_player(Player("Chien", 20), 2)
-game.sit_player(Player("Jarry", 20), 3)
-game.deal_hand()
+game.sit_player(Player("Simon", 100), 0)
+game.sit_player(Player("Hersh", 100), 1)
+game.sit_player(Player("Chien", 100), 2)
+game.sit_player(Player("Jarry", 100), 3)
+game.sit_player(Player("Grace", 100), 6)
+game.sit_player(Player("Jason", 100), 7)
+while True:
+    game.deal_hand()
