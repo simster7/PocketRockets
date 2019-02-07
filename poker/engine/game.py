@@ -114,7 +114,7 @@ class GameState:
         if self.is_round_over():
             self.acting_player = 0
             self.leading_player = 0
-            while self.fold_vector[self.acting_player] and not self.is_round_over():
+            while self.fold_vector[self.acting_player]:
                 self.acting_player = (self.acting_player + 1) % len(self.players)
                 self.leading_player = self.acting_player
             self.pot += sum(self.bet_vector)
@@ -216,8 +216,8 @@ class Game:
 
 
 game = Game(1, 2)
-game.sit_player(Player("simon", 20), 0)
-game.sit_player(Player("hersh", 20), 1)
-game.sit_player(Player("chien", 20), 2)
-game.sit_player(Player("jarry", 20), 3)
+game.sit_player(Player("Simon", 20), 0)
+game.sit_player(Player("Hersh", 20), 1)
+game.sit_player(Player("Chien", 20), 2)
+game.sit_player(Player("Jarry", 20), 3)
 game.deal_hand()
