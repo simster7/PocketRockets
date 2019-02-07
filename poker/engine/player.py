@@ -32,7 +32,7 @@ class Player:
         return self.name
 
     def __str__(self):
-        return 'Player({}, {}, {})'.format(self.name, self.stack, self.hand)
+        return 'Player({}, {})'.format(self.name, self.stack)
 
     def __repr__(self):
         return str(self)
