@@ -1,6 +1,7 @@
 from player import Player
 from card import Card
 from enum import Enum
+from evaluator import rank_hands
 
 from random import shuffle
 
@@ -79,11 +80,32 @@ class GameState:
     def get_leading_player(self):
         return self.players[self.leading_player]
 
+    def get_pot(self):
+        return self.pot
+
     def get_lead_action(self):
         if self.bet_vector[self.leading_player] == 0:
             return Action(actions.check)
         else:
             return Action(actions.bet, self.bet_vector[self.leading_player])
+
+    def end_game(self):
+        print()
+        print("==== END OF HAND ====")
+        showdown = [i for i in range(len(self.players)) if not self.fold_vector[i]]
+        if sum(self.fold_vector) == len(self.players) - 1:
+            assert len(showdown) == 1, "Bug: more than one player left on a fold win condition"
+            winner = self.players[showdown[0]]
+            winner.recieve_pot(self.pot)
+            print(winner.name, "won due to folds")
+        else:
+            showdown_hands = [(player_index, self.get_player_cards(player_index) + self.get_community_cards()) for player_index in showdown]
+            ranked_hands = rank_hands(showdown_hands)
+            winner = self.players[ranked_hands[0].player_index]
+            winner_hand = ranked_hands[0].hand_name
+            print(winner.name, "won with a", winner_hand)
+            print("Other showdown hands:", ", ".join([self.players[r_hand.player_index].name + " had a " + r_hand.hand_name for r_hand in ranked_hands[1:]]))
+        return self
 
     def move_acting_player(self):
         self.acting_player = (self.acting_player + 1) % len(self.players)
@@ -92,9 +114,15 @@ class GameState:
         if self.is_round_over():
             self.acting_player = 0
             self.leading_player = 0
+            while self.fold_vector[self.acting_player] and not self.is_round_over():
+                self.acting_player = (self.acting_player + 1) % len(self.players)
+                self.leading_player = self.acting_player
             self.pot += sum(self.bet_vector)
             self.bet_vector = [0] * len(self.players)
             self.round += 1
+
+        if self.is_hand_over():
+            self.end_game()
 
     def take_action(self, action, action_param = None):
         if action.action == actions.fold:
@@ -103,20 +131,20 @@ class GameState:
             return GameState(self)
         if action.action == actions.check:
             if self.get_lead_action().action == actions.bet:
-                raise Exception('Illegal game state: player can\'t check when there is a bet')
+                raise Exception("Illegal game state: player can\'t check when there is a bet")
             self.move_acting_player()
             return GameState(self)
         if action.action == actions.call:
             to_call = self.bet_vector[self.leading_player] - self.bet_vector[self.acting_player]
             if self.players[self.acting_player].stack < to_call:
-                raise Exception('Illegal game state: player doesn\'t have enough chips to call')
+                raise Exception("Illegal game state: player doesn\'t have enough chips to call")
             self.players[self.acting_player].make_bet(to_call)
-            self.bet_vector[self.acting_player] = to_call
+            self.bet_vector[self.acting_player] += to_call
             self.move_acting_player()
             return GameState(self)
         if action.action == actions.bet:
             if self.players[self.acting_player].stack < action.value:
-                raise Exception('Illegal game state: player doesn\'t have enough chips to make that bet')
+                raise Exception("Illegal game state: player doesn\'t have enough chips to make that bet")
             self.players[self.acting_player].make_bet(action.value)
             self.bet_vector[self.acting_player] = action.value
             self.leading_player = self.acting_player
@@ -130,9 +158,13 @@ def prompt(game_state):
     bet_round = game_state.get_round()
     lead_action = game_state.get_lead_action()
     lead_player = game_state.get_leading_player()
+    print()
     print("Current players: {}".format(game_state.get_players()))
     print("Player hands: {}".format([game_state.get_player_cards(i) for i in range(len(game_state.players))]))
+    print()
     print("Community cards: {}".format(game_state.get_community_cards()))
+    print("Pot: {}".format(game_state.get_pot()))
+    print()
     print("Current round: {}".format(bet_round))
     print("Lead action: {}: {}".format(lead_player.name, lead_action))
     print("Acting as player {}".format(player.name))
@@ -189,4 +221,3 @@ game.sit_player(Player("hersh", 20), 1)
 game.sit_player(Player("chien", 20), 2)
 game.sit_player(Player("jarry", 20), 3)
 game.deal_hand()
-print(game.seats)
