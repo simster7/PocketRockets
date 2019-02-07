@@ -1,7 +1,5 @@
-if __name__ == '__main__':
-    from card import Card
-else:
-    from .card import Card
+from card import Card
+from util import hand_generator
 
 def check_straight_flush(hand):
     """
@@ -123,12 +121,50 @@ def check_high_card(hand):
     return True, values[:5]
 
 
-# HAND_CHECKS = [straight_flush_check, quad_check, boat_check, flush_check, straight_check,
-#                trip_check, two_pair_check, check_pair, high_card_check]
+HAND_CHECKS = [ check_straight_flush,   # 9
+                check_four_of_a_kind,   # 8
+                check_full_house,       # 7
+                check_flush,            # 6
+                check_straight,         # 5
+                check_three_of_a_kind,  # 4
+                check_two_pair,         # 3
+                check_pair,             # 2
+                check_high_card         # 1
+            ]
 
-# def calculate_hand(hand):
-#     for index, check in enumerate(HAND_CHECKS):
-#         hit, state = check(hand)
-#         if hit:
-#             score = len(HAND_CHECKS) - index
-#             return (score, *state)
+HAND_NAMES = {
+        9: "Straight Flush",
+        8: "Four Of A Kind",
+        7: "Full House",
+        6: "Flush",
+        5: "Straight",
+        4: "Three Of A Kind",
+        3: "Two Pair",
+        2: "Pair",
+        1: "High Card"
+    }
+
+class RankedHand:
+    def __init__(self, hand, rank, player_index):
+        self.hand = hand
+        self.rank = rank
+        self.player_index = player_index
+        self.hand_name = HAND_NAMES[self.rank[0]]
+    def __str__(self):
+        return str(self.player_index) + ": " + self.hand_name + " (" + str(self.hand) + ")"
+    def __repr__(self):
+        return str(self)
+
+def calculate_hand(hand):
+    POSSIBLE_HANDS = len(HAND_CHECKS)
+    for index, check in enumerate(HAND_CHECKS):
+        hit, state = check(hand)
+        if hit:
+            score = POSSIBLE_HANDS - index
+            return (score, *state)
+
+def get_hand_rank_with_name(player_index, hand):
+    return RankedHand(hand, calculate_hand(hand), player_index)
+
+def rank_hands(list_of_hands):
+    return list(sorted(map(lambda pair: get_hand_rank_with_name(*pair), list_of_hands), key = lambda hand: hand.rank, reverse=True))
