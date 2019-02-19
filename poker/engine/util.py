@@ -1,4 +1,7 @@
-from card import Card
+if __name__ == '__main__':
+    from card import Card
+else:
+    from .card import Card
 
 def hand_generator(hand_string):
     card_strings = hand_string.split(' ')
