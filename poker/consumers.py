@@ -1,15 +1,18 @@
 # chat/consumers.py
 from channels.generic.websocket import WebsocketConsumer
 from channels.consumer import SyncConsumer
+from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from .manager import get_manager
 import json
-from .engine.game import Game
 
 class PokerConsumer(WebsocketConsumer):
+
     def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = 'room_%s' % self.room_name
-        print(self.scope)
+
+        self.manager = get_manager()
 
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
@@ -18,7 +21,6 @@ class PokerConsumer(WebsocketConsumer):
         )
 
         self.accept()
-        DealerConsumer().start(self.room_name)
 
     def disconnect(self, close_code):
         # Leave room group
@@ -47,16 +49,3 @@ class PokerConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({
             'message': message
         }))
-
-class DealerConsumer(SyncConsumer):
-    def start(self, room_name):
-        self.room_name = room_name
-        self.room_group_name = 'room_%s' % self.room_name
-
-        # Join room group
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name,
-            self.channel_name
-        )
-
-        self.accept()
