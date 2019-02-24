@@ -1,9 +1,5 @@
-if __name__ == '__main__':
-    from card import Card
-    from util import hand_generator
-else:
-    from .card import Card
-    from .util import hand_generator
+from .card import Card
+from .util import hand_generator
 
 def check_straight_flush(hand):
     """

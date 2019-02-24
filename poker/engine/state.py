@@ -1,4 +1,5 @@
 from enum import Enum
+from .evaluator import rank_hands
 
 
 class Action:

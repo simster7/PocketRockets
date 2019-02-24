@@ -1,7 +1,4 @@
-if __name__ == '__main__':
-    from hand import Hand
-else:
-    from .hand import Hand
+from .hand import Hand
 
 class Player:
 

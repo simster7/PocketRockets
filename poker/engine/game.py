@@ -1,13 +1,7 @@
-if __name__ == '__main__':
-    from player import Player
-    from card import Card
-    from evaluator import rank_hands
-    from state import GameState, Action
-else:
-    from .player import Player
-    from .card import Card
-    from .evaluator import rank_hands
-    from .state import GameState, Action
+from .player import Player
+from .card import Card
+from .evaluator import rank_hands
+from .state import GameState, Action
 
 from random import shuffle
 
