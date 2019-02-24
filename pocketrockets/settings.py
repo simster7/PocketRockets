@@ -71,7 +71,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'pocketrockets.wsgi.application'
-ASGI_APPLICATION = 'poker.routing.application'
+
+ASGI_APPLICATION = 'pocketrockets.routing.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database

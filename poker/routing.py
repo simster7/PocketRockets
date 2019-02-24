@@ -1,5 +1,8 @@
-from channels.routing import ProtocolTypeRouter
+# chat/routing.py
+from django.conf.urls import url
 
-application = ProtocolTypeRouter({
-    # Empty for now (http->django views is added by default)
-})
+from . import consumers
+
+websocket_urlpatterns = [
+    url(r'^ws/poker/room/(?P<room_name>[^/]+)/$', consumers.PokerConsumer),
+]
