@@ -1,4 +1,3 @@
-# chat/consumers.py
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 
@@ -62,6 +61,9 @@ class TextPokerConsumer(WebsocketConsumer):
                     self.send_message_to_user("You sat down at seat number " + str(desired_seat_number))
                     return
                 if args[0] == "deal":
+                    if self.game.is_hand_active():
+                        self.send_message_to_user("There is already an active hand being played")
+                        return
                     self.game.deal_hand()
                     self.broadcast_game_update()
                     return
@@ -72,21 +74,24 @@ class TextPokerConsumer(WebsocketConsumer):
                                               .format(desired_chips, self.player.get_stack()))
                     return
             else:
-                if self.player and self.player.get_seat_number() is not None and \
-                        self.player.get_seat_number() == self.game.get_acting_seat():
-                    if message == "F":
-                        self.game.take_action(self.player.get_seat_number(), Action(Action.actions.fold))
-                    elif message == "C":
-                        self.game.take_action(self.player.get_seat_number(), Action(Action.actions.check))
-                    elif message == "L":
-                        self.game.take_action(self.player.get_seat_number(), Action(Action.actions.call))
-                    elif message.isdigit():
-                        self.game.take_action(self.player.get_seat_number(), Action(Action.actions.bet,
-                                                                                    int(message)))
-                    else:
-                        self.send_message_to_user("Please enter a valid action")
-                        return
-                    self.broadcast_game_update()
+                if not self.game.is_hand_active():
+                    self.send_message_to_user("There is no active hand, deal a new one with: /deal")
+                if self.player and self.player.get_seat_number() is not None:
+                    print(self.player.get_seat_number(), self.game.get_acting_seat())
+                    if self.player.get_seat_number() == self.game.get_acting_seat():
+                        if message == "F":
+                            self.game.take_action(self.player.get_seat_number(), Action(Action.actions.fold))
+                        elif message == "C":
+                            self.game.take_action(self.player.get_seat_number(), Action(Action.actions.check))
+                        elif message == "L":
+                            self.game.take_action(self.player.get_seat_number(), Action(Action.actions.call))
+                        elif message.isdigit():
+                            self.game.take_action(self.player.get_seat_number(), Action(Action.actions.bet,
+                                                                                        int(message)))
+                        else:
+                            self.send_message_to_user("Please enter a valid action")
+                            return
+                        self.broadcast_game_update()
 
     def broadcast_game_update(self):
         print("Broadcasting update")
@@ -102,9 +107,6 @@ class TextPokerConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({
             'message': message
         }))
-
-    def sit_player(self, seat):
-        print("Sitting player in seat", seat)
 
     def update(self, event = None):
         print("Processing update", self.player)
@@ -152,8 +154,16 @@ class TextPokerConsumer(WebsocketConsumer):
     @staticmethod
     def get_personal_game_string(player_state):
         if not player_state:
-            return "Null"
+            return ""
         out = ""
+        if player_state["end_game"]:
+            win = player_state["end_game"]
+            out += "=== END OF HAND ===" + "\n"
+            if win["condition"] == "showdown":
+                out += win["winner"].name + " won with a " + win["hands"][0].hand_name + "\n"
+            elif win["condition"] == "folds":
+                out += win["winner"].name + " won due to folds" + "\n"
+            out += "\n\n\nUse /deal to deal a new hand"
         bet_round = player_state["bet_round"]
         lead_action = player_state["lead_action"]
         lead_player = player_state["lead_player"]

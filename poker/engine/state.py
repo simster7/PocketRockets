@@ -89,15 +89,16 @@ class GameState:
         else:
             return Action(Action.actions.bet, self.bet_vector[self.leading_player])
 
-    def end_game(self):
-        print()
-        print("==== END OF HAND ====")
+    def get_end_game(self):
+        if not self.is_hand_over():
+            return None
         showdown = [i for i in range(len(self.players)) if not self.fold_vector[i]]
         if sum(self.fold_vector) == len(self.players) - 1:
             assert len(showdown) == 1, "Bug: more than one player left on a fold win condition"
             winner = self.players[showdown[0]]
             winner.receive_pot(self.pot)
-            print(winner.name, "won due to folds")
+            return {"winner": winner,
+                    "condition": "folds"}
         else:
             showdown_hands = [(player_index, self.get_player_cards(player_index) + self.get_community_cards()) for player_index in showdown]
             ranked_hands = rank_hands(showdown_hands)
@@ -107,7 +108,9 @@ class GameState:
             winner_hand = ranked_hands[0].hand_name
             print(winner.name, "won with a", winner_hand)
             print("Other showdown hands:", ", ".join([self.players[r_hand.player_index].name + " had a " + r_hand.hand_name for r_hand in ranked_hands[1:]]))
-        return self
+            return {"winner": winner,
+                    "condition": "showdown",
+                    "hands": ranked_hands}
 
     def move_acting_player(self):
         self.acting_player = (self.acting_player + 1) % len(self.players)
@@ -122,9 +125,6 @@ class GameState:
             self.pot += sum(self.bet_vector)
             self.bet_vector = [0] * len(self.players)
             self.round += 1
-
-        if self.is_hand_over():
-            self.end_game()
 
     def take_action(self, action, action_param = None):
         if action.action == Action.actions.fold:

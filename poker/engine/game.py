@@ -37,9 +37,16 @@ class Game:
         self.game_state.start_hand(players, self.big_blind, self.small_blind, deck)
 
     def take_action(self, seat_number: int, action: Action) -> None:
+        if self.game_state.is_hand_over():
+            raise Exception("Trying to take action when hand is over")
         if seat_number != self.get_acting_seat():
             raise Exception("Player ({}) is playing out of turn".format(self.seats[seat_number]))
         self.game_state = self.game_state.take_action(action)
+
+    def is_hand_active(self) -> bool:
+        if not self.game_state:
+            return False
+        return not self.game_state.is_hand_over()
 
     def get_player_state(self, seat_number: int) -> Dict:
         print("Requesting player state for", seat_number)
@@ -51,18 +58,20 @@ class Game:
                     "current_players": self.game_state.get_players(),
                     "player_cards": self.game_state.get_player_cards(state_seat_number),
                     "community_cards": self.game_state.get_community_cards(),
-                    "acting_player": self.game_state.get_acting_player()
+                    "acting_player": self.game_state.get_acting_player(),
+                    "end_game": self.game_state.get_end_game()
                     }
 
     def get_acting_seat(self) -> int:
         state_index = self.game_state.get_acting_index()
-        count = 0
-        index = 0
+        count = -1
+        index = -1
         while count != state_index:
+            index += 1
             while not self.seats[index]:
                 index += 1
             count += 1
-        return count
+        return index
 
 
 if __name__ == '__main__':
