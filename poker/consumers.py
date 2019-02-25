@@ -1,11 +1,12 @@
-from channels.generic.websocket import WebsocketConsumer
-from asgiref.sync import async_to_sync
+import json
 
-from poker.engine.game import Game, EndGameState, PlayerState
-from .manager import get_manager, Manager
+from asgiref.sync import async_to_sync
+from channels.generic.websocket import WebsocketConsumer
+
+from poker.engine.game import Game, PlayerState
 from .engine.player import Player
 from .engine.state import Action
-import json
+from .manager import get_manager, Manager
 
 
 class TextPokerConsumer(WebsocketConsumer):
@@ -81,16 +82,15 @@ class TextPokerConsumer(WebsocketConsumer):
                 if not self.game.is_hand_active():
                     self.send_message_to_user("There is no active hand, deal a new one with: /deal")
                 if self.player and self.player.get_seat_number() is not None:
-                    print(self.player.get_seat_number(), self.game.get_acting_seat())
                     if self.player.get_seat_number() == self.game.get_acting_seat():
                         if message == "F":
-                            self.game.take_action(self.player.get_seat_number(), Action(Action.actions.fold))
+                            self.game.take_action(self.player.get_seat_number(), Action(Action.Actions.fold))
                         elif message == "C":
-                            self.game.take_action(self.player.get_seat_number(), Action(Action.actions.check))
+                            self.game.take_action(self.player.get_seat_number(), Action(Action.Actions.check))
                         elif message == "L":
-                            self.game.take_action(self.player.get_seat_number(), Action(Action.actions.call))
+                            self.game.take_action(self.player.get_seat_number(), Action(Action.Actions.call))
                         elif message.isdigit():
-                            self.game.take_action(self.player.get_seat_number(), Action(Action.actions.bet,
+                            self.game.take_action(self.player.get_seat_number(), Action(Action.Actions.bet,
                                                                                         int(message)))
                         else:
                             self.send_message_to_user("Please enter a valid action")
@@ -145,7 +145,7 @@ class TextPokerConsumer(WebsocketConsumer):
             L - Call
             [Number] - {} 
         """.format("Call {} and raise [Number]".format(
-            lead_action.value) if lead_action.action == Action.actions.bet else "Bet [Number]") + "\n"
+            lead_action.value) if lead_action.action == Action.Actions.bet else "Bet [Number]") + "\n"
         return out
 
     @staticmethod
@@ -180,5 +180,5 @@ class TextPokerConsumer(WebsocketConsumer):
             L - Call
             [Number] - {} 
         """.format("Call {} and raise [Number]".format(
-            lead_action.value) if lead_action.action == Action.actions.bet else "Bet [Number]") + "\n"
+            lead_action.value) if lead_action.action == Action.Actions.bet else "Bet [Number]") + "\n"
         return out

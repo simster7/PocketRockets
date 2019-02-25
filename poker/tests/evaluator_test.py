@@ -374,6 +374,3 @@ class TestHandEvaluator:
         straight_a = calculate_hand(hand_generator('QS KH ' + BOARD))
         assert straight_a == (5, 12)
 
-        # HANDS = [hand_generator('6S 8S ' + BOARD), hand_generator('KS 8S ' + BOARD), hand_generator('AS TH ' + BOARD), hand_generator('QS KH ' + BOARD)]
-        # print(sorted(HANDS, key=calculate_hand, reverse=True))
-        # assert False

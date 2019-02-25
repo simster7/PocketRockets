@@ -17,16 +17,20 @@ class EndGameState:
 
 
 class Action:
-    actions = Enum('Actions', 'check raise call fold bet')
+    class Actions(Enum):
+        check = 0
+        call = 1
+        fold = 2
+        bet = 3
 
     def __init__(self, action, value=None):
         self.action = action
-        if self.action == Action.actions.bet and value == None:
-            raise Exception("A bet value is requiered when betting")
+        if self.action == Action.Actions.bet and value is None:
+            raise Exception("A bet value is required when betting")
         self.value = value
 
     def __str__(self):
-        return self.action.name if self.action != Action.actions.bet else self.action.name + " " + str(self.value)
+        return self.action.name if self.action != Action.Actions.bet else self.action.name + " " + str(self.value)
 
 
 class GameState:
@@ -110,9 +114,9 @@ class GameState:
 
     def get_lead_action(self) -> Action:
         if self.bet_vector[self.leading_player] == 0:
-            return Action(Action.actions.check)
+            return Action(Action.Actions.check)
         else:
-            return Action(Action.actions.bet, self.bet_vector[self.leading_player])
+            return Action(Action.Actions.bet, self.bet_vector[self.leading_player])
 
     def get_end_game(self) -> Optional[EndGameState]:
         if not self.is_hand_over():
@@ -146,16 +150,16 @@ class GameState:
             self.round += 1
 
     def take_action(self, action: Action) -> GameState:
-        if action.action == Action.actions.fold:
+        if action.action == Action.Actions.fold:
             self.fold_vector[self.acting_player] = True
             self.move_acting_player()
             return GameState(self)
-        if action.action == Action.actions.check:
-            if self.get_lead_action().action == Action.actions.bet:
+        if action.action == Action.Actions.check:
+            if self.get_lead_action().action == Action.Actions.bet:
                 raise Exception("Illegal game state: player can\'t check when there is a bet")
             self.move_acting_player()
             return GameState(self)
-        if action.action == Action.actions.call:
+        if action.action == Action.Actions.call:
             to_call = self.bet_vector[self.leading_player] - self.bet_vector[self.acting_player]
             if self.players[self.acting_player].stack < to_call:
                 raise Exception("Illegal game state: player doesn\'t have enough chips to call")
@@ -163,10 +167,10 @@ class GameState:
             self.bet_vector[self.acting_player] += to_call
             self.move_acting_player()
             return GameState(self)
-        if action.action == Action.actions.bet:
+        if action.action == Action.Actions.bet:
             lead_action = self.get_lead_action()
             to_call = 0
-            if lead_action.action == Action.actions.bet:
+            if lead_action.action == Action.Actions.bet:
                 to_call = max(lead_action.value - self.bet_vector[self.acting_player], 0)
             if self.players[self.acting_player].stack < action.value:
                 raise Exception("Illegal game state: player doesn\'t have enough chips to make that bet")

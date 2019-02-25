@@ -119,17 +119,17 @@ if __name__ == '__main__':
             L - Call
             [Number] - {} 
         """.format("Call {} and raise [Number]".format(
-            lead_action.value) if lead_action.action == Action.actions.bet else "Bet [Number]"))
+            lead_action.value) if lead_action.action == Action.Actions.bet else "Bet [Number]"))
         while True:
             action = input("Enter action: ")
             if action == "F":
-                return Action(Action.actions.fold)
+                return Action(Action.Actions.fold)
             elif action == "C":
-                return Action(Action.actions.check)
+                return Action(Action.Actions.check)
             elif action == "L":
-                return Action(Action.actions.call)
+                return Action(Action.Actions.call)
             elif action.replace('.', '', 1).isdigit():
-                return Action(Action.actions.bet, float(action))
+                return Action(Action.Actions.bet, float(action))
 
 
     game = Game(1, 2)
