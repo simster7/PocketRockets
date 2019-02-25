@@ -1,18 +1,10 @@
 from dataclasses import dataclass
 from random import shuffle
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 
-from poker.engine.evaluator import RankedHand
 from .card import Card
 from .player import Player
-from .state import GameState, Action
-
-
-@dataclass
-class EndGameState:
-    winner: Player
-    condition: str
-    hands: List[RankedHand]
+from .state import GameState, Action, EndGameState
 
 
 @dataclass

@@ -1,12 +1,19 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional
 
-from poker.engine.card import Card
-from poker.engine.game import EndGameState
-from poker.engine.player import Player
-from .evaluator import rank_hands
+from .card import Card
+from .player import Player
+from .evaluator import rank_hands, RankedHand
+
+
+@dataclass
+class EndGameState:
+    winner: Player
+    condition: str
+    hands: List[RankedHand]
 
 
 class Action:
