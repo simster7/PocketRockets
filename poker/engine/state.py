@@ -96,14 +96,14 @@ class GameState:
         if sum(self.fold_vector) == len(self.players) - 1:
             assert len(showdown) == 1, "Bug: more than one player left on a fold win condition"
             winner = self.players[showdown[0]]
-            winner.recieve_pot(self.pot)
+            winner.receive_pot(self.pot)
             print(winner.name, "won due to folds")
         else:
             showdown_hands = [(player_index, self.get_player_cards(player_index) + self.get_community_cards()) for player_index in showdown]
             ranked_hands = rank_hands(showdown_hands)
             print(ranked_hands)
             winner = self.players[ranked_hands[0].player_index]
-            winner.recieve_pot(self.pot)
+            winner.receive_pot(self.pot)
             winner_hand = ranked_hands[0].hand_name
             print(winner.name, "won with a", winner_hand)
             print("Other showdown hands:", ", ".join([self.players[r_hand.player_index].name + " had a " + r_hand.hand_name for r_hand in ranked_hands[1:]]))
