@@ -1,19 +1,45 @@
+from dataclasses import dataclass
 from random import shuffle
-from typing import List, Dict
+from typing import List, Dict, Any, Optional
 
+from poker.engine.evaluator import RankedHand
 from .card import Card
 from .player import Player
 from .state import GameState, Action
 
 
+@dataclass
+class EndGameState:
+    winner: Player
+    condition: str
+    hands: List[RankedHand]
+
+
+@dataclass
+class PlayerState:
+    bet_round: int
+    lead_action: Action
+    lead_player: Player
+    current_players: List[Player]
+    player_cards: List[Card]
+    community_cards: List[Card]
+    acting_player: Player
+    end_game: EndGameState
+
+
 class Game:
+    seats: List[Optional[Player]]
+    button_position: int
+    small_blind: int
+    big_blind: int
+    game_state: GameState
 
     def __init__(self, small_blind_amount: int, big_blind_amount: int) -> None:
-        self.seats: List[Player] = [None] * 9
-        self.button_position: int = 0
-        self.small_blind: int = small_blind_amount
-        self.big_blind: int = big_blind_amount
-        self.game_state: GameState = None
+        self.seats = [None] * 9
+        self.button_position = 0
+        self.small_blind = small_blind_amount
+        self.big_blind = big_blind_amount
+        self.game_state = None
 
     def sit_player(self, player: Player, seat_number: int) -> None:
         if not 0 <= seat_number < 9:
@@ -48,19 +74,22 @@ class Game:
             return False
         return not self.game_state.is_hand_over()
 
-    def get_player_state(self, seat_number: int) -> Dict:
-        print("Requesting player state for", seat_number)
+    def get_player_state(self, seat_number: int) -> PlayerState:
         if self.game_state:
             state_seat_number = seat_number - sum([1 if not seat else 0 for seat in self.seats[:seat_number]])
-            return {"bet_round": self.game_state.get_round(),
-                    "lead_action": self.game_state.get_lead_action(),
-                    "lead_player": self.game_state.get_leading_player(),
-                    "current_players": self.game_state.get_players(),
-                    "player_cards": self.game_state.get_player_cards(state_seat_number),
-                    "community_cards": self.game_state.get_community_cards(),
-                    "acting_player": self.game_state.get_acting_player(),
-                    "end_game": self.game_state.get_end_game()
-                    }
+            return PlayerState(self.game_state.get_round(), self.game_state.get_lead_action(),
+                               self.game_state.get_leading_player(), self.game_state.get_players(),
+                               self.game_state.get_player_cards(state_seat_number),
+                               self.game_state.get_community_cards(), self.game_state.get_acting_player(),
+                               self.game_state.get_end_game())
+
+    # TESTING ONLY
+    def get_state_testing(self):
+        return self.game_state
+
+    # TESTING ONLY
+    def take_action_testing(self, action: Action) -> None:
+        self.game_state = self.game_state.take_action(action)
 
     def get_acting_seat(self) -> int:
         state_index = self.game_state.get_acting_index()
@@ -112,13 +141,31 @@ if __name__ == '__main__':
 
 
     game = Game(1, 2)
-    game.sit_player(Player("Simon", 100), 0)
-    game.sit_player(Player("Hersh", 100), 1)
-    game.sit_player(Player("Chien", 100), 2)
-    game.sit_player(Player("Jarry", 100), 3)
-    game.sit_player(Player("Grace", 100), 6)
-    game.sit_player(Player("Jason", 100), 7)
+    simon = Player("Simon")
+    simon.set_stack(100)
+    simon.set_seat_number(0)
+    game.sit_player(simon, 0)
+    hersh = Player("Hersh")
+    hersh.set_stack(100)
+    hersh.set_seat_number(1)
+    game.sit_player(hersh, 1)
+    chien = Player("Chien")
+    chien.set_stack(100)
+    chien.set_seat_number(2)
+    game.sit_player(chien, 2)
+    jarry = Player("Jarry")
+    jarry.set_stack(100)
+    jarry.set_seat_number(3)
+    game.sit_player(jarry, 3)
+    grace = Player("Grace")
+    grace.set_stack(100)
+    grace.set_seat_number(6)
+    game.sit_player(grace, 6)
+    jason = Player("Jason")
+    jason.set_stack(100)
+    jason.set_seat_number(7)
+    game.sit_player(jason, 7)
     while True:
         game.deal_hand()
         while not game.game_state.is_hand_over():
-            game.take_action(prompt(game.get_state()))
+            game.take_action_testing(prompt(game.get_state_testing()))

@@ -1,11 +1,13 @@
-SUIT_MAP = {
+from typing import Dict
+
+SUIT_MAP: Dict[int, str] = {
     0: 'S',
     1: 'H',
     2: 'C',
     3: 'D',
 }
 
-RANK_MAP = {
+RANK_MAP: Dict[int, str] = {
     0: '2',
     1: '3',
     2: '4',
@@ -23,6 +25,8 @@ RANK_MAP = {
 
 
 class Card:
+
+    card_id: int
 
     @staticmethod
     def to_card_id(rank: int, suit: int) -> int:
@@ -59,8 +63,8 @@ class Card:
     def rank(self) -> str:
         return RANK_MAP[self.rank_id]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '{}{}'.format(self.rank, self.suit)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'Card: ' + str(self)

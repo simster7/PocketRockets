@@ -1,7 +1,7 @@
 from channels.generic.websocket import WebsocketConsumer
 from asgiref.sync import async_to_sync
 
-from poker.engine.game import Game
+from poker.engine.game import Game, EndGameState, PlayerState
 from .manager import get_manager, Manager
 from .engine.player import Player
 from .engine.state import Action
@@ -9,6 +9,10 @@ import json
 
 
 class TextPokerConsumer(WebsocketConsumer):
+
+    manager: Manager
+    game: Game
+    player: Player
 
     def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
@@ -20,9 +24,9 @@ class TextPokerConsumer(WebsocketConsumer):
             self.channel_name
         )
 
-        self.manager: Manager = get_manager()
-        self.game: Game = self.manager.get_room(self.room_name)
-        self.player: Player = None
+        self.manager = get_manager()
+        self.game = self.manager.get_room(self.room_name)
+        self.player = None
 
         self.accept()
 
@@ -94,8 +98,6 @@ class TextPokerConsumer(WebsocketConsumer):
                         self.broadcast_game_update()
 
     def broadcast_game_update(self):
-        print("Broadcasting update")
-        # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
@@ -109,16 +111,11 @@ class TextPokerConsumer(WebsocketConsumer):
         }))
 
     def update(self, event = None):
-        print("Processing update", self.player)
-        if self.player:
-            print(self.player.get_seat_number())
-            if self.player.get_seat_number() is not None:
-                print("Should be updating")
-                game_string = self.get_personal_game_string(self.game.get_player_state(self.player.get_seat_number()))
-                print("going to send", game_string)
-                self.send(text_data=json.dumps({
-                    'message': game_string
-                }))
+        if self.player and self.player.get_seat_number() is not None:
+            game_string = self.get_personal_game_string(self.game.get_player_state(self.player.get_seat_number()))
+            self.send(text_data=json.dumps({
+                'message': game_string
+            }))
 
     # This is a huge abstraction barrier violation, only for testing purposes.
     @staticmethod
@@ -152,30 +149,30 @@ class TextPokerConsumer(WebsocketConsumer):
         return out
 
     @staticmethod
-    def get_personal_game_string(player_state):
+    def get_personal_game_string(player_state: PlayerState) -> str:
         if not player_state:
             return ""
         out = ""
-        if player_state["end_game"]:
-            win = player_state["end_game"]
+        if player_state.end_game:
+            win = player_state.end_game
             out += "=== END OF HAND ===" + "\n"
-            if win["condition"] == "showdown":
-                out += win["winner"].name + " won with a " + win["hands"][0].hand_name + "\n"
-            elif win["condition"] == "folds":
-                out += win["winner"].name + " won due to folds" + "\n"
+            if win.condition == "showdown":
+                out += win.winner.name + " won with a " + win.hands[0].hand_name + "\n"
+            elif win.condition == "folds":
+                out += win.winner.name + " won due to folds" + "\n"
             out += "\n\n\nUse /deal to deal a new hand"
-        bet_round = player_state["bet_round"]
-        lead_action = player_state["lead_action"]
-        lead_player = player_state["lead_player"]
-        acting_player = player_state["acting_player"]
+        bet_round = player_state.bet_round
+        lead_action = player_state.lead_action
+        lead_player = player_state.lead_player
+        acting_player = player_state.acting_player
         out += "\n"
-        out += "Current players: {}".format(player_state["current_players"]) + "\n"
+        out += "Current players: {}".format(player_state.current_players) + "\n"
         out += "Lead action: {}: {}".format(lead_player.name, lead_action) + "\n"
         out += "Current round: {}".format(bet_round) + "\n"
         out += "Current turn: {}".format(acting_player.name) + "\n"
         out += "\n"
-        out += "Your hand: {}".format(player_state["player_cards"]) + "\n"
-        out += "Community cards: {}".format(player_state["community_cards"]) + "\n"
+        out += "Your hand: {}".format(player_state.player_cards) + "\n"
+        out += "Community cards: {}".format(player_state.community_cards) + "\n"
         out += "\n"
         out += """
             F - Fold
