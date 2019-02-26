@@ -10,7 +10,6 @@ from .manager import get_manager, Manager
 
 
 class TextPokerConsumer(WebsocketConsumer):
-
     manager: Manager
     game: Game
     player: Player
@@ -84,14 +83,13 @@ class TextPokerConsumer(WebsocketConsumer):
                 if self.player and self.player.get_seat_number() is not None:
                     if self.player.get_seat_number() == self.game.get_acting_seat():
                         if message == "F":
-                            self.game.take_action(self.player.get_seat_number(), Action(Action.Actions.fold))
+                            self.game.take_action(self.player, Action(Action.Actions.fold))
                         elif message == "C":
-                            self.game.take_action(self.player.get_seat_number(), Action(Action.Actions.check))
+                            self.game.take_action(self.player, Action(Action.Actions.check))
                         elif message == "L":
-                            self.game.take_action(self.player.get_seat_number(), Action(Action.Actions.call))
+                            self.game.take_action(self.player, Action(Action.Actions.call))
                         elif message.isdigit():
-                            self.game.take_action(self.player.get_seat_number(), Action(Action.Actions.bet,
-                                                                                        int(message)))
+                            self.game.take_action(self.player, Action(Action.Actions.bet, int(message)))
                         else:
                             self.send_message_to_user("Please enter a valid action")
                             return
@@ -110,9 +108,9 @@ class TextPokerConsumer(WebsocketConsumer):
             'message': message
         }))
 
-    def update(self, event = None):
+    def update(self, event=None):
         if self.player and self.player.get_seat_number() is not None:
-            game_string = self.get_personal_game_string(self.game.get_player_state(self.player.get_seat_number()))
+            game_string = self.get_personal_game_string(self.game.get_player_state(self.player))
             self.send(text_data=json.dumps({
                 'message': game_string
             }))

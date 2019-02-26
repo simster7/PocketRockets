@@ -32,6 +32,9 @@ class Action:
     def __str__(self):
         return self.action.name if self.action != Action.Actions.bet else self.action.name + " " + str(self.value)
 
+    def __repr__(self):
+        return str(self.__dict__)
+
 
 class GameState:
 
@@ -139,6 +142,18 @@ class GameState:
         self.acting_player = (self.acting_player + 1) % len(self.players)
         while self.fold_vector[self.acting_player] and not self.is_round_over():
             self.acting_player = (self.acting_player + 1) % len(self.players)
+        if self.is_hand_over():
+            showdown: List[int] = [i for i in range(len(self.players)) if not self.fold_vector[i]]
+            if sum(self.fold_vector) == len(self.players) - 1:
+                assert len(showdown) == 1, "Bug: more than one player left on a fold win condition"
+                winner = self.players[showdown[0]]
+                winner.receive_pot(self.pot)
+            else:
+                showdown_hands = [(player_index, self.get_player_cards(player_index) + self.get_community_cards()) for
+                                  player_index in showdown]
+                ranked_hands = rank_hands(showdown_hands)
+                winner = self.players[ranked_hands[0].player_index]
+                winner.receive_pot(self.pot)
         if self.is_round_over():
             self.acting_player = 0
             self.leading_player = 0
@@ -179,3 +194,6 @@ class GameState:
             self.leading_player = self.acting_player
             self.move_acting_player()
             return GameState(self)
+
+    def __repr__(self):
+        return str(self.__dict__)

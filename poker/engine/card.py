@@ -66,5 +66,5 @@ class Card:
     def __str__(self) -> str:
         return '{}{}'.format(self.rank, self.suit)
 
-    def __repr__(self) -> str:
-        return 'Card: ' + str(self)
+    def __repr__(self):
+        return str(self.__dict__)
