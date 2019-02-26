@@ -32,7 +32,6 @@ class Game:
         self.small_blind = small_blind_amount
         self.big_blind = big_blind_amount
         self.game_state = None
-        self.test = False
 
     def sit_player(self, player: Player, seat_number: int) -> None:
         if not 0 <= seat_number < 9:
@@ -62,6 +61,8 @@ class Game:
         if player.get_seat_number() != self.get_acting_seat():
             raise Exception("Player ({}) is playing out of turn".format(self.seats[player.get_seat_number()]))
         self.game_state = self.game_state.take_action(action)
+        if self.game_state.is_hand_over():
+            self.game_state.process_end_game()
 
     def get_player_state(self, player: Player) -> PlayerState:
         if self.game_state:
@@ -71,13 +72,14 @@ class Game:
                                self.game_state.get_leading_player(), self.game_state.get_players(),
                                self.game_state.get_player_cards(state_seat_number),
                                self.game_state.get_community_cards(), self.game_state.get_acting_player(),
-                               self.game_state.get_end_game())
+                               self.game_state.get_end_game_state())
 
     def deal_hand(self) -> None:
         players = [player for player in self.seats if player is not None]
+        self.button_position = (self.button_position + 1) % len(players)
+        players = players[self.button_position:] + players[:self.button_position]
         deck = [Card(i) for i in range(52)]
-        if not self.test:
-            shuffle(deck)  # TODO: replace this with more e n t r o p y
+        deck = self.shuffle_deck(deck)
 
         self.game_state = GameState()
         self.game_state.start_hand(players, self.big_blind, self.small_blind, deck)
@@ -87,11 +89,9 @@ class Game:
             return False
         return not self.game_state.is_hand_over()
 
-    def set_test_mode(self, mode):
-        self.test = mode
-
     def get_acting_seat(self) -> int:
-        state_index = self.game_state.get_acting_index()
+        state_index = (self.game_state.get_acting_index() + self.button_position)\
+                      % sum([1 if seat else 0 for seat in self.seats])
         count = -1
         index = -1
         while count != state_index:
@@ -100,6 +100,12 @@ class Game:
                 index += 1
             count += 1
         return index
+
+    @staticmethod
+    def shuffle_deck(deck: List[Card]) -> List[Card]:
+        deck_copy = list(deck)
+        shuffle(deck_copy)      # TODO: replace this with more e n t r o p y
+        return deck_copy
 
 
 if __name__ == '__main__':

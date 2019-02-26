@@ -121,7 +121,22 @@ class GameState:
         else:
             return Action(Action.Actions.bet, self.bet_vector[self.leading_player])
 
-    def get_end_game(self) -> Optional[EndGameState]:
+    def get_end_game_state(self) -> Optional[EndGameState]:
+        if not self.is_hand_over():
+            return None
+        showdown: List[int] = [i for i in range(len(self.players)) if not self.fold_vector[i]]
+        if sum(self.fold_vector) == len(self.players) - 1:
+            assert len(showdown) == 1, "Bug: more than one player left on a fold win condition"
+            winner = self.players[showdown[0]]
+            return EndGameState(winner, "folds", [])
+        else:
+            showdown_hands = [(player_index, self.get_player_cards(player_index) + self.get_community_cards()) for
+                              player_index in showdown]
+            ranked_hands = rank_hands(showdown_hands)
+            winner = self.players[ranked_hands[0].player_index]
+            return EndGameState(winner, "showdown", ranked_hands)
+
+    def process_end_game(self) -> None:
         if not self.is_hand_over():
             return None
         showdown: List[int] = [i for i in range(len(self.players)) if not self.fold_vector[i]]
@@ -129,14 +144,13 @@ class GameState:
             assert len(showdown) == 1, "Bug: more than one player left on a fold win condition"
             winner = self.players[showdown[0]]
             winner.receive_pot(self.pot)
-            return EndGameState(winner, "folds", [])
         else:
             showdown_hands = [(player_index, self.get_player_cards(player_index) + self.get_community_cards()) for
                               player_index in showdown]
             ranked_hands = rank_hands(showdown_hands)
             winner = self.players[ranked_hands[0].player_index]
             winner.receive_pot(self.pot)
-            return EndGameState(winner, "showdown", ranked_hands)
+
 
     def move_acting_player(self) -> None:
         self.acting_player = (self.acting_player + 1) % len(self.players)
