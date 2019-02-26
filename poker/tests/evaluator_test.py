@@ -14,7 +14,7 @@ class TestCheckHighCard:
         """
         pair_hand = hand_generator('8S 7H TH KD 4C')
         result = check_high_card(pair_hand)
-        assert result == (True, [11, 8, 6, 5, 2])
+        assert result == CheckResult(match=True, tiebreakers=(11, 8, 6, 5, 2))
 
     def test_high_card_correct_seven(self):
         """
@@ -22,7 +22,8 @@ class TestCheckHighCard:
         """
         pair_hand = hand_generator('8S 7H TH KD 4C 3C 2C')
         result = check_high_card(pair_hand)
-        assert result == (True, [11, 8, 6, 5, 2])
+        assert result == CheckResult(match=True, tiebreakers=(11, 8, 6, 5, 2))
+
 
 class TestCheckPair:
     """
@@ -35,7 +36,7 @@ class TestCheckPair:
         """
         pair_hand = hand_generator('8S 8H TH KD 4C')
         result = check_pair(pair_hand)
-        assert result == (True, (6, 11, 8, 2))
+        assert result == CheckResult(match=True, tiebreakers=(6, 11, 8, 2))
 
     def test_one_pair_correct_with_seven(self):
         """
@@ -43,7 +44,7 @@ class TestCheckPair:
         """
         pair_hand = hand_generator('8S 8H KH JD 4C AH 9C')
         result = check_pair(pair_hand)
-        assert result == (True, (6, 12, 11, 9))
+        assert result == CheckResult(match=True, tiebreakers=(6, 12, 11, 9))
 
     def test_no_pair_not_evaluated(self):
         """
@@ -51,7 +52,8 @@ class TestCheckPair:
         """
         pair_hand = hand_generator('8S 7H KH TD QC 2S 4H')
         result = check_pair(pair_hand)
-        assert result == (False, None)
+        assert result == CheckResult(match=False, tiebreakers=None)
+
 
 class TestCheckTwoPair:
     """
@@ -64,7 +66,7 @@ class TestCheckTwoPair:
         """
         pair_hand = hand_generator('8S 8H TH TD 4C')
         result = check_two_pair(pair_hand)
-        assert result == (True, (8, 6, 2))
+        assert result == CheckResult(match=True, tiebreakers=(8, 6, 2))
 
     def test_two_pair_correct_with_seven(self):
         """
@@ -72,7 +74,7 @@ class TestCheckTwoPair:
         """
         pair_hand = hand_generator('8S 8H TH TD 4C 6C 9S')
         result = check_two_pair(pair_hand)
-        assert result == (True, (8, 6, 7))
+        assert result == CheckResult(match=True, tiebreakers=(8, 6, 7))
 
     def test_two_pair_correct_with_seven_and_three_fair(self):
         """
@@ -80,7 +82,7 @@ class TestCheckTwoPair:
         """
         pair_hand = hand_generator('8S 8H TH TD 9C 9S 6C')
         result = check_two_pair(pair_hand)
-        assert result == (True, (8, 7, 6))
+        assert result == CheckResult(match=True, tiebreakers=(8, 7, 6))
 
     def test_no_pair_not_evaluated(self):
         """
@@ -88,7 +90,7 @@ class TestCheckTwoPair:
         """
         pair_hand = hand_generator('8S 7H KH TD QC 2S 4H')
         result = check_two_pair(pair_hand)
-        assert result == (False, None)
+        assert result == CheckResult(match=False, tiebreakers=None)
 
     def test_no_pair_not_evaluated_with_pair(self):
         """
@@ -96,7 +98,8 @@ class TestCheckTwoPair:
         """
         pair_hand = hand_generator('8S 8H KH TD QC 2S 4H')
         result = check_two_pair(pair_hand)
-        assert result == (False, None)
+        assert result == CheckResult(match=False, tiebreakers=None)
+
 
 class TestCheckThreeOfAKind:
     """
@@ -109,7 +112,7 @@ class TestCheckThreeOfAKind:
         """
         pair_hand = hand_generator('8S 8H 8C TD 4C')
         result = check_three_of_a_kind(pair_hand)
-        assert result == (True, (6, 8, 2))
+        assert result == CheckResult(match=True, tiebreakers=(6, 8, 2))
 
     def test_three_of_a_kind_correct_with_seven(self):
         """
@@ -117,7 +120,7 @@ class TestCheckThreeOfAKind:
         """
         pair_hand = hand_generator('8S 8H 8C TD 4C JC 2S')
         result = check_three_of_a_kind(pair_hand)
-        assert result == (True, (6, 9, 8))
+        assert result == CheckResult(match=True, tiebreakers=(6, 9, 8))
 
     def test_no_three_of_a_kind_evaluated_with_seven(self):
         """
@@ -125,7 +128,7 @@ class TestCheckThreeOfAKind:
         """
         pair_hand = hand_generator('8S 8H 7C TD 4C JC 2S')
         result = check_three_of_a_kind(pair_hand)
-        assert result == (False, None)
+        assert result == CheckResult(match=False, tiebreakers=None)
 
     def test_three_of_a_kind_correct_with_seven_and_pair(self):
         """
@@ -134,7 +137,7 @@ class TestCheckThreeOfAKind:
         """
         pair_hand = hand_generator('8S 8H 8C TD TC JC 2S')
         result = check_three_of_a_kind(pair_hand)
-        assert result == (True, (6, 9, 8))
+        assert result == CheckResult(match=True, tiebreakers=(6, 9, 8))
 
     def test_three_of_a_kind_correct_with_seven_and_three(self):
         """
@@ -143,7 +146,8 @@ class TestCheckThreeOfAKind:
         """
         pair_hand = hand_generator('8S 8H 8C TD TC TS 2S')
         result = check_three_of_a_kind(pair_hand)
-        assert result == (True, (8, 0))
+        assert result == CheckResult(match=True, tiebreakers=(8, 0))
+
 
 class TestCheckStraight:
     """
@@ -156,7 +160,7 @@ class TestCheckStraight:
         """
         pair_hand = hand_generator('2S 3H 4C 5D 6C')
         result = check_straight(pair_hand)
-        assert result == (True, (4,))
+        assert result == CheckResult(match=True, tiebreakers=(4,))
 
     def test_check_straight_with_seven(self):
         """
@@ -164,7 +168,7 @@ class TestCheckStraight:
         """
         pair_hand = hand_generator('2S 3H 4C 5D 6C KC JS')
         result = check_straight(pair_hand)
-        assert result == (True, (4,))
+        assert result == CheckResult(match=True, tiebreakers=(4,))
 
     def test_check_straight_with_seven_long(self):
         """
@@ -172,7 +176,7 @@ class TestCheckStraight:
         """
         pair_hand = hand_generator('2S 3H 4C 5D 6C 7C JS')
         result = check_straight(pair_hand)
-        assert result == (True, (5,))
+        assert result == CheckResult(match=True, tiebreakers=(5,))
 
     def test_check_straight_with_seven_ace(self):
         """
@@ -180,7 +184,7 @@ class TestCheckStraight:
         """
         pair_hand = hand_generator('2S 3H 4C 5D AC 9C JS')
         result = check_straight(pair_hand)
-        assert result == (True, (3,))
+        assert result == CheckResult(match=True, tiebreakers=(3,))
 
     def test_check_straight_with_seven_ace_high(self):
         """
@@ -188,7 +192,7 @@ class TestCheckStraight:
         """
         pair_hand = hand_generator('TS QH KC 5D AC 9C JS')
         result = check_straight(pair_hand)
-        assert result == (True, (12,))
+        assert result == CheckResult(match=True, tiebreakers=(12,))
 
     def test_check_straight_with_seven_no_straight(self):
         """
@@ -196,7 +200,7 @@ class TestCheckStraight:
         """
         pair_hand = hand_generator('8S QH KC 6D AC 9C JS')
         result = check_straight(pair_hand)
-        assert result == (False, None)
+        assert result == CheckResult(match=False, tiebreakers=None)
 
     def test_check_straight_with_seven_no_straight_wrap(self):
         """
@@ -205,7 +209,8 @@ class TestCheckStraight:
         for start in [9, 10, 11]:
             pair_hand = hand_generator(' '.join([RANK_MAP[card % 13] + 'S' for card in range(start, start + 5)]))
             result = check_straight(pair_hand)
-            assert result == (False, None)
+            assert result == CheckResult(match=False, tiebreakers=None)
+
 
 class TestCheckFlush:
     """
@@ -218,7 +223,7 @@ class TestCheckFlush:
         """
         pair_hand = hand_generator('JS 3S TS 5S 6S')
         result = check_flush(pair_hand)
-        assert result == (True, (9, 8, 4, 3, 1))
+        assert result == CheckResult(match=True, tiebreakers=(9, 8, 4, 3, 1))
 
     def test_check_flush_with_seven(self):
         """
@@ -226,7 +231,7 @@ class TestCheckFlush:
         """
         pair_hand = hand_generator('JS 3S TS 5S 6S AS 8C')
         result = check_flush(pair_hand)
-        assert result == (True, (12, 9, 8, 4, 3))
+        assert result == CheckResult(match=True, tiebreakers=(12, 9, 8, 4, 3))
 
     def test_check_flush_with_no_flush(self):
         """
@@ -234,7 +239,8 @@ class TestCheckFlush:
         """
         pair_hand = hand_generator('JS 3S TS 5S 6C AC 8C')
         result = check_flush(pair_hand)
-        assert result == (False, None)
+        assert result == CheckResult(match=False, tiebreakers=None)
+
 
 class TestCheckFullHouse:
     """
@@ -247,7 +253,7 @@ class TestCheckFullHouse:
         """
         pair_hand = hand_generator('JS JC JD 6C 6S')
         result = check_full_house(pair_hand)
-        assert result == (True, (9, 4))
+        assert result == CheckResult(match=True, tiebreakers=(9, 4))
 
     def test_check_full_house_seven(self):
         """
@@ -255,7 +261,7 @@ class TestCheckFullHouse:
         """
         pair_hand = hand_generator('AS AC AD 6C 6S 2S KC')
         result = check_full_house(pair_hand)
-        assert result == (True, (12, 4))
+        assert result == CheckResult(match=True, tiebreakers=(12, 4))
 
     def test_check_full_house_seven_two_trip(self):
         """
@@ -263,7 +269,7 @@ class TestCheckFullHouse:
         """
         pair_hand = hand_generator('JS JC JD 6C 6S 6D KC')
         result = check_full_house(pair_hand)
-        assert result == (True, (9, 4))
+        assert result == CheckResult(match=True, tiebreakers=(9, 4))
 
     def test_check_full_house_seven_two_trip_order_agnostic(self):
         """
@@ -271,7 +277,7 @@ class TestCheckFullHouse:
         """
         pair_hand = hand_generator('6C 6S 6D JS JC JD KC')
         result = check_full_house(pair_hand)
-        assert result == (True, (9, 4))
+        assert result == CheckResult(match=True, tiebreakers=(9, 4))
 
     def test_check_full_house_seven_two_pair(self):
         """
@@ -279,7 +285,8 @@ class TestCheckFullHouse:
         """
         pair_hand = hand_generator('JS JC KD 6C 6S 5D KC')
         result = check_full_house(pair_hand)
-        assert result == (False, None)
+        assert result == CheckResult(match=False, tiebreakers=None)
+
 
 class TestCheckFourOfAKind:
     """
@@ -292,7 +299,7 @@ class TestCheckFourOfAKind:
         """
         pair_hand = hand_generator('JS JC JD JH AS')
         result = check_four_of_a_kind(pair_hand)
-        assert result == (True, (9,))
+        assert result == CheckResult(match=True, tiebreakers=(9,))
 
     def test_check_four_of_a_kind_with_seven(self):
         """
@@ -300,7 +307,7 @@ class TestCheckFourOfAKind:
         """
         pair_hand = hand_generator('2S 2C 2D 2H AS KC 7C')
         result = check_four_of_a_kind(pair_hand)
-        assert result == (True, (0,))
+        assert result == CheckResult(match=True, tiebreakers=(0,))
 
     def test_check_four_of_a_kind_with_seven_and_trips(self):
         """
@@ -308,7 +315,7 @@ class TestCheckFourOfAKind:
         """
         pair_hand = hand_generator('5S 5C 5D 5H AS AC AH')
         result = check_four_of_a_kind(pair_hand)
-        assert result == (True, (3,))
+        assert result == CheckResult(match=True, tiebreakers=(3,))
 
     def test_check_four_of_a_kind_with_seven_no_four(self):
         """
@@ -316,7 +323,8 @@ class TestCheckFourOfAKind:
         """
         pair_hand = hand_generator('JS JC JD 6C 6S 6D KC')
         result = check_four_of_a_kind(pair_hand)
-        assert result == (False, None)
+        assert result == CheckResult(match=False, tiebreakers=None)
+
 
 class TestStraightFlush:
     """
@@ -329,7 +337,7 @@ class TestStraightFlush:
         """
         pair_hand = hand_generator('4S 5S 6S 7S 8S')
         result = check_straight_flush(pair_hand)
-        assert result == (True, (6,))
+        assert result == CheckResult(match=True, tiebreakers=(6,))
 
     def test_check_straight_flush_seven(self):
         """
@@ -337,7 +345,7 @@ class TestStraightFlush:
         """
         pair_hand = hand_generator('7S 8S 9S TS JS AH TC')
         result = check_straight_flush(pair_hand)
-        assert result == (True, (9,))
+        assert result == CheckResult(match=True, tiebreakers=(9,))
 
     def test_check_straight_flush_seven_no_flush(self):
         """
@@ -345,7 +353,7 @@ class TestStraightFlush:
         """
         pair_hand = hand_generator('7S 8S 9H TS JS AH TC')
         result = check_straight_flush(pair_hand)
-        assert result == (False, None)
+        assert result == CheckResult(match=False, tiebreakers=None)
 
     def test_check_straight_flush_seven_no_straight(self):
         """
@@ -353,12 +361,14 @@ class TestStraightFlush:
         """
         pair_hand = hand_generator('6S 8S 9S TS JS AH TC')
         result = check_straight_flush(pair_hand)
-        assert result == (False, None)
+        assert result == CheckResult(match=False, tiebreakers=None)
+
 
 class TestHandEvaluator:
     """
     Test hand evaluator
     """
+
     def test_hand_calculator(self):
         """
         Test hand calculator
@@ -373,4 +383,3 @@ class TestHandEvaluator:
         assert boat_at == (7, 12, 8)
         straight_a = calculate_hand(hand_generator('QS KH ' + BOARD))
         assert straight_a == (5, 12)
-
