@@ -60,7 +60,6 @@ class TextPokerConsumer(WebsocketConsumer):
                     if self.game.seats[desired_seat_number]:
                         self.send_message_to_user("This seat is already taken")
                         return
-                    self.player.set_seat_number(desired_seat_number)
                     self.game.sit_player(self.player, desired_seat_number)
                     self.send_message_to_user("You sat down at seat number " + str(desired_seat_number))
                     return
@@ -169,8 +168,8 @@ class TextPokerConsumer(WebsocketConsumer):
         out += "Current round: {}".format(bet_round) + "\n"
         out += "Current turn: {}".format(acting_player.name) + "\n"
         out += "\n"
-        out += "Your hand: {}".format(player_state.player_cards) + "\n"
-        out += "Community cards: {}".format(player_state.community_cards) + "\n"
+        out += "Your hand: {}".format([str(card) for card in player_state.player_cards]) + "\n"
+        out += "Community cards: {}".format([str(card) for card in player_state.community_cards]) + "\n"
         out += "\n"
         out += """
             F - Fold

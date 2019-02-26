@@ -1,2 +1,4 @@
+.*
 *.pyc
+!/.gitignore
 pocketrockets/settings_secret.py
