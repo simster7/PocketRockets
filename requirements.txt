@@ -1,5 +1,6 @@
 Django>=2.0,<3.0
 psycopg2
 pytest>=4.0
+snapshottest
 channels>=2.0
 channels_redis
