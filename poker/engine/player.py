@@ -1,7 +1,10 @@
+from typing import Optional
+
+
 class Player:
     name: str
     stack: int
-    seat_number: int
+    seat_number: Optional[int]
 
     def __init__(self, _name: str) -> None:
         self.name = _name
@@ -29,14 +32,11 @@ class Player:
     def get_name(self) -> str:
         return self.name
 
-    def set_seat_number(self, seat_number: int) -> None:
+    def set_seat_number(self, seat_number: Optional[int]) -> None:
         self.seat_number = seat_number
 
     def get_seat_number(self) -> int:
         return self.seat_number
 
-    def __str__(self):
-        return 'Player({}, {})'.format(self.name, self.stack)
-
     def __repr__(self):
-        return str(self)
+        return str(self.__dict__)
