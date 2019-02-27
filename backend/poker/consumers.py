@@ -3,7 +3,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
-from poker.engine.game import Game, PlayerState
+from backend.poker.engine.game import Game, PlayerState
 from .engine.player import Player
 from .engine.state import Action
 from .manager import get_manager, Manager
