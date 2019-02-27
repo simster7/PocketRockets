@@ -4,6 +4,13 @@ import './App.css';
 import logo from './logo.svg';
 
 class App extends React.Component {
+
+  // private connection: any;
+
+  public componentDidMount(){
+    // this.connection = new WebSocket('ws://localhost:8000/ws/poker/room/simon/');
+  }
+  
   public render() {
     return (
       <div className="App">
