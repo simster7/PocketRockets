@@ -37,7 +37,6 @@ class Action:
 
 
 class GameState:
-
     players: List[Player]
     bet_vector: List[int]
     fold_vector: List[bool]
@@ -150,7 +149,6 @@ class GameState:
             ranked_hands = rank_hands(showdown_hands)
             winner = self.players[ranked_hands[0].player_index]
             winner.receive_pot(self.pot)
-
 
     def move_acting_player(self) -> None:
         self.acting_player = (self.acting_player + 1) % len(self.players)
