@@ -5,15 +5,21 @@ services:
     image: redis:2.8
     ports:
       - "6379:6379"
-  #db:
-  #  image: postgres
-  web:
-    build: .
+  backend:
+    build: ./backend
     image: pocketrockets
     volumes:
-      - .:/code
+      - ./backend:/app/backend
     ports:
       - "8000:8000"
     depends_on:
-      #- db
       - channels
+  frontend:
+    build: ./frontend
+    command: ["yarn", "start"]
+    volumes:
+      - ./frontend:/app/frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
