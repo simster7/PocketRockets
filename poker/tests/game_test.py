@@ -7,12 +7,12 @@ from ..engine.player import Player
 
 
 class GameMock(Game):
-    """
-    Don't shuffle the deck for testing purposes
-    """
 
     @staticmethod
     def shuffle_deck(deck: List[Card]) -> List[Card]:
+        """
+        Don't shuffle the deck for testing purposes
+        """
         return deck
 
 
