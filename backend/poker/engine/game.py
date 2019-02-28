@@ -76,7 +76,6 @@ class Game:
         self.button_position = (self.button_position + 1) % 9
         while not self.seats[self.button_position]:
             self.button_position = (self.button_position + 1) % 9
-
         deck = [Card(i) for i in range(52)]
         deck = self.shuffle_deck(deck)
 
