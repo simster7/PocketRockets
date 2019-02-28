@@ -5,7 +5,7 @@ from channels.generic.websocket import WebsocketConsumer
 
 from backend.poker.engine.game import Game, PlayerState
 from .engine.player import Player
-from .engine.state import Action
+from .engine.action import Action
 from .manager import get_manager, Manager
 
 
