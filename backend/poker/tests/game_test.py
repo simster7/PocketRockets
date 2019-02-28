@@ -1,7 +1,7 @@
 from typing import List, Callable
 
 from ..engine.card import Card
-from ..engine.state import Action
+from ..engine.action import Action
 from ..engine.game import Game
 from ..engine.player import Player
 
@@ -37,12 +37,12 @@ class TestGame:
         snapshot.assert_match(str(game.__dict__))
         simon = Player("Simon")
         snapshot.assert_match(str(simon.__dict__))
-        simon.set_stack(100)
+        simon.stack = 100
         game.sit_player(simon, 0)
         snapshot.assert_match(str(simon.__dict__))
         snapshot.assert_match(str(game.__dict__))
         hersh = Player("Hersh")
-        hersh.set_stack(100)
+        hersh.stack = 100
         game.sit_player(hersh, 5)
         game.stand_player(simon, 0)
         snapshot.assert_match(str(simon.__dict__))
@@ -50,7 +50,7 @@ class TestGame:
 
         assert self.expect_fail(lambda: game.stand_player(hersh, 2))   # Stand player from incorrect seat
         jarry = Player("Jarry")
-        jarry.set_stack(100)
+        jarry.stack = 100
         assert self.expect_fail(lambda: game.sit_player(jarry, 5))     # Sit player in occupied seat
         assert self.expect_fail(lambda: game.stand_player(simon, 0))   # Stand player already standing
 
@@ -60,24 +60,24 @@ class TestGame:
         """
 
         game = GameMock(1, 2)
+        grace = Player("Grace")
+        grace.stack = 100
+        game.sit_player(grace, 0)
         jason = Player("Jason")
-        jason.set_stack(100)
-        game.sit_player(jason, 0)
+        jason.stack = 100
+        game.sit_player(jason, 1)
         simon = Player("Simon")
-        simon.set_stack(100)
-        game.sit_player(simon, 1)
+        simon.stack = 100
+        game.sit_player(simon, 3)
         hersh = Player("Hersh")
-        hersh.set_stack(100)
+        hersh.stack = 100
         game.sit_player(hersh, 4)
         chien = Player("Chien")
-        chien.set_stack(100)
+        chien.stack = 100
         game.sit_player(chien, 5)
         jarry = Player("Jarry")
-        jarry.set_stack(100)
+        jarry.stack = 100
         game.sit_player(jarry, 6)
-        grace = Player("Grace")
-        grace.set_stack(100)
-        game.sit_player(grace, 8)
         snapshot.assert_match(str(game.__dict__))
 
         game.deal_hand()
@@ -120,13 +120,13 @@ class TestGame:
 
         game = GameMock(1, 2)
         jason = Player("Jason")
-        jason.set_stack(100)
+        jason.stack = 100
         game.sit_player(jason, 2)
         simon = Player("Simon")
-        simon.set_stack(100)
+        simon.stack = 100
         game.sit_player(simon, 5)
         chien = Player("Chien")
-        chien.set_stack(100)
+        chien.stack = 100
         game.sit_player(chien, 7)
         snapshot.assert_match(str(game.__dict__))
 
@@ -149,7 +149,7 @@ class TestGame:
         assert not game.is_hand_active()
 
         grace = Player("Grace")
-        grace.set_stack(100)
+        grace.stack = 100
         game.sit_player(grace, 8)
         snapshot.assert_match(str(game.__dict__))
 
