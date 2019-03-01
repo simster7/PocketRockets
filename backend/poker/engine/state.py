@@ -48,6 +48,8 @@ class GameState:
         self.bet_vector[small_blind_index] = small_blind
         self.players[small_blind_index].make_bet(small_blind)
         self.players[big_blind_index].make_bet(big_blind)
+        self.players[small_blind_index].last_action = Action(Action.Actions.bet, small_blind)
+        self.players[big_blind_index].last_action = Action(Action.Actions.bet, big_blind)
         self.acting_player = utg_blind_index
         self.leading_player = big_blind_index
 

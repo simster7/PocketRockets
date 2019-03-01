@@ -1,5 +1,6 @@
 FROM python:3
 ENV PYTHONUNBUFFERED 1
+RUN mkdir /app/
 RUN mkdir /app/backend
 WORKDIR /app/backend
 ADD requirements.txt /app/backend
