@@ -18,4 +18,4 @@ class Action:
         return self.action.name if self.action != Action.Actions.bet else self.action.name + " " + str(self.value)
 
     def __repr__(self):
-        return str(self.__dict__)
+        return "{'action': '" + self.action.name + "' , 'value': " + str(self.value) + "}"
