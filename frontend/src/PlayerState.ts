@@ -1,9 +1,7 @@
-import { ENGINE_METHOD_NONE } from "constants";
-
-interface PlayerState {
+export interface PlayerState {
     betRound: number;
-    leadPlayer: Player;
-    actingPlayer: Player;
+    leadPlayer?: Player;
+    actingPlayer?: Player;
     currentPlayers: Player[];
     playerCards: Card[];
     communityCards: Card[];
@@ -29,44 +27,55 @@ interface EndGameState {
     condition: string;
 }
 
-enum Actions {
-    check,
-    call,
-    fold,
-    bet
-}
-
 interface Action {
     action: string;
     value?: number;
 }
 
-function parsePlayerStateString(json: JSON): PlayerState {
+export function parsePlayerStateString(data: JSON): PlayerState {
+    console.log(data['current_players'])
     return {
         betRound: data['bet_round'],
         leadPlayer: parsePlayerString(data['lead_player']),
         actingPlayer: parsePlayerString(data['acting_player']),
-        currentPlayers: data['current_players'].map(player: JSON => parsePlayerString(player)),
-
+        currentPlayers: data['current_players'].map(parsePlayerString),
+        playerCards: data['player_cards'].map(parseCardString),
+        communityCards: data['community_cards'].map(parseCardString),
+        endGame: parseEndGameStateString(data['end_game'])
     }
 }
 
-function parsePlayerString(json: JSON): Player {
+function parsePlayerString(data: JSON): Player {
+    if (data === null) {
+        return null;
+    }
     return {
-        name: json['name'],
-        stack: json['stack'],
-        seatNumber: json['seat_number'],
-        folded: json['folded'],
-        lastAction: parseActionString(json['last_action']),
-        sittingOut: json['sitting_out']
+        name: data['name'],
+        stack: data['stack'],
+        seatNumber: data['seat_number'],
+        folded: data['folded'],
+        lastAction: parseActionString(data['last_action']),
+        sittingOut: data['sitting_out']
     }
 }
 
-function parseActionString(json: JSON): Action {
+function parseActionString(data: JSON): Action {
     return {
-        action: json['action'],
-        value: json['value']
+        action: data['action'],
+        value: data['value']
     }
 }
 
+function parseCardString(data: JSON): Card {
+    return {
+        cardId: data['card_id'],
+    }
+}
+
+function parseEndGameStateString(data: JSON): EndGameState {
+    return {
+        winners: data['winners'].map(parsePlayerString),
+        condition: data['condition']
+    }
+}
 //{'bet_round': 0, 'lead_player': {'name': 'asdfasdf', 'stack': 98, 'seat_number': 3, 'folded': False, 'last_action': {'action': <Actions.bet: 3>, 'value': 2}, 'sitting_out': False}, 'acting_player': {'name': 'asfd', 'stack': 99, 'seat_number': 7, 'folded': False, 'last_action': {'action': <Actions.bet: 3>, 'value': 1}, 'sitting_out': False}, 'current_players': [None, None, None, {'name': 'asdfasdf', 'stack': 98, 'seat_number': 3, 'folded': False, 'last_action': {'action': <Actions.bet: 3>, 'value': 2}, 'sitting_out': False}, None, None, None, {'name': 'asfd', 'stack': 99, 'seat_number': 7, 'folded': False, 'last_action': {'action': <Actions.bet: 3>, 'value': 1}, 'sitting_out': False}, None], 'player_cards': [{'card_id': 27}, {'card_id': 26}], 'community_cards': [], 'end_game': None}
