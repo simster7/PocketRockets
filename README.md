@@ -7,13 +7,14 @@ To run the server:
 1. Run
 
 ```
+docker-compose build
 docker-compose up
 ```
 
 2. Visit
 
 ```
-0.0.0.0:8000
+localhost:8000
 ```
 
 ## Testing
