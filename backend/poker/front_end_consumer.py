@@ -3,9 +3,8 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
-from .engine.game import Game, PlayerState
+from .engine.game import Game
 from .engine.player import Player
-from .engine.action import Action
 from .manager import get_manager, Manager
 
 
@@ -29,6 +28,7 @@ class FrontEndConsumer(WebsocketConsumer):
         self.player = None
 
         self.accept()
+        self.broadcast_game_update()
 
     def disconnect(self, close_code):
         # Leave room group
@@ -37,6 +37,16 @@ class FrontEndConsumer(WebsocketConsumer):
             self.channel_name
         )
 
-    def update_game_state(self, event=None):
-        if self.player:
-            self.send(text_data=json.dumps(self.game.get_player_state(self.player)))
+    def broadcast_game_update(self):
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'update',
+            }
+        )
+
+    def update(self, event=None):
+        print("sent")
+        self.send(text_data=json.dumps({
+            'message': self.game.get_player_state(self.player).__dict__
+        }))

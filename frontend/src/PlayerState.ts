@@ -5,10 +5,10 @@ export interface PlayerState {
     currentPlayers: Player[];
     playerCards: Card[];
     communityCards: Card[];
-    endGame: EndGameState;
+    endGame?: EndGameState;
 }
 
-interface Player {
+export interface Player {
     name: string;
     stack: number;
     seatNumber?: number;
@@ -27,7 +27,7 @@ interface EndGameState {
     condition: string;
 }
 
-interface Action {
+export interface Action {
     action: string;
     value?: number;
 }
@@ -45,9 +45,9 @@ export function parsePlayerStateString(data: JSON): PlayerState {
     }
 }
 
-function parsePlayerString(data: JSON): Player {
-    if (data === null) {
-        return null;
+function parsePlayerString(data: JSON): Player | undefined {
+    if (!data) {
+        return undefined;
     }
     return {
         name: data['name'],
@@ -72,7 +72,10 @@ function parseCardString(data: JSON): Card {
     }
 }
 
-function parseEndGameStateString(data: JSON): EndGameState {
+function parseEndGameStateString(data: JSON): EndGameState | undefined {
+    if (!data) {
+        return undefined;
+    }
     return {
         winners: data['winners'].map(parsePlayerString),
         condition: data['condition']

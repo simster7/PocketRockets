@@ -108,7 +108,7 @@ class TextPokerConsumer(WebsocketConsumer):
 
     def update(self, event=None):
         if self.player and self.player.seat_number is not None:
-            print(json.dumps(str(self.game.get_player_state(self.player).__dict__)))
+            # print(json.dumps(str(self.game.get_player_state(self.player).__dict__)))
             game_string = self.get_personal_game_string(self.game.get_player_state(self.player))
             self.send(text_data=json.dumps({
                 'message': game_string
