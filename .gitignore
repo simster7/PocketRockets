@@ -2,3 +2,4 @@
 *.pyc
 !/.gitignore
 pocketrockets/settings_secret.py
+node_modules/
