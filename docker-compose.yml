@@ -2,7 +2,7 @@ version: '3'
 
 services:
   channels:
-    image: redis:2.8
+    image: redis:5
     ports:
       - "6379:6379"
   backend:
