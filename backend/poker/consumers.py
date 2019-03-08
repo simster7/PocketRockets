@@ -53,6 +53,7 @@ class TextPokerConsumer(WebsocketConsumer):
                 if args[0] == "login":
                     self.player = self.manager.get_player(" ".join(args[1:]))
                     self.send_message_to_user("You have logged in as: " + self.player.name)
+
                     return
                 if args[0] == "sit":
                     desired_seat_number = int(args[1])

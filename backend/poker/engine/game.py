@@ -73,7 +73,6 @@ class Game:
                                self.game_state.get_community_cards(),
                                self.game_state.get_end_game_state())
 
-
     def deal_hand(self) -> None:
 
         self.button_position = (self.button_position + 1) % 9
