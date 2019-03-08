@@ -1,13 +1,23 @@
 # PocketRockets
 An open-source poker platform.
 
+All commands below should be run on the project directory (PocketRockets/).
+
+## Installing
+1. Install Docker
+
+2. Run
+
+```
+docker-compose build
+```
+
 ## Running the server
 To run the server:
 
 1. Run
 
 ```
-docker-compose build
 docker-compose up
 ```
 
@@ -18,19 +28,13 @@ localhost:8000
 ```
 
 ## Testing
-To test:
-
-1. Make sure you have `pytest>=4.0` installed:
-```
-pytest --version
-```
-
-2. Run
+To test the backend:
 
 ```
-pytest
+docker run -ti pr-backend pytest
 ```
-from the project directory.
+
+Frontend testing coming soon.
 
 ## Contributing
 The `master` branch is protected, to submit changes open a pull request. At least one person other than the submitter must approve the request for it to be merged.
