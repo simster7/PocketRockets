@@ -1,10 +1,10 @@
 # PocketRockets
 An open-source poker platform.
 
-All commands below should be run on the project directory (PocketRockets/).
+All commands below should be run on the project directory (`PocketRockets/`).
 
 ## Installing
-1. Install Docker
+1. Install [Docker](https://docs.docker.com/install/)
 
 2. Run
 
@@ -31,7 +31,7 @@ localhost:8000
 To test the backend:
 
 ```
-docker run -ti pr-backend pytest
+docker run -ti -v `pwd`/backend/:/app/backend/ pr-backend pytest
 ```
 
 Frontend testing coming soon.
