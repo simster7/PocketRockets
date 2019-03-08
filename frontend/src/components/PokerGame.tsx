@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {PlayerState} from '../PlayerState'
+import {PlayerState} from '../utils/PlayerState'
 import PokerPlayer from './Player';
 
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {Player} from '../PlayerState'
+import {Player} from '../utils/PlayerState'
 
 interface IProp {
     player: Player;

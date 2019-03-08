@@ -10,13 +10,13 @@ from .action import Action
 
 @dataclass
 class PlayerState:
-    bet_round: Optional[int]
-    lead_player: Optional[Player]
-    acting_player: Optional[Player]
-    current_players: Optional[List[Player]]
-    player_cards: Optional[Optional[List[Card]]]
-    community_cards: Optional[List[Card]]
-    end_game: Optional[EndGameState]
+    bet_round: int
+    lead_player: Player
+    acting_player: Player
+    current_players: List[Player]
+    player_cards: Optional[List[Card]]
+    community_cards: List[Card]
+    end_game: EndGameState
 
 
 class Game:
@@ -69,11 +69,9 @@ class Game:
         if self.game_state:
             return PlayerState(self.game_state.round, self.game_state.get_leading_player(),
                                self.game_state.get_acting_player(), self.game_state.players,
-                               self.game_state.get_player_cards(player.seat_number) if player else None,
+                               self.game_state.get_player_cards(player.seat_number),
                                self.game_state.get_community_cards(),
                                self.game_state.get_end_game_state())
-        else:
-            return PlayerState(None, None, None, None, None, None, None)
 
 
     def deal_hand(self) -> None:
