@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Dict
 
-from backend.poker.engine import Player
+from .engine.player import Player
 from .engine.game import Game
 
 

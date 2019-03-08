@@ -2,19 +2,20 @@ version: '3'
 
 services:
   channels:
-    image: redis:2.8
+    image: redis:5
     ports:
       - "6379:6379"
   backend:
+    image: pr-backend
     build: ./backend
-    image: pocketrockets
     volumes:
       - ./backend:/app/backend
     ports:
       - "8000:8000"
     depends_on:
       - channels
-  frontend:
+  frontend_dev:
+    image: pr-frontend_dev
     build: ./frontend
     command: ["yarn", "start"]
     volumes:

@@ -12,10 +12,10 @@ from .action import Action
 class PlayerState:
     bet_round: int
     lead_player: Player
-    current_players: List[Player]
-    player_cards: List[Card]
-    community_cards: List[Card]
     acting_player: Player
+    current_players: List[Player]
+    player_cards: Optional[List[Card]]
+    community_cards: List[Card]
     end_game: EndGameState
 
 
@@ -60,6 +60,7 @@ class Game:
             raise Exception("Trying to take action when hand is over")
         if player.seat_number != self.game_state.get_acting_index():
             raise Exception("Player ({}) is playing out of turn".format(self.seats[player.seat_number]))
+        player.last_action = action
         self.game_state = self.game_state.take_action(action)
         if self.game_state.is_hand_over():
             self.game_state.process_end_game()
@@ -67,8 +68,9 @@ class Game:
     def get_player_state(self, player: Player) -> PlayerState:
         if self.game_state:
             return PlayerState(self.game_state.round, self.game_state.get_leading_player(),
-                               self.game_state.players, self.game_state.get_player_cards(player.seat_number),
-                               self.game_state.get_community_cards(), self.game_state.get_acting_player(),
+                               self.game_state.get_acting_player(), self.game_state.players,
+                               self.game_state.get_player_cards(player.seat_number),
+                               self.game_state.get_community_cards(),
                                self.game_state.get_end_game_state())
 
     def deal_hand(self) -> None:
@@ -86,6 +88,9 @@ class Game:
         if not self.game_state:
             return False
         return not self.game_state.is_hand_over()
+
+    def get_acting_seat(self) -> int:
+        return self.game_state.acting_player
 
     @staticmethod
     def shuffle_deck(deck: List[Card]) -> List[Card]:

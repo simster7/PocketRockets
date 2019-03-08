@@ -5,6 +5,8 @@ from ..engine.action import Action
 from ..engine.game import Game
 from ..engine.player import Player
 
+import json
+
 
 class GameMock(Game):
 

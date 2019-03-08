@@ -3,7 +3,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
-from backend.poker.engine.game import Game, PlayerState
+from .engine.game import Game, PlayerState
 from .engine.player import Player
 from .engine.action import Action
 from .manager import get_manager, Manager
@@ -52,8 +52,8 @@ class TextPokerConsumer(WebsocketConsumer):
                 args = message[1:].split(" ")
                 if args[0] == "login":
                     self.player = self.manager.get_player(" ".join(args[1:]))
-                    self.send_message_to_user("You have logged in as: " + self.player.get_name())
-                    self.update()
+                    self.send_message_to_user("You have logged in as: " + self.player.name)
+
                     return
                 if args[0] == "sit":
                     desired_seat_number = int(args[1])
@@ -72,15 +72,15 @@ class TextPokerConsumer(WebsocketConsumer):
                     return
                 if args[0] == "buy":
                     desired_chips = int(args[1])
-                    self.player.set_stack(self.player.get_stack() + desired_chips)
+                    self.player.stack = self.player.stack + desired_chips
                     self.send_message_to_user("You have bought {} chips, your stack size is now {} "
-                                              .format(desired_chips, self.player.get_stack()))
+                                              .format(desired_chips, self.player.stack))
                     return
             else:
                 if not self.game.is_hand_active():
                     self.send_message_to_user("There is no active hand, deal a new one with: /deal")
-                if self.player and self.player.get_seat_number() is not None:
-                    if self.player.get_seat_number() == self.game.get_acting_seat():
+                if self.player and self.player.seat_number is not None:
+                    if self.player.seat_number == self.game.get_acting_seat():
                         if message == "F":
                             self.game.take_action(self.player, Action(Action.Actions.fold))
                         elif message == "C":
@@ -108,7 +108,8 @@ class TextPokerConsumer(WebsocketConsumer):
         }))
 
     def update(self, event=None):
-        if self.player and self.player.get_seat_number() is not None:
+        if self.player and self.player.seat_number is not None:
+            # print(json.dumps(str(self.game.get_player_state(self.player).__dict__)))
             game_string = self.get_personal_game_string(self.game.get_player_state(self.player))
             self.send(text_data=json.dumps({
                 'message': game_string
@@ -154,12 +155,12 @@ class TextPokerConsumer(WebsocketConsumer):
             win = player_state.end_game
             out += "=== END OF HAND ===" + "\n"
             if win.condition == "showdown":
-                out += win.winner.name + " won with a " + win.hands[0].hand_name + "\n"
+                out += win.winners[0][0].name + " won with a " + win.hands[0].hand_name + "\n"
             elif win.condition == "folds":
-                out += win.winner.name + " won due to folds" + "\n"
+                out += win.winners[0][0].name + " won due to folds" + "\n"
             out += "\n\n\nUse /deal to deal a new hand"
         bet_round = player_state.bet_round
-        lead_action = player_state.lead_action
+        lead_action = player_state.current_players[player_state.lead_player.seat_number].last_action
         lead_player = player_state.lead_player
         acting_player = player_state.acting_player
         out += "\n"
