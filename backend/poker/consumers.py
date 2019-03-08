@@ -160,7 +160,10 @@ class TextPokerConsumer(WebsocketConsumer):
                 out += win.winners[0][0].name + " won due to folds" + "\n"
             out += "\n\n\nUse /deal to deal a new hand"
         bet_round = player_state.bet_round
-        lead_action = player_state.current_players[player_state.lead_player.seat_number].last_action
+        if not player_state.lead_player:
+            lead_action = "None"
+        else:
+            lead_action = player_state.current_players[player_state.lead_player.seat_number].last_action
         lead_player = player_state.lead_player
         acting_player = player_state.acting_player
         out += "\n"

@@ -1,4 +1,5 @@
 import json
+from ast import literal_eval
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
@@ -47,9 +48,7 @@ class FrontEndConsumer(WebsocketConsumer):
 
     def update(self, event=None):
         if self.game.game_state:    # TODO Abstraction violation
-            # print(self.game.get_player_state(self.player).__dict__)
-            data = dict(self.game.get_player_state(self.player).__dict__)
-            print(data)
+            data = literal_eval(str(self.game.get_player_state(self.player).__dict__))
             self.send(text_data=json.dumps({
                 'message': data
             }))

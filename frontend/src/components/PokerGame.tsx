@@ -22,6 +22,7 @@ class PokerGame extends React.Component<IProp, IState> {
   }
   
   public render() {
+    console.log(this.props.playerState)
     return (
         <div>
             <table>

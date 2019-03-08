@@ -15,6 +15,7 @@ class PokerPlayer extends React.Component<IProp, IState> {
 
     public constructor(props: IProp) {
         super(props)
+        console.log(props)
         if (props.player === undefined) {
             this.state = {
                 occupied: false
