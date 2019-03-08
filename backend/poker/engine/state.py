@@ -26,10 +26,18 @@ class GameState:
     round: int
     acting_player: int
     leading_player: int
+    is_hand_active: bool
 
     def __init__(self, old=None):
         if old:
             self.__copy(old)
+        else:
+            self.round = -1
+            self.leading_player = -1
+            self.acting_player = -1
+            self.players = []
+            self.fold_vector = []
+            self.is_hand_active = False
 
     def start_hand(self, players: List[Player], button_position: int, big_blind: int, small_blind: int,
                    deck: List[Card]):
@@ -54,6 +62,8 @@ class GameState:
         self.acting_player = utg_blind_index
         self.leading_player = big_blind_index
 
+        self.is_hand_active = True
+
     def is_hand_over(self) -> bool:
         return (sum([0 if fold else 1 for fold in self.fold_vector]) == 1) or (self.is_round_over() and self.round == 4)
 
@@ -67,6 +77,8 @@ class GameState:
         return [self.deck[player_index], self.deck[player_index + self.__num_players_in_hand]]
 
     def get_community_cards(self) -> List[Card]:
+        if not self.is_hand_active:
+            return []
         cards = []
         curr_round = self.round
         num_players = self.__num_players_in_hand
@@ -81,23 +93,29 @@ class GameState:
     def get_acting_index(self) -> int:
         return self.acting_player
 
-    def get_acting_player(self) -> Player:
+    def get_acting_player(self) -> Optional[Player]:
+        if not self.is_hand_active or self.acting_player < 0 or self.acting_player > 9:
+            return None
         return self.players[self.acting_player]
 
-    def get_leading_player(self) -> Player:
+    def get_leading_player(self) -> Optional[Player]:
+        if not self.is_hand_active or self.leading_player < 0 or self.leading_player > 9:
+            return None
         return self.players[self.leading_player]
 
     def get_pot(self) -> int:
         return self.pot
 
-    def get_lead_action(self) -> Action:
+    def get_lead_action(self) -> Optional[Action]:
+        if not self.is_hand_active:
+            return None
         if self.bet_vector[self.leading_player] == 0:
             return Action(Action.Actions.check)
         else:
             return Action(Action.Actions.bet, self.bet_vector[self.leading_player])
 
     def get_end_game_state(self) -> Optional[EndGameState]:
-        if not self.is_hand_over():
+        if not self.is_hand_over() or not self.is_hand_active:
             return None
         showdown: List[int] = [i for i in range(len(self.players)) if not self.fold_vector[i]]
         if sum(self.fold_vector) == len(self.players) - 1:
@@ -112,7 +130,7 @@ class GameState:
             return EndGameState([(winner, self.pot)], "showdown", ranked_hands)
 
     def process_end_game(self) -> None:
-        if not self.is_hand_over():
+        if not self.is_hand_over() or not self.is_hand_active:
             return None
         showdown: List[int] = [i for i in range(len(self.players)) if not self.fold_vector[i]]
         if sum(self.fold_vector) == len(self.players) - 1:
@@ -167,6 +185,7 @@ class GameState:
         self.round = old_game_state.round
         self.acting_player = old_game_state.acting_player
         self.leading_player = old_game_state.leading_player
+        self.is_hand_active = old_game_state.is_hand_active
 
     def __move_acting_player(self) -> None:
         self.acting_player = (self.acting_player + 1) % len(self.players)
@@ -179,6 +198,10 @@ class GameState:
             self.pot += sum(self.bet_vector)
             self.bet_vector = [0] * 9
             self.round += 1
+
+        if self.is_hand_over():
+            self.is_hand_active = False
+            self.process_end_game()
 
     @property
     def __num_players_in_hand(self) -> int:

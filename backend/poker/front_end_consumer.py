@@ -47,6 +47,9 @@ class FrontEndConsumer(WebsocketConsumer):
 
     def update(self, event=None):
         if self.game.game_state:    # TODO Abstraction violation
+            # print(self.game.get_player_state(self.player).__dict__)
+            data = dict(self.game.get_player_state(self.player).__dict__)
+            print(data)
             self.send(text_data=json.dumps({
-                'message': self.game.get_player_state(self.player).__dict__
+                'message': data
             }))
