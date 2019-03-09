@@ -38,6 +38,10 @@ class FrontEndConsumer(WebsocketConsumer):
             self.channel_name
         )
 
+    def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        print(text_data_json)
+
     def broadcast_game_update(self):
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
