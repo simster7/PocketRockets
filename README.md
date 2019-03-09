@@ -28,10 +28,16 @@ localhost:3000
 ```
 
 ## Testing
-To test the backend:
+### Backend testing
 
+Run tests:
 ```
 docker run -ti -v `pwd`/backend/:/app/backend/ pr-backend pytest
+```
+
+Run type checker:
+```
+docker run -ti -v `pwd`/backend/:/app/backend/ pr-backend pyre --source-directory ./poker/engine/ check
 ```
 
 Frontend testing coming soon.

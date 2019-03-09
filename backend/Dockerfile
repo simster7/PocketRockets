@@ -6,6 +6,7 @@ WORKDIR /app/backend
 COPY requirements.txt /app/backend
 RUN pip install -r requirements.txt
 COPY . /app/backend
+RUN find . -name \*.pyc -delete
 
 EXPOSE 8000
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
