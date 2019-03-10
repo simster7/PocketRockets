@@ -6,27 +6,16 @@ interface IProp {
 	player: Player;
 }
 
-interface IState {
-	occupied: boolean;
-}
+interface IState {}
 
 class PokerPlayer extends React.Component<IProp, IState> {
 	public constructor(props: IProp) {
 		super(props);
 		console.log(props);
-		if (props.player === undefined) {
-			this.state = {
-				occupied: false
-			};
-		} else {
-			this.state = {
-				occupied: true
-			};
-		}
 	}
 
 	public render() {
-		if (!this.state.occupied) {
+		if (!this.props.player) {
 			return <div>Empty</div>;
 		}
 		return (

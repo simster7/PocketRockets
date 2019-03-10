@@ -1,7 +1,9 @@
 import * as React from 'react';
 
+import { Message } from './PokerClient';
+
 interface IProp {
-	sendMessage: Function;
+	sendMessage: (message: Message) => void;
 }
 
 interface IState {
@@ -82,7 +84,7 @@ class PokerController extends React.Component<IProp, IState> {
 										type: 'manage',
 										value: {
 											item: 'sit',
-											value: this.state.seatNumber
+											value: '' + this.state.seatNumber
 										}
 									})}
 							>
@@ -108,7 +110,18 @@ class PokerController extends React.Component<IProp, IState> {
 							</button>
 						</td>
 						<td>
-							<button disabled={true}> Sit </button>
+							<button
+								onClick={() =>
+									this.props.sendMessage({
+										type: 'manage',
+										value: {
+											item: 'deal',
+											value: ''
+										}
+									})}
+							>
+								Deal
+							</button>
 						</td>
 						<td>
 							<input
@@ -122,7 +135,7 @@ class PokerController extends React.Component<IProp, IState> {
 										type: 'manage',
 										value: {
 											item: 'add_stack',
-											value: this.state.addStackAmount
+											value: '' + this.state.addStackAmount
 										}
 									})}
 							>

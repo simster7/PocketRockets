@@ -17,6 +17,9 @@ class PlayerState:
     player_cards: Optional[List[Card]]
     community_cards: Optional[List[Card]]
     end_game: Optional[EndGameState]
+    player_seat: Optional[int]
+    button_position: int
+    pot: int
 
 
 class Game:
@@ -68,7 +71,8 @@ class Game:
                            self.game_state.get_acting_player(), self.seats,
                            self.game_state.get_player_cards(player.seat_number) if player else [],
                            self.game_state.get_community_cards(),
-                           self.game_state.get_end_game_state())
+                           self.game_state.get_end_game_state(), player.seat_number if player else None,
+                           self.button_position, self.game_state.pot)
 
     def deal_hand(self) -> None:
 

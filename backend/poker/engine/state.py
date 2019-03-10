@@ -38,6 +38,7 @@ class GameState:
             self.players = []
             self.fold_vector = []
             self.is_hand_active = False
+            self.pot = 0
 
     def start_hand(self, players: List[Player], button_position: int, big_blind: int, small_blind: int,
                    deck: List[Card]):

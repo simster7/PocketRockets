@@ -6,6 +6,8 @@ export interface PlayerState {
 	playerCards: Card[];
 	communityCards: Card[];
 	endGame?: EndGameState;
+	playerSeat?: number;
+	buttonPosition: number;
 }
 
 export interface Player {
@@ -40,7 +42,9 @@ export function parsePlayerStateString(data: JSON): PlayerState {
 		currentPlayers: data['current_players'].map(parsePlayerString),
 		playerCards: data['player_cards'].map(parseCardString),
 		communityCards: data['community_cards'].map(parseCardString),
-		endGame: parseEndGameStateString(data['end_game'])
+		endGame: parseEndGameStateString(data['end_game']),
+		playerSeat: data['player_seat'],
+		buttonPosition: data['button_position']
 	};
 }
 
