@@ -77,6 +77,7 @@ class PokerController extends React.Component<IProp, IState> {
 								value={this.state.seatNumber}
 								onChange={(evt) => this.updateSeatNumber(+evt.target.value)}
 								type="text"
+								disabled={true}
 							/>
 							<button
 								onClick={() =>
@@ -87,6 +88,7 @@ class PokerController extends React.Component<IProp, IState> {
 											value: '' + this.state.seatNumber
 										}
 									})}
+								disabled={true}
 							>
 								Sit
 							</button>

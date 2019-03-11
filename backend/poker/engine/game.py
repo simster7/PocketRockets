@@ -69,9 +69,9 @@ class Game:
     def get_player_state(self, player: Player) -> PlayerState:
         return PlayerState(self.game_state.round, self.game_state.get_leading_player(),
                            self.game_state.get_acting_player(), self.seats,
-                           self.game_state.get_player_cards(player.seat_number) if player else [],
+                           self.game_state.get_player_cards(player.seat_number) if player and player.seat_number else [],
                            self.game_state.get_community_cards(),
-                           self.game_state.get_end_game_state(), player.seat_number if player else None,
+                           self.game_state.get_end_game_state(), player.seat_number if player and player.seat_number else None,
                            self.button_position, self.game_state.pot)
 
     def deal_hand(self) -> None:

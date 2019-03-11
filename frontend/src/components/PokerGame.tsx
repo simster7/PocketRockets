@@ -1,10 +1,13 @@
 import * as React from 'react';
 
 import { PlayerState } from '../utils/PlayerState';
-import PokerPlayer from './Player';
+import PlayerContainer from './PlayerContainer';
+import { Message } from './PokerClient';
+import TableInfo from './TableInfo';
 
 interface IProp {
 	playerState: PlayerState;
+	sendMessage: (message: Message) => void;
 }
 
 interface IState {}
@@ -24,40 +27,111 @@ class PokerGame extends React.Component<IProp, IState> {
 						<tr>
 							<td>&nbsp;</td>
 							<td>
-								{this.props.playerState.buttonPosition == 0 ? '(D)' : ''}{' '}
-								<PokerPlayer player={this.props.playerState.currentPlayers[0]} />
+								<PlayerContainer
+									seatNumber={0}
+									buttonPosition={this.props.playerState.buttonPosition}
+									player={this.props.playerState.currentPlayers[0]}
+									cards={
+										this.props.playerState.playerSeat == 0 ? (
+											this.props.playerState.playerCards
+										) : (
+											undefined
+										)
+									}
+									sendMessage={this.props.sendMessage}
+								/>
 							</td>
 							<td>&nbsp;</td>
 							<td>
-								{this.props.playerState.buttonPosition == 1 ? '(D)' : ''}{' '}
-								<PokerPlayer player={this.props.playerState.currentPlayers[1]} />
+								<PlayerContainer
+									seatNumber={1}
+									buttonPosition={this.props.playerState.buttonPosition}
+									player={this.props.playerState.currentPlayers[1]}
+									cards={
+										this.props.playerState.playerSeat == 1 ? (
+											this.props.playerState.playerCards
+										) : (
+											undefined
+										)
+									}
+									sendMessage={this.props.sendMessage}
+								/>
 							</td>
 							<td>&nbsp;</td>
 							<td>
-								{this.props.playerState.buttonPosition == 2 ? '(D)' : ''}{' '}
-								<PokerPlayer player={this.props.playerState.currentPlayers[2]} />
+								<PlayerContainer
+									seatNumber={2}
+									buttonPosition={this.props.playerState.buttonPosition}
+									player={this.props.playerState.currentPlayers[2]}
+									cards={
+										this.props.playerState.playerSeat == 2 ? (
+											this.props.playerState.playerCards
+										) : (
+											undefined
+										)
+									}
+									sendMessage={this.props.sendMessage}
+								/>
 							</td>
 							<td>&nbsp;</td>
 						</tr>
 						<tr>
 							<td>
-								{this.props.playerState.buttonPosition == 8 ? '(D)' : ''}{' '}
-								<PokerPlayer player={this.props.playerState.currentPlayers[8]} />
+								<PlayerContainer
+									seatNumber={8}
+									buttonPosition={this.props.playerState.buttonPosition}
+									player={this.props.playerState.currentPlayers[8]}
+									cards={
+										this.props.playerState.playerSeat == 8 ? (
+											this.props.playerState.playerCards
+										) : (
+											undefined
+										)
+									}
+									sendMessage={this.props.sendMessage}
+								/>
 							</td>
 							<td>&nbsp;</td>
 							<td>&nbsp;</td>
-							<td>&nbsp;</td>
+							<td>
+								<TableInfo
+									communityCards={this.props.playerState.communityCards}
+									pot={this.props.playerState.pot}
+								/>
+							</td>
 							<td>&nbsp;</td>
 							<td>&nbsp;</td>
 							<td>
-								{this.props.playerState.buttonPosition == 3 ? '(D)' : ''}{' '}
-								<PokerPlayer player={this.props.playerState.currentPlayers[3]} />
+								<PlayerContainer
+									seatNumber={3}
+									buttonPosition={this.props.playerState.buttonPosition}
+									player={this.props.playerState.currentPlayers[3]}
+									cards={
+										this.props.playerState.playerSeat == 3 ? (
+											this.props.playerState.playerCards
+										) : (
+											undefined
+										)
+									}
+									sendMessage={this.props.sendMessage}
+								/>
 							</td>
 						</tr>
 						<tr>
 							<td>
-								{this.props.playerState.buttonPosition == 7 ? '(D)' : ''}{' '}
-								<PokerPlayer player={this.props.playerState.currentPlayers[7]} />
+								<PlayerContainer
+									seatNumber={7}
+									buttonPosition={this.props.playerState.buttonPosition}
+									player={this.props.playerState.currentPlayers[7]}
+									cards={
+										this.props.playerState.playerSeat == 7 ? (
+											this.props.playerState.playerCards
+										) : (
+											undefined
+										)
+									}
+									sendMessage={this.props.sendMessage}
+								/>
 							</td>
 							<td>&nbsp;</td>
 							<td>&nbsp;</td>
@@ -65,21 +139,54 @@ class PokerGame extends React.Component<IProp, IState> {
 							<td>&nbsp;</td>
 							<td>&nbsp;</td>
 							<td>
-								{this.props.playerState.buttonPosition == 4 ? '(D)' : ''}{' '}
-								<PokerPlayer player={this.props.playerState.currentPlayers[4]} />
+								<PlayerContainer
+									seatNumber={4}
+									buttonPosition={this.props.playerState.buttonPosition}
+									player={this.props.playerState.currentPlayers[4]}
+									cards={
+										this.props.playerState.playerSeat == 4 ? (
+											this.props.playerState.playerCards
+										) : (
+											undefined
+										)
+									}
+									sendMessage={this.props.sendMessage}
+								/>
 							</td>
 						</tr>
 						<tr>
 							<td>&nbsp;</td>
 							<td>&nbsp;</td>
 							<td>
-								{this.props.playerState.buttonPosition == 6 ? '(D)' : ''}{' '}
-								<PokerPlayer player={this.props.playerState.currentPlayers[6]} />
+								<PlayerContainer
+									seatNumber={6}
+									buttonPosition={this.props.playerState.buttonPosition}
+									player={this.props.playerState.currentPlayers[6]}
+									cards={
+										this.props.playerState.playerSeat == 6 ? (
+											this.props.playerState.playerCards
+										) : (
+											undefined
+										)
+									}
+									sendMessage={this.props.sendMessage}
+								/>
 							</td>
 							<td>&nbsp;</td>
 							<td>
-								{this.props.playerState.buttonPosition == 5 ? '(D)' : ''}{' '}
-								<PokerPlayer player={this.props.playerState.currentPlayers[5]} />
+								<PlayerContainer
+									seatNumber={5}
+									buttonPosition={this.props.playerState.buttonPosition}
+									player={this.props.playerState.currentPlayers[5]}
+									cards={
+										this.props.playerState.playerSeat == 5 ? (
+											this.props.playerState.playerCards
+										) : (
+											undefined
+										)
+									}
+									sendMessage={this.props.sendMessage}
+								/>
 							</td>
 							<td>&nbsp;</td>
 							<td>&nbsp;</td>

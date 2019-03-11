@@ -43,6 +43,7 @@ class PokerClient extends React.Component<IProp, IState> {
 			if (data.type === 'game_update') {
 				// TODO PLAYER STATE
 				let playerState: PlayerState = parsePlayerStateString(data.value as JSON);
+				console.log(playerState);
 				// let playerState: PlayerState = data.value as PlayerState;
 				this.setState({ playerState });
 			}
@@ -61,7 +62,7 @@ class PokerClient extends React.Component<IProp, IState> {
 		} else {
 			return (
 				<div>
-					<PokerGame playerState={this.state.playerState} />
+					<PokerGame playerState={this.state.playerState} sendMessage={this.sendMessage} />
 					<br />
 					<PokerController sendMessage={this.sendMessage} />
 				</div>

@@ -8,6 +8,7 @@ export interface PlayerState {
 	endGame?: EndGameState;
 	playerSeat?: number;
 	buttonPosition: number;
+	pot: number;
 }
 
 export interface Player {
@@ -19,7 +20,7 @@ export interface Player {
 	sittingOut: boolean;
 }
 
-interface Card {
+export interface Card {
 	cardId: number;
 }
 
@@ -44,7 +45,8 @@ export function parsePlayerStateString(data: JSON): PlayerState {
 		communityCards: data['community_cards'].map(parseCardString),
 		endGame: parseEndGameStateString(data['end_game']),
 		playerSeat: data['player_seat'],
-		buttonPosition: data['button_position']
+		buttonPosition: data['button_position'],
+		pot: data['pot']
 	};
 }
 
