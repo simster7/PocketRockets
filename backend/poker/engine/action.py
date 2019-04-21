@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 
 class Action:
@@ -8,14 +9,17 @@ class Action:
         fold = 2
         bet = 3
 
-    def __init__(self, action, value=None):
+    action: Actions
+    value: Optional[int]
+
+    def __init__(self, action: Actions, value: Optional[int] = None):
         self.action = action
         if self.action == Action.Actions.bet and value is None:
             raise Exception("A bet value is required when betting")
         self.value = value
 
     def __str__(self):
-        return self.action.name if self.action != Action.Actions.bet else self.action.name + " " + str(self.value)
+        return "{'action': '" + self.action.name + "' , 'value': " + str(self.value) + "}"
 
     def __repr__(self):
         return "{'action': '" + self.action.name + "' , 'value': " + str(self.value) + "}"

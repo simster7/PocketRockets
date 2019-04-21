@@ -11,12 +11,15 @@ from .action import Action
 @dataclass
 class PlayerState:
     bet_round: int
-    lead_player: Player
-    acting_player: Player
-    current_players: List[Player]
+    lead_player: Optional[Player]
+    acting_player: Optional[Player]
+    current_players: List[Optional[Player]]
     player_cards: Optional[List[Card]]
-    community_cards: List[Card]
-    end_game: EndGameState
+    community_cards: Optional[List[Card]]
+    end_game: Optional[EndGameState]
+    player_seat: Optional[int]
+    button_position: int
+    pot: int
 
 
 class Game:
@@ -31,7 +34,7 @@ class Game:
         self.button_position = 0
         self.small_blind = small_blind_amount
         self.big_blind = big_blind_amount
-        self.game_state = None
+        self.game_state = GameState()
 
     def sit_player(self, player: Player, seat_number: int) -> None:
         if not 0 <= seat_number < 9:
@@ -62,16 +65,14 @@ class Game:
             raise Exception("Player ({}) is playing out of turn".format(self.seats[player.seat_number]))
         player.last_action = action
         self.game_state = self.game_state.take_action(action)
-        if self.game_state.is_hand_over():
-            self.game_state.process_end_game()
 
     def get_player_state(self, player: Player) -> PlayerState:
-        if self.game_state:
-            return PlayerState(self.game_state.round, self.game_state.get_leading_player(),
-                               self.game_state.get_acting_player(), self.game_state.players,
-                               self.game_state.get_player_cards(player.seat_number),
-                               self.game_state.get_community_cards(),
-                               self.game_state.get_end_game_state())
+        return PlayerState(self.game_state.round, self.game_state.get_leading_player(),
+                           self.game_state.get_acting_player(), self.seats,
+                           self.game_state.get_player_cards(player.seat_number) if player and player.seat_number else [],
+                           self.game_state.get_community_cards(),
+                           self.game_state.get_end_game_state(), player.seat_number if player and player.seat_number else None,
+                           self.button_position, self.game_state.pot)
 
     def deal_hand(self) -> None:
 
@@ -81,13 +82,10 @@ class Game:
         deck = [Card(i) for i in range(52)]
         deck = self.shuffle_deck(deck)
 
-        self.game_state = GameState()
         self.game_state.start_hand(self.seats, self.button_position,  self.big_blind, self.small_blind, deck)
 
     def is_hand_active(self) -> bool:
-        if not self.game_state:
-            return False
-        return not self.game_state.is_hand_over()
+        return self.game_state.is_hand_active
 
     def get_acting_seat(self) -> int:
         return self.game_state.acting_player
