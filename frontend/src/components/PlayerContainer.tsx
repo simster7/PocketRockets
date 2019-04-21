@@ -2,7 +2,6 @@ import * as React from 'react';
 
 import { Player, Card } from '../utils/PlayerState';
 import PokerPlayer from './Player';
-import { cardIdToString } from 'src/utils/CardConverter';
 import { Message } from './PokerClient';
 
 interface IProp {
@@ -10,6 +9,8 @@ interface IProp {
 	buttonPosition: number;
 	cards?: Card[];
 	player: Player;
+	showSitButton: boolean;
+	isCurrentTurn: boolean;
 	sendMessage: (message: Message) => void;
 }
 
@@ -20,17 +21,17 @@ class PlayerContainer extends React.Component<IProp, IState> {
 		super(props);
 	}
 
+	private turnStyle = {
+		borderStyle: 'solid',
+		borderWidth: '1px'
+	};
+
 	public render() {
 		return (
-			<div>
+			<div style={this.props.isCurrentTurn ? this.turnStyle : {}}>
 				{this.props.buttonPosition == this.props.seatNumber ? '(D)' : ''}
-				<PokerPlayer player={this.props.player} />
-				{this.props.cards ? (
-					cardIdToString(this.props.cards[0].cardId) + ' ' + cardIdToString(this.props.cards[1].cardId)
-				) : (
-					''
-				)}
-				{!this.props.player ? (
+				<PokerPlayer player={this.props.player} cards={this.props.cards} />
+				{!this.props.player && this.props.showSitButton ? (
 					<button
 						onClick={() =>
 							this.props.sendMessage({

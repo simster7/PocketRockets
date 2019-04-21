@@ -73,8 +73,8 @@ class GameState:
         return self.acting_player == self.leading_player
 
     def get_player_cards(self, player_index: int) -> Optional[List[Card]]:
-        if self.fold_vector[player_index]:
-            return None
+        if not self.is_hand_active or self.fold_vector[player_index]:
+            return []
         return [self.deck[player_index], self.deck[player_index + self.__num_players_in_hand]]
 
     def get_community_cards(self) -> List[Card]:

@@ -64,7 +64,10 @@ function parsePlayerString(data: JSON): Player | undefined {
 	};
 }
 
-function parseActionString(data: JSON): Action {
+function parseActionString(data: JSON): Action | undefined {
+	if (!data) {
+		return undefined;
+	}
 	return {
 		action: data['action'],
 		value: data['value']

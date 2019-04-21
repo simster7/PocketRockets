@@ -73,6 +73,7 @@ class FrontEndConsumer(WebsocketConsumer):
                     self.send_error("This seat is already taken")
                     return
                 self.game.sit_player(self.player, desired_seat_number)
+                self.broadcast_game_update()
                 self.send_info("You sat down at seat number " + str(desired_seat_number))
                 return
             elif manage_message.item == 'add_stack':
@@ -80,6 +81,7 @@ class FrontEndConsumer(WebsocketConsumer):
                 self.player.stack = self.player.stack + desired_chips
                 self.send_info("You have bought {} chips, your stack size is now {} "
                                .format(desired_chips, self.player.stack))
+                return
             elif manage_message.item == 'deal':
                 if self.game.is_hand_active():
                     self.send_error("There is already an active hand being played")

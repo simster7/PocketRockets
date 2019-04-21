@@ -39,6 +39,14 @@ class PokerGame extends React.Component<IProp, IState> {
 										)
 									}
 									sendMessage={this.props.sendMessage}
+									isCurrentTurn={
+										this.props.playerState.actingPlayer ? (
+											this.props.playerState.actingPlayer.seatNumber === 0
+										) : (
+											false
+										)
+									}
+									showSitButton={!this.props.playerState.playerSeat}
 								/>
 							</td>
 							<td>&nbsp;</td>
@@ -55,6 +63,14 @@ class PokerGame extends React.Component<IProp, IState> {
 										)
 									}
 									sendMessage={this.props.sendMessage}
+									isCurrentTurn={
+										this.props.playerState.actingPlayer ? (
+											this.props.playerState.actingPlayer.seatNumber === 1
+										) : (
+											false
+										)
+									}
+									showSitButton={!this.props.playerState.playerSeat}
 								/>
 							</td>
 							<td>&nbsp;</td>
@@ -71,6 +87,14 @@ class PokerGame extends React.Component<IProp, IState> {
 										)
 									}
 									sendMessage={this.props.sendMessage}
+									isCurrentTurn={
+										this.props.playerState.actingPlayer ? (
+											this.props.playerState.actingPlayer.seatNumber === 2
+										) : (
+											false
+										)
+									}
+									showSitButton={!this.props.playerState.playerSeat}
 								/>
 							</td>
 							<td>&nbsp;</td>
@@ -89,6 +113,14 @@ class PokerGame extends React.Component<IProp, IState> {
 										)
 									}
 									sendMessage={this.props.sendMessage}
+									isCurrentTurn={
+										this.props.playerState.actingPlayer ? (
+											this.props.playerState.actingPlayer.seatNumber === 8
+										) : (
+											false
+										)
+									}
+									showSitButton={!this.props.playerState.playerSeat}
 								/>
 							</td>
 							<td>&nbsp;</td>
@@ -114,6 +146,14 @@ class PokerGame extends React.Component<IProp, IState> {
 										)
 									}
 									sendMessage={this.props.sendMessage}
+									isCurrentTurn={
+										this.props.playerState.actingPlayer ? (
+											this.props.playerState.actingPlayer.seatNumber === 3
+										) : (
+											false
+										)
+									}
+									showSitButton={!this.props.playerState.playerSeat}
 								/>
 							</td>
 						</tr>
@@ -131,6 +171,14 @@ class PokerGame extends React.Component<IProp, IState> {
 										)
 									}
 									sendMessage={this.props.sendMessage}
+									isCurrentTurn={
+										this.props.playerState.actingPlayer ? (
+											this.props.playerState.actingPlayer.seatNumber === 7
+										) : (
+											false
+										)
+									}
+									showSitButton={!this.props.playerState.playerSeat}
 								/>
 							</td>
 							<td>&nbsp;</td>
@@ -151,6 +199,14 @@ class PokerGame extends React.Component<IProp, IState> {
 										)
 									}
 									sendMessage={this.props.sendMessage}
+									isCurrentTurn={
+										this.props.playerState.actingPlayer ? (
+											this.props.playerState.actingPlayer.seatNumber === 4
+										) : (
+											false
+										)
+									}
+									showSitButton={!this.props.playerState.playerSeat}
 								/>
 							</td>
 						</tr>
@@ -170,6 +226,14 @@ class PokerGame extends React.Component<IProp, IState> {
 										)
 									}
 									sendMessage={this.props.sendMessage}
+									isCurrentTurn={
+										this.props.playerState.actingPlayer ? (
+											this.props.playerState.actingPlayer.seatNumber === 6
+										) : (
+											false
+										)
+									}
+									showSitButton={!this.props.playerState.playerSeat}
 								/>
 							</td>
 							<td>&nbsp;</td>
@@ -186,6 +250,14 @@ class PokerGame extends React.Component<IProp, IState> {
 										)
 									}
 									sendMessage={this.props.sendMessage}
+									isCurrentTurn={
+										this.props.playerState.actingPlayer ? (
+											this.props.playerState.actingPlayer.seatNumber === 5
+										) : (
+											false
+										)
+									}
+									showSitButton={!this.props.playerState.playerSeat}
 								/>
 							</td>
 							<td>&nbsp;</td>
