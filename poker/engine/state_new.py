@@ -82,10 +82,7 @@ class GameState:
         return cards
 
     def get_acting_index(self):
-        if self.to_act:
-            return self.to_act[0]
-        elif self.acted:
-            return min(self.acted)
+        return self.to_act[0]
 
     def get_acting_player(self):
         return self.players[self.get_acting_index()]
@@ -148,7 +145,7 @@ class GameState:
             return False
 
         print(f"All in: {[self.players[i] for _, i in all_in_players]}")
-        print(f"Still betting: {[self.players[i] for _, i in remaining_players]}")
+        print(f"Still active: {[self.players[i] for _, i in remaining_players]}")
 
         # Sort the all in players by stack size
         all_in_players.sort(reverse=True) 
@@ -157,8 +154,7 @@ class GameState:
         prev_bet = 0
         while all_in_players:
             total_players = len(all_in_players) + len(remaining_players)
-            N = len(self.side_pots)
-            self.contenders[N] = [i for _, i in all_in_players + remaining_players]
+            contenders = [i for _, i in all_in_players + remaining_players]
             bet, player_index = all_in_players.pop()
             # With each new all-in, we compute the marginal increase in pot share
             pot_size = (bet - prev_bet) * total_players
@@ -168,13 +164,14 @@ class GameState:
                 else:
                     self.side_pots.append(pot_size) 
                 prev_bet = bet
+            N = len(self.side_pots) - 1
+            self.contenders[N] = contenders
         print(f"Side Pots: {self.side_pots}")
 
         if remaining_players:
             assert(all([bet == remaining_players[0][0] for bet, _ in remaining_players]))
             pot_size = (remaining_players[0][0] - prev_bet) * len(remaining_players)
             # The last index of the side pot array is the active pot
-            # Maybe the whole thing should work like a stack when the game ends?
             self.side_pots.append(pot_size)
 
         return len(remaining_players) <= 1
