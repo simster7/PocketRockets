@@ -1,5 +1,4 @@
 class Hand:
-
     def __init__(self, cards, owner=None):
         """
         cards - A list of Card objects
@@ -18,4 +17,4 @@ class Hand:
         return self.owner
 
     def __str__(self):
-        return 'Hand({})'.format(str(self.cards))
+        return "Hand({})".format(str(self.cards))

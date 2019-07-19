@@ -1,5 +1,6 @@
-from .card import Card
-from .util import hand_generator
+from card import Card
+from util import hand_generator
+
 
 def check_straight_flush(hand):
     """
@@ -7,12 +8,13 @@ def check_straight_flush(hand):
     Returns composition of four of a kind for tie-breaking, it is structured as ([rank id])
     """
     suits = [card.suit_id for card in hand]
-    frequencies = [s_id for s_id in set(suits) if suits.count(s_id) >= 5] 
+    frequencies = [s_id for s_id in set(suits) if suits.count(s_id) >= 5]
     if not len(frequencies) == 1:
         return False, None
     suit = frequencies[0]
     cards = [card for card in hand if card.suit_id == suit]
     return check_straight(cards)
+
 
 def check_four_of_a_kind(hand):
     """
@@ -24,6 +26,7 @@ def check_four_of_a_kind(hand):
     if not len(frequencies) == 1:
         return False, None
     return True, (frequencies[0],)
+
 
 def check_full_house(hand):
     """
@@ -41,18 +44,22 @@ def check_full_house(hand):
             return True, (trip_check[1][0], second_trip_check[1][0])
     return False, None
 
+
 def check_flush(hand):
     """
     Returns True if the hand conatins a flush, hand could be better than a flush and check_flush would still return true.
     Returns high card for tie-breaking, it is structured as ([high card rank id],)
     """
     suits = [card.suit_id for card in hand]
-    frequencies = [s_id for s_id in set(suits) if suits.count(s_id) >= 5] 
+    frequencies = [s_id for s_id in set(suits) if suits.count(s_id) >= 5]
     if not len(frequencies) == 1:
         return False, None
     suit = frequencies[0]
-    ordered_flush = sorted([card.rank_id for card in hand if card.suit_id == suit], reverse=True)[:5]
+    ordered_flush = sorted(
+        [card.rank_id for card in hand if card.suit_id == suit], reverse=True
+    )[:5]
     return True, tuple(ordered_flush)
+
 
 def check_straight(hand):
     """
@@ -60,16 +67,19 @@ def check_straight(hand):
     Returns high card for tie-breaking, it is structured as ([high card rank id],)
     """
     values = sorted(list(set([card.rank_id for card in hand])), reverse=True)
-    if len(values) <  5:
+    if len(values) < 5:
         return False, None
     if 12 in values:
         values.append(-1)
     for i in range(len(values) - 4):
-        constraints = all([(values[j] - values[j+1] == 1) for j in range(i, i+4)])
+        constraints = all(
+            [(values[j] - values[j + 1] == 1) for j in range(i, i + 4)]
+        )
         if constraints:
             return True, (values[i],)
 
     return False, None
+
 
 def check_three_of_a_kind(hand):
     """
@@ -78,12 +88,17 @@ def check_three_of_a_kind(hand):
     If hand is actually better than a three of a kind, this function returns undefined behavior.
     """
     values = [card.rank_id for card in hand]
-    frequencies = sorted([v_id for v_id in set(values) if values.count(v_id) == 3], reverse=True)
+    frequencies = sorted(
+        [v_id for v_id in set(values) if values.count(v_id) == 3], reverse=True
+    )
     if not len(frequencies) >= 1:
         return False, None
     trip = frequencies[0]
-    remaining = sorted([value for value in values if value not in frequencies], reverse=True)[:2]
+    remaining = sorted(
+        [value for value in values if value not in frequencies], reverse=True
+    )[:2]
     return True, (trip, *remaining)
+
 
 def check_two_pair(hand):
     """
@@ -92,13 +107,19 @@ def check_two_pair(hand):
     If hand is actually better than two pair, this function returns undefined behavior.
     """
     values = [card.rank_id for card in hand]
-    frequencies = sorted([v_id for v_id in set(values) if values.count(v_id) == 2], reverse=True)
+    frequencies = sorted(
+        [v_id for v_id in set(values) if values.count(v_id) == 2], reverse=True
+    )
     if not len(frequencies) >= 2:
         return False, None
     pair1 = frequencies[0]
     pair2 = frequencies[1]
-    remaining = sorted([value for value in values if value not in [pair1, pair2]], reverse=True)[:1]
+    remaining = sorted(
+        [value for value in values if value not in [pair1, pair2]],
+        reverse=True,
+    )[:1]
     return True, (pair1, pair2, remaining[0])
+
 
 def check_pair(hand):
     """
@@ -106,12 +127,17 @@ def check_pair(hand):
     Returns remaining cards for tie-breaking, it is structured as ([pair rank id], *[sorted kicker rank ids])
     """
     values = [card.rank_id for card in hand]
-    frequencies = [rank_id for rank_id in set(values) if values.count(rank_id) == 2]
+    frequencies = [
+        rank_id for rank_id in set(values) if values.count(rank_id) == 2
+    ]
     if not len(frequencies) == 1:
         return False, None
     pair = frequencies[0]
-    remaining = sorted([value for value in values if value != pair], reverse=True)[:3]
+    remaining = sorted(
+        [value for value in values if value != pair], reverse=True
+    )[:3]
     return True, (pair, *remaining)
+
 
 def check_high_card(hand):
     """
@@ -121,28 +147,30 @@ def check_high_card(hand):
     return True, values[:5]
 
 
-HAND_CHECKS = [ check_straight_flush,   # 9
-                check_four_of_a_kind,   # 8
-                check_full_house,       # 7
-                check_flush,            # 6
-                check_straight,         # 5
-                check_three_of_a_kind,  # 4
-                check_two_pair,         # 3
-                check_pair,             # 2
-                check_high_card         # 1
-            ]
+HAND_CHECKS = [
+    check_straight_flush,  # 9
+    check_four_of_a_kind,  # 8
+    check_full_house,  # 7
+    check_flush,  # 6
+    check_straight,  # 5
+    check_three_of_a_kind,  # 4
+    check_two_pair,  # 3
+    check_pair,  # 2
+    check_high_card,  # 1
+]
 
 HAND_NAMES = {
-        9: "Straight Flush",
-        8: "Four Of A Kind",
-        7: "Full House",
-        6: "Flush",
-        5: "Straight",
-        4: "Three Of A Kind",
-        3: "Two Pair",
-        2: "Pair",
-        1: "High Card"
-    }
+    9: "Straight Flush",
+    8: "Four Of A Kind",
+    7: "Full House",
+    6: "Flush",
+    5: "Straight",
+    4: "Three Of A Kind",
+    3: "Two Pair",
+    2: "Pair",
+    1: "High Card",
+}
+
 
 class RankedHand:
     def __init__(self, hand, rank, player_index):
@@ -150,10 +178,20 @@ class RankedHand:
         self.rank = rank
         self.player_index = player_index
         self.hand_name = HAND_NAMES[self.rank[0]]
+
     def __str__(self):
-        return str(self.player_index) + ": " + self.hand_name + " (" + str(self.hand) + ")"
+        return (
+            str(self.player_index)
+            + ": "
+            + self.hand_name
+            + " ("
+            + str(self.hand)
+            + ")"
+        )
+
     def __repr__(self):
         return str(self)
+
 
 def calculate_hand(hand):
     POSSIBLE_HANDS = len(HAND_CHECKS)
@@ -163,8 +201,16 @@ def calculate_hand(hand):
             score = POSSIBLE_HANDS - index
             return (score, *state)
 
+
 def get_hand_rank_with_name(player_index, hand):
     return RankedHand(hand, calculate_hand(hand), player_index)
 
+
 def rank_hands(list_of_hands):
-    return list(sorted(map(lambda pair: get_hand_rank_with_name(*pair), list_of_hands), key = lambda hand: hand.rank, reverse=True))
+    return list(
+        sorted(
+            map(lambda pair: get_hand_rank_with_name(*pair), list_of_hands),
+            key=lambda hand: hand.rank,
+            reverse=True,
+        )
+    )

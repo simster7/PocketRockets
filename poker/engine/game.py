@@ -1,32 +1,46 @@
-from .player import Player
-from .card import Card
-from .evaluator import rank_hands
-from .state import GameState, Action
+from player import Player
+from card import Card
+from evaluator import rank_hands
+from state_new import GameState, Action
 
 from random import shuffle
+
 
 def prompt(game_state):
     player = game_state.get_acting_player()
     bet_round = game_state.get_round()
-    lead_action = game_state.get_lead_action()
-    lead_player = game_state.get_leading_player()
     print()
-    print("Current players: {}".format(game_state.get_players()))
-    print("Player hands: {}".format([game_state.get_player_cards(i) for i in range(len(game_state.players))]))
+    print(f"Current players: {game_state.get_players()}")
+    player_hands = [
+        game_state.get_player_cards(i)
+        for i in range(len(game_state.players))
+    ]
+    print(f"Player hands: {player_hands}")
     print()
-    print("Community cards: {}".format(game_state.get_community_cards()))
-    print("Pot: {}".format(game_state.get_pot()))
+    print(f"Community cards: {game_state.get_community_cards()}")
     print()
-    print("Current round: {}".format(bet_round))
-    print("Lead action: {}: {}".format(lead_player.name, lead_action))
-    print("Acting as player: {}".format(player.name))
-    print("With hand: {}".format(game_state.get_player_cards(game_state.get_acting_index())))
-    print("""
+    print(f"Current round: {bet_round}")
+    print(f"Acting as player: {player.name}")
+    print(
+        "With hand: {}".format(
+            game_state.get_player_cards(game_state.get_acting_index())
+        )
+    )
+    side_pots = [x for x in game_state.get_pot()]
+    if len(side_pots) > 1:
+        print(f"Fixed Pots: {side_pots[:-1]}")
+    print(
+        """
         F - Fold
         C - Check
         L - Call
         [Number] - {} 
-    """.format("Call {} and raise [Number]".format(lead_action.value) if lead_action.action == Action.actions.bet else "Bet [Number]"))
+    """.format("Bet [Number]")
+    )
+    print(f"Active Pot: {side_pots[-1]}")
+    print(f"Current Pot: {game_state.get_current_pot()}")
+    print(f"Acted Players: {game_state.get_acted_queue()}")
+    print(f"Players to act: {game_state.get_queue()}")
     while True:
         action = input("Enter action: ")
         if action == "F":
@@ -36,10 +50,12 @@ def prompt(game_state):
         elif action == "L":
             return game_state.take_action(Action(Action.actions.call))
         elif action.isdigit():
-            return game_state.take_action(Action(Action.actions.bet, int(action)))
+            return game_state.take_action(
+                Action(Action.actions.bet, int(action))
+            )
+
 
 class Game:
-
     def __init__(self, small_blind_amount, big_blind_amount, prompt=prompt):
         self.seats = [None] * 9
         self.button_position = 0
@@ -53,47 +69,73 @@ class Game:
         if self.seats[seat_number] == None:
             self.seats[seat_number] = player
         else:
-            raise Exception("Cannot sit player ({}) on an occupied seat".format(player))
+            raise Exception(
+                "Cannot sit player ({}) on an occupied seat".format(player)
+            )
 
     def deal_hand(self):
         players = [player for player in self.seats if player != None]
         deck = [Card(i) for i in range(52)]
-        shuffle(deck) # TODO: replace this with more e n t r o p y
+        shuffle(deck)  # TODO: replace this with more e n t r o p y
         game_state = GameState()
-        game_state.start_hand(players, self.big_blind, self.small_blind, deck,
-                              starting_pot=self.remaining_pot)
-        while not game_state.is_hand_over():
-            game_state = self.prompt(game_state)
-        self.remaining_pot = game.get_remaining_pot()
+        game_state.start_hand(
+            players,
+            self.big_blind,
+            self.small_blind,
+            deck
+        )
+        hand_over = False
+        while not hand_over: 
+            game_state, hand_over = self.prompt(game_state)
 
     def deal_fake_hand(self):
         players = [player for player in self.seats if player != None]
         deck = [Card(i) for i in range(52)]
-        shuffle(deck) # TODO: replace this with more e n t r o p y
+        shuffle(deck)  # TODO: replace this with more e n t r o p y
         print(deck)
-        AS = [i for i, card in enumerate(deck) if card.suit == 'S' and card.rank == 'A'][0]
-        AH = [i for i, card in enumerate(deck) if card.suit == 'H' and card.rank == 'A'][0] 
-        AC = [i for i, card in enumerate(deck) if card.suit == 'C' and card.rank== 'A'][0] 
-        AD = [i for i, card in enumerate(deck) if card.suit == 'D' and card.rank == 'A'][0]
-        indices = [0,1,3,4]
+        AS = [
+            i
+            for i, card in enumerate(deck)
+            if card.suit == "S" and card.rank == "A"
+        ][0]
+        AH = [
+            i
+            for i, card in enumerate(deck)
+            if card.suit == "H" and card.rank == "A"
+        ][0]
+        AC = [
+            i
+            for i, card in enumerate(deck)
+            if card.suit == "C" and card.rank == "A"
+        ][0]
+        AD = [
+            i
+            for i, card in enumerate(deck)
+            if card.suit == "D" and card.rank == "A"
+        ][0]
+        indices = [0, 1, 3, 4]
         for i, j in zip(indices, [AS, AH, AC, AD]):
             deck[i], deck[j] = deck[j], deck[i]
-        print(deck) 
+        print(deck)
         game_state = GameState()
-        game_state.start_hand(players, self.big_blind, self.small_blind, deck,
-                              starting_pot=self.remaining_pot)
-        while not game_state.is_hand_over():
-            game_state = self.prompt(game_state)
-        self.remaining_pot = game_state.get_remaining_pot()
+        game_state.start_hand(
+            players,
+            self.big_blind,
+            self.small_blind,
+            deck
+        )
+        hand_over = False
+        while not hand_over: 
+            game_state, hand_over = self.prompt(game_state)
+        game_state.end_game()
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     game = Game(1, 2)
     game.sit_player(Player("Simon", 100), 0)
-    game.sit_player(Player("Hersh", 100), 1)
-    game.sit_player(Player("Chien", 100), 2)
-    #game.sit_player(Player("Jarry", 100), 3)
-    #game.sit_player(Player("Grace", 100), 6)
-    #game.sit_player(Player("Jason", 100), 7)
+    game.sit_player(Player("Hersh", 90), 1)
+    game.sit_player(Player("Chien", 80), 2)
+    # game.sit_player(Player("Jarry", 100), 3)
+    # game.sit_player(Player("Grace", 100), 6)
+    # game.sit_player(Player("Jason", 100), 7)
     while True:
         game.deal_fake_hand()
