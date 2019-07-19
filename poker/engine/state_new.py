@@ -27,9 +27,9 @@ class GameState:
     ):
         self.deck = deck
         self.folded = []
-        self.all_in = {}
         self.players = [p for p in players if p.stack > 0]
-        self.side_pots = deque()
+        self.contenders = {0: list(range(len(self.players)))}
+        self.side_pots = []
         self.acted = deque()
         self.to_act = deque(list(range(len(self.players))))
         self.to_act.rotate(-2)
@@ -92,54 +92,38 @@ class GameState:
         return self.players[self.get_acting_index()]
 
     def end_game(self):
-        showdown = [
-            i for i in range(len(self.players)) if i not in self.folded
-        ]
-        showdown_hands = [
-            (
-                player_index,
-                self.get_player_cards(player_index)
-                + self.get_community_cards(),
-            )
-            for player_index in showdown
-        ]
-        print(f"Showdown: {showdown_hands}")
-        ranked_hands = deque(rank_hands(showdown_hands))
-        payoffs = {player: 0 for player in showdown}
-        side_bet_index = 0
-        winners = []
-        while self.side_pots:
-            if not winners:
-                top_hands = [ranked_hands.popleft()]
-                top_rank = top_hands[0].rank
-                while ranked_hands[0].rank == top_rank:
-                    top_hands.append(ranked_hands.popleft())
-                winners = sorted([hand.player_index for hand in top_hands])
-            print(f"Winners: {[self.players[i] for i in winners]}")
-            split_pot = [self.all_in[w] for w in winners if w in self.all_in]
-            print(f"Split Pot: {split_pot}")
-            pot = 0
-            if split_pot:
-                min_side_pots = min(split_pot) + 1 - side_bet_index
-                side_bet_index += min_side_pots
-            else:
-                min_side_pots = len(self.side_pots)
-            total = 0
-            for _ in range(min_side_pots):
-                total += self.side_pots.popleft()
+        payoffs = {player: 0 for player in range(len(self.players))}
+        winners = {}
+        recipient = self.last_to_act
+        for i, current_pot in enumerate(self.side_pots): 
+            contenders = self.contenders[i] 
+            showdown = [i for i in contenders if i not in self.folded]
+            print(showdown)
+            showdown_hands = [
+                (
+                    player_index,
+                    self.get_player_cards(player_index)
+                    + self.get_community_cards(),
+                )
+                for player_index in showdown
+            ]
+            print(f"Showdown: {showdown_hands}")
+            ranked_hands = rank_hands(showdown_hands)
+            top_rank = ranked_hands[0].rank
+            top_hands = [hand for hand in ranked_hands if hand.rank == top_rank]
+            winners = sorted([hand.player_index for hand in top_hands])
             N = len(winners) 
-            split = total // N 
-            extra = total % N 
+            split = current_pot // N 
+            extra = current_pot % N 
             for player in winners:
                 payoffs[player] += split
             if extra:
-                receipient = self.last_to_act
-                while receipient not in winners:
-                    receipient = (receipient + 1) % len(self.players)
-                start = winners.index(receipient)
+                while recipient not in winners:
+                    recipient = (recipient + 1) % len(self.players)
+                start = winners.index(recipient)
                 for i in range(extra):
-                    payoffs[winners[start+i]] += 1
-            winners = [w for w in winners if w not in self.all_in or self.all_in[w] >= min_side_pots]
+                    payoffs[winners[(start+i) % N]] += 1
+                recipient = winnners[(start+extra) % N]
 
         for i, value in payoffs.items():
             self.players[i].recieve_pot(value)
@@ -162,7 +146,7 @@ class GameState:
 
         if not all_in_players:
             self.side_pots[-1] += self.current_pot
-            return
+            return False
 
         print(f"All in: {[self.players[i] for _, i in all_in_players]}")
         print(f"Still betting: {[self.players[i] for _, i in remaining_players]}")
@@ -174,6 +158,8 @@ class GameState:
         prev_bet = 0
         while all_in_players:
             total_players = len(all_in_players) + len(remaining_players)
+            N = len(self.side_pots)
+            self.contenders[N] = [i for _, i in all_in_players + remaining_players]
             bet, player_index = all_in_players.pop()
             # With each new all-in, we compute the marginal increase in pot share
             pot_size = (bet - prev_bet) * total_players
@@ -183,14 +169,16 @@ class GameState:
                 else:
                     self.side_pots.append(pot_size) 
                 prev_bet = bet
-            self.all_in[player_index] = len(self.side_pots) - 1
-
         print(f"Side Pots: {self.side_pots}")
 
         if remaining_players:
             assert(all([bet == remaining_players[0][0] for bet, _ in remaining_players]))
             pot_size = (remaining_players[0][0] - prev_bet) * len(remaining_players)
+            # The last index of the side pot array is the active pot
+            # Maybe the whole thing should work like a stack when the game ends?
             self.side_pots.append(pot_size)
+
+        return len(remaining_players) <= 1
 
 
     def take_action(self, action):
@@ -251,7 +239,8 @@ class GameState:
             self.last_to_act = player_index
 
         if not self.to_act:
-            self.resolve_pot()
+            if self.resolve_pot():
+                self.round = 3
             self.round += 1
             if len(self.acted) <= 1 or self.round == 4:
                 return self, True 
@@ -261,6 +250,5 @@ class GameState:
                 self.current_bet = 0
                 self.current_pot = 0
                 self.bet_vector = [0] * len(self.to_act)
-            return self, False
 
         return self, False 
