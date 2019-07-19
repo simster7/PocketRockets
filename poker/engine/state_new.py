@@ -89,12 +89,10 @@ class GameState:
 
     def end_game(self):
         payoffs = {player: 0 for player in range(len(self.players))}
-        winners = {}
         recipient = self.last_to_act
         for i, current_pot in enumerate(self.side_pots): 
             contenders = self.contenders[i] 
             showdown = [i for i in contenders if i not in self.folded]
-            print(showdown)
             showdown_hands = [
                 (
                     player_index,
@@ -114,6 +112,7 @@ class GameState:
             for player in winners:
                 payoffs[player] += split
             if extra:
+                # This is still kind of dirty
                 while recipient not in winners:
                     recipient = (recipient + 1) % len(self.players)
                 start = winners.index(recipient)
@@ -165,6 +164,7 @@ class GameState:
                     self.side_pots.append(pot_size) 
                 prev_bet = bet
             N = len(self.side_pots) - 1
+            # We only need to consider these players at showdown for the current side pot
             self.contenders[N] = contenders
         print(f"Side Pots: {self.side_pots}")
 
