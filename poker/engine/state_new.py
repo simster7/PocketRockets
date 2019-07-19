@@ -1,4 +1,3 @@
-from math import floor
 from collections import deque
 from enum import Enum
 from evaluator import rank_hands
