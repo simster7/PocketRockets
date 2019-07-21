@@ -16,6 +16,13 @@ class EndGameState:
     hands: List[RankedHand]
 
 
+@dataclass
+class ActionResponse:
+    folded: bool
+    bet: int
+    end_game: Optional[EndGameState]
+
+
 class GameState:
     players: List[Player]
     button_position: int
@@ -130,39 +137,23 @@ class GameState:
             winner = self.players[ranked_hands[0].player_index]
             return EndGameState([(winner, self.pot)], "showdown", ranked_hands)
 
-    def process_end_game(self) -> None:
-        if not self.is_hand_over() or not self.is_hand_active:
-            return None
-        showdown: List[int] = [i for i in range(len(self.players)) if not self.fold_vector[i]]
-        if sum(self.fold_vector) == len(self.players) - 1:
-            assert len(showdown) == 1, "Bug: more than one player left on a fold win condition"
-            winner = self.players[showdown[0]]
-            winner.receive_pot(self.pot)
-        else:
-            showdown_hands = [(player_index, self.get_player_cards(player_index) + self.get_community_cards()) for
-                              player_index in showdown]
-            ranked_hands = rank_hands(showdown_hands)
-            winner = self.players[ranked_hands[0].player_index]
-            winner.receive_pot(self.pot)
-
-    def take_action(self, action: Action) -> GameState:
+    def take_action(self, action: Action) -> Tuple[GameState, ActionResponse]:
         if action.action == Action.Actions.fold:
             self.fold_vector[self.acting_player] = True
-            self.__move_acting_player()
-            return GameState(self)
+            end_game_state = self.__move_acting_player()
+            return GameState(self), ActionResponse(True, 0, end_game_state)
         if action.action == Action.Actions.check:
             if self.get_lead_action().action == Action.Actions.bet:
                 raise Exception("Illegal game state: player can\'t check when there is a bet")
-            self.__move_acting_player()
-            return GameState(self)
+            end_game_state = self.__move_acting_player()
+            return GameState(self), ActionResponse(False, 0, end_game_state)
         if action.action == Action.Actions.call:
             to_call = self.bet_vector[self.leading_player] - self.bet_vector[self.acting_player]
             if self.players[self.acting_player].stack < to_call:
                 raise Exception("Illegal game state: player doesn\'t have enough chips to call")
-            self.players[self.acting_player].make_bet(to_call)
             self.bet_vector[self.acting_player] += to_call
-            self.__move_acting_player()
-            return GameState(self)
+            end_game_state = self.__move_acting_player()
+            return GameState(self), ActionResponse(False, to_call, end_game_state)
         if action.action == Action.Actions.bet:
             lead_action = self.get_lead_action()
             to_call = 0
@@ -170,11 +161,10 @@ class GameState:
                 to_call = max(lead_action.value - self.bet_vector[self.acting_player], 0)
             if self.players[self.acting_player].stack < action.value:
                 raise Exception("Illegal game state: player doesn\'t have enough chips to make that bet")
-            self.players[self.acting_player].make_bet(action.value + to_call)
             self.bet_vector[self.acting_player] += action.value + to_call
             self.leading_player = self.acting_player
-            self.__move_acting_player()
-            return GameState(self)
+            end_game_state = self.__move_acting_player()
+            return GameState(self), ActionResponse(False, action.value + to_call, end_game_state)
 
     def __copy(self, old_game_state: GameState):
         self.players = old_game_state.players
@@ -188,7 +178,7 @@ class GameState:
         self.leading_player = old_game_state.leading_player
         self.is_hand_active = old_game_state.is_hand_active
 
-    def __move_acting_player(self) -> None:
+    def __move_acting_player(self) -> Optional[EndGameState]:
         self.acting_player = (self.acting_player + 1) % len(self.players)
         while self.fold_vector[self.acting_player] and not self.is_round_over():
             self.acting_player = (self.acting_player + 1) % len(self.players)
@@ -202,7 +192,8 @@ class GameState:
 
         if self.is_hand_over():
             self.is_hand_active = False
-            self.process_end_game()
+            return self.get_end_game_state()
+        return None
 
     @property
     def __num_players_in_hand(self) -> int:

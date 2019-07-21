@@ -63,8 +63,17 @@ class Game:
             raise Exception("Trying to take action when hand is over")
         if player.seat_number != self.game_state.get_acting_index():
             raise Exception("Player ({}) is playing out of turn".format(self.seats[player.seat_number]))
-        player.last_action = action
-        self.game_state = self.game_state.take_action(action)
+
+        proposed_last_action = action
+        proposed_state, action_response = self.game_state.take_action(action)
+
+        player.folded = action_response.folded
+        player.make_bet(action_response.bet)
+        player.last_action = proposed_last_action
+
+        if action_response.end_game:
+            for winner, win_amount in action_response.end_game.winners:
+                winner.receive_pot(win_amount)
 
     def get_player_state(self, player: Player) -> PlayerState:
         return PlayerState(self.game_state.round, self.game_state.get_leading_player(),
@@ -75,7 +84,6 @@ class Game:
                            self.button_position, self.game_state.pot)
 
     def deal_hand(self) -> None:
-
         self.button_position = (self.button_position + 1) % 9
         while not self.seats[self.button_position]:
             self.button_position = (self.button_position + 1) % 9
