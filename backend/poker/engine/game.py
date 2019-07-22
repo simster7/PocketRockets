@@ -53,7 +53,7 @@ class Game:
             raise Exception("Player ({}) is playing out of turn".format(self.seats[player.seat_number]))
 
         proposed_last_action = action
-        proposed_state, action_response = self.game_state.take_action(action)
+        self.game_state, action_response = self.game_state.take_action(action)
 
         player.folded = action_response.folded
         player.make_bet(action_response.bet)
