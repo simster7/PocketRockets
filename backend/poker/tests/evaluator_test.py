@@ -78,7 +78,7 @@ class TestCheckTwoPair:
 
     def test_two_pair_correct_with_seven_and_three_fair(self):
         """
-        Two pair correctly evaluated with seven cards and precence of three pair
+        Two pair correctly evaluated with seven cards and presence of three pair
         """
         pair_hand = hand_generator('8S 8H TH TD 9C 9S 6C')
         result = check_two_pair(pair_hand)
@@ -86,7 +86,7 @@ class TestCheckTwoPair:
 
     def test_no_pair_not_evaluated(self):
         """
-        No two pair not evaluated, even with seven cards
+        No two pair evaluated, even with seven cards
         """
         pair_hand = hand_generator('8S 7H KH TD QC 2S 4H')
         result = check_two_pair(pair_hand)
@@ -94,7 +94,7 @@ class TestCheckTwoPair:
 
     def test_no_pair_not_evaluated_with_pair(self):
         """
-        No two pair not evaluated, even with seven cards and a single pair
+        No two pair evaluated, even with seven cards and a single pair
         """
         pair_hand = hand_generator('8S 8H KH TD QC 2S 4H')
         result = check_two_pair(pair_hand)
