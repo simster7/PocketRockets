@@ -1,11 +1,23 @@
-package engine
+package evaluator
 
-import "sort"
+import (
+	"github.com/simster7/PocketRockets/go_backend/engine"
+	"sort"
+)
 
-type CheckResult struct {
-	Match bool
-	Tiebreakers []int
+type Tiebreakers []int
+
+func CompareTiebreakers(a, b Tiebreakers) int {
+	for i := 0; i < len(a); i++ {
+		if a[i] > b[i] {
+			return -1
+		} else if b[i] > a[i] {
+			return 1
+		}
+	}
+	return 0
 }
+
 
 
 // Returns True if the hand contains at only one pair, hand could be better than one pair and check_pair would still
@@ -16,7 +28,7 @@ type CheckResult struct {
 //}
 
 // Always returns True, because hand is always at least high card good. Returns ordered cards for tie-breaking
-func CheckHighCard(hand []Card) CheckResult {
+func CheckHighCard(hand []engine.Card) (bool, Tiebreakers) {
 	var handRanks []int
 	for _, rank := range hand {
 		handRanks = append(handRanks, rank.GetRankId())
@@ -25,5 +37,6 @@ func CheckHighCard(hand []Card) CheckResult {
 		// Use a "greater than" function instead of "less than" to sort in descending order
 		return handRanks[i] > handRanks[j]
 	})
-	return CheckResult{true, handRanks[:5]}
+	return true, handRanks[:5]
 }
+
