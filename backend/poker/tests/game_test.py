@@ -1,11 +1,9 @@
 from typing import List, Callable
 
-from ..engine.card import Card
 from ..engine.action import Action
+from ..engine.card import Card
 from ..engine.game import Game
 from ..engine.player import Player
-
-import json
 
 
 class GameMock(Game):

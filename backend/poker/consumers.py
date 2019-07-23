@@ -115,36 +115,37 @@ class TextPokerConsumer(WebsocketConsumer):
                 'message': game_string
             }))
 
-    # This is a huge abstraction barrier violation, only for testing purposes.
-    @staticmethod
-    def get_full_game_state_string(game_state):
-        if not game_state:
-            return ""
-        out = ""
-        player = game_state.get_acting_player()
-        bet_round = game_state.get_round()
-        lead_action = game_state.get_lead_action()
-        lead_player = game_state.get_leading_player()
-        out += "\n"
-        out += "Current players: {}".format(game_state.get_players()) + "\n"
-        out += "Player hands: {}".format(
-            [game_state.get_player_cards(i) for i in range(len(game_state.players))]) + "\n"
-        out += "\n"
-        out += "Community cards: {}".format(game_state.get_community_cards()) + "\n"
-        out += "\n"
-        out += "\n"
-        out += "Current round: {}".format(bet_round) + "\n"
-        out += "Lead action: {}: {}".format(lead_player.name, lead_action) + "\n"
-        out += "Acting as player: {}".format(player.name) + "\n"
-        out += "With hand: {}".format(game_state.get_player_cards(game_state.get_acting_index())) + "\n"
-        out += """
-            F - Fold
-            C - Check
-            L - Call
-            [Number] - {} 
-        """.format("Call {} and raise [Number]".format(
-            lead_action.value) if lead_action.action == Action.Actions.bet else "Bet [Number]") + "\n"
-        return out
+    # This is intended to return the game state as a string for testing purposes.
+    # It currently does not work, if it is needed it can be used but needs to be fixed.
+    # @staticmethod
+    # def get_full_game_state_string(game_state):
+    #     if not game_state:
+    #         return ""
+    #     out = ""
+    #     player = game_state.get_acting_player()
+    #     bet_round = game_state.get_round()
+    #     lead_action = game_state.get_lead_action()
+    #     lead_player = game_state.get_leading_player()
+    #     out += "\n"
+    #     out += "Current players: {}".format(game_state.get_players()) + "\n"
+    #     out += "Player hands: {}".format(
+    #         [game_state.get_player_cards(i) for i in range(len(game_state.players))]) + "\n"
+    #     out += "\n"
+    #     out += "Community cards: {}".format(game_state.get_community_cards()) + "\n"
+    #     out += "\n"
+    #     out += "\n"
+    #     out += "Current round: {}".format(bet_round) + "\n"
+    #     out += "Lead action: {}: {}".format(lead_player.name, lead_action) + "\n"
+    #     out += "Acting as player: {}".format(player.name) + "\n"
+    #     out += "With hand: {}".format(game_state.get_player_cards(game_state.get_acting_index())) + "\n"
+    #     out += """
+    #         F - Fold
+    #         C - Check
+    #         L - Call
+    #         [Number] - {}
+    #     """.format("Call {} and raise [Number]".format(
+    #         lead_action.value) if lead_action.action == Action.Actions.bet else "Bet [Number]") + "\n"
+    #     return out
 
     @staticmethod
     def get_personal_game_string(player_state: PlayerState) -> str:
