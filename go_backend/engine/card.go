@@ -29,11 +29,11 @@ type Card struct {
 	CardId int
 }
 
-func NewCard(cardId int) *Card {
+func NewCard(cardId int) Card {
 	if cardId < 0 || cardId >= 52 {
 		log.Fatal("Card id must be an integer in [0, 51]")
 	}
-	return &Card{cardId}
+	return Card{cardId}
 }
 
 func (c *Card) GetSuitId() int {
