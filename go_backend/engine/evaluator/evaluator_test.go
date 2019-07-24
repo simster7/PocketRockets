@@ -279,26 +279,18 @@ func TestEvaluator(t *testing.T) {
 		{
 			Hand: engine.GenerateHand(flushAJ),
 			PlayerIndex: 0,
-			HandStrength: nil,
-			HandName: "",
 		},
 		{
 			Hand: engine.GenerateHand(flushAK),
 			PlayerIndex: 1,
-			HandStrength: nil,
-			HandName: "",
 		},
 		{
 			Hand: engine.GenerateHand(boatAT),
 			PlayerIndex: 2,
-			HandStrength: nil,
-			HandName: "",
 		},
 		{
 			Hand: engine.GenerateHand(straightA),
 			PlayerIndex: 3,
-			HandStrength: nil,
-			HandName: "",
 		},
 	}
 	evaluatedHands := EvaluateHands(handsToEvaluate)
