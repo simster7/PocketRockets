@@ -11,5 +11,5 @@ func main() {
 	_, nineHigh := evaluator.CheckHighCard([]engine.Card{{1}, {2}, {3}, {4}, {5}, {6}, {9}})
 	fmt.Println(sevenHigh)
 	fmt.Println(nineHigh)
-	fmt.Println(evaluator.CompareTiebreakers(nineHigh, sevenHigh))
+	fmt.Println(evaluator.CompareStrengths(nineHigh, sevenHigh))
 }

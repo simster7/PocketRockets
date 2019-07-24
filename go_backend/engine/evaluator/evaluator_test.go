@@ -184,3 +184,87 @@ func TestCheckFlush(t *testing.T) {
     assert.False(t, match)
     assert.Nil(t, result)
 }
+
+func TestCheckFullHouse(t *testing.T) {
+    // Full house check works correctly
+    hand := engine.GenerateHand("JS JC JD 6C 6S")
+    match, result := CheckFullHouse(hand)
+    assert.True(t, match)
+    assert.Equal(t, Tiebreakers{9, 4}, result)
+
+    // Full house check works correctly with seven cards
+    hand = engine.GenerateHand("AS AC AD 6C 6S 2S KC")
+    match, result = CheckFullHouse(hand)
+    assert.True(t, match)
+    assert.Equal(t, Tiebreakers{12, 4}, result)
+
+    // Full house check works correctly with seven cards and two three of a kinds
+    hand = engine.GenerateHand("JS JC JD 6C 6S 6D KC")
+    match, result = CheckFullHouse(hand)
+    assert.True(t, match)
+    assert.Equal(t, Tiebreakers{9, 4}, result)
+
+    // Full house check works correctly with seven cards and two three of a kinds, order agnostic
+    hand = engine.GenerateHand("6C 6S 6D JS JC JD KC")
+    match, result = CheckFullHouse(hand)
+    assert.True(t, match)
+    assert.Equal(t, Tiebreakers{9, 4}, result)
+
+    // No full house when there is no full house
+    hand = engine.GenerateHand("JS JC KD 6C 6S 5D KC")
+    match, result = CheckFullHouse(hand)
+    assert.False(t, match)
+    assert.Nil(t, result)
+}
+
+func TestCheckFourOfAKind(t *testing.T) {
+    // Four of a kind check works correctly
+    hand := engine.GenerateHand("JS JC JD JH AS")
+    match, result := CheckFourOfAKind(hand)
+    assert.True(t, match)
+    assert.Equal(t, Tiebreakers{9}, result)
+
+    // Four of a kind check works correctly with seven cards
+    hand = engine.GenerateHand("2S 2C 2D 2H AS KC 7C")
+    match, result = CheckFourOfAKind(hand)
+    assert.True(t, match)
+    assert.Equal(t, Tiebreakers{0}, result)
+
+    // Four of a kind check works correctly with seven cards and extra trips
+    hand = engine.GenerateHand("5S 5C 5D 5H AS AC AH")
+    match, result = CheckFourOfAKind(hand)
+    assert.True(t, match)
+    assert.Equal(t, Tiebreakers{3}, result)
+
+    // No four of a kind when there is none
+    hand = engine.GenerateHand("JS JC JD 6C 6S 6D KC")
+    match, result = CheckFourOfAKind(hand)
+    assert.False(t, match)
+    assert.Nil(t, result)
+}
+
+func TestCheckStraightFlush(t *testing.T) {
+    // Straight flush check works correctly
+    hand := engine.GenerateHand("4S 5S 6S 7S 8S")
+    match, result := CheckStraightFlush(hand)
+    assert.True(t, match)
+    assert.Equal(t, Tiebreakers{6}, result)
+
+    // Straight flush check works correctly even with seven cards
+    hand = engine.GenerateHand("7S 8S 9S TS JS AH TC")
+    match, result = CheckStraightFlush(hand)
+    assert.True(t, match)
+    assert.Equal(t, Tiebreakers{9}, result)
+
+    // No straight flush if there is no flush
+    hand = engine.GenerateHand("7S 8S 9H TS JS AH TC")
+    match, result = CheckStraightFlush(hand)
+    assert.False(t, match)
+    assert.Nil(t, result)
+
+    // No straight flush if there is no straight
+    hand = engine.GenerateHand("6S 8S 9S TS JS AH TC")
+    match, result = CheckStraightFlush(hand)
+    assert.False(t, match)
+    assert.Nil(t, result)
+}
