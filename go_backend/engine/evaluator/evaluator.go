@@ -17,6 +17,24 @@ func CompareTiebreakers(a, b Tiebreakers) int {
 	}
 	return 0
 }
+
+// Returns True if the hand contains a flush, hand could be better than a flush and check_flush would still return
+// true.
+func CheckFlush(hand []engine.Card) (bool, Tiebreakers) {
+	ranks := getCardSuitIdSlice(hand)
+	flush := getFrequencies(ranks, 5, 7)
+	if len(flush) != 1 {
+		return false, nil
+	}
+	suit := flush[0]
+	flushMembers := filterCard(hand, func(card engine.Card) bool {
+		return card.GetSuitId() == suit
+	})
+	rankedFlushMembers := getCardRankIdSlice(flushMembers)
+	descendingSort(rankedFlushMembers)
+	return true, rankedFlushMembers[:5]
+}
+
 // Returns True if the hand contains a straight, hand could be better than a straight and check_straight would still
 // return true.
 func CheckStraight(hand []engine.Card) (bool, Tiebreakers) {
@@ -45,13 +63,14 @@ func CheckStraight(hand []engine.Card) (bool, Tiebreakers) {
 // Returns True if the hand contains a three of a kind, hand could be better than a three of a kind and
 // check_three_of_a_kind would still return true.
 func CheckThreeOfAKind(hand []engine.Card) (bool, Tiebreakers) {
-	trips := getRankFrequencies(hand, 3)
+	ranks := getCardRankIdSlice(hand)
+	trips := getFrequencies(ranks, 3, 3)
 	if trips == nil {
 		return false, nil
 	}
 	trip := trips[0]
 	handRanks := getCardRankIdSlice(hand)
-	handRanks = filter(handRanks, func(i int) bool {
+	handRanks = filterInt(handRanks, func(i int) bool {
 		return i != trip
 	})
 	descendingSort(handRanks)
@@ -61,14 +80,15 @@ func CheckThreeOfAKind(hand []engine.Card) (bool, Tiebreakers) {
 // Returns True if the hand contains two pairs, hand could be better than two pair and check_two_pair would still
 // return true.
 func CheckTwoPair(hand []engine.Card) (bool, Tiebreakers) {
-	pairs := getRankFrequencies(hand, 2)
+	ranks := getCardRankIdSlice(hand)
+	pairs := getFrequencies(ranks, 2, 2)
 	if !(len(pairs) >= 2) {
 		return false, nil
 	}
 	pair1 := pairs[0]
 	pair2 := pairs[1]
 	handRanks := getCardRankIdSlice(hand)
-	handRanks = filter(handRanks, func(i int) bool {
+	handRanks = filterInt(handRanks, func(i int) bool {
 		return i != pair1 && i != pair2
 	})
 	descendingSort(handRanks)
@@ -79,13 +99,14 @@ func CheckTwoPair(hand []engine.Card) (bool, Tiebreakers) {
 // Returns True if the hand contains at only one pair, hand could be better than one pair and check_pair would still
 // return true.
 func CheckPair(hand []engine.Card) (bool, Tiebreakers) {
-	pairs := getRankFrequencies(hand, 2)
+	ranks := getCardRankIdSlice(hand)
+	pairs := getFrequencies(ranks, 2, 2)
 	if pairs == nil {
 		return false, nil
 	}
 	pair := pairs[0]
 	handRanks := getCardRankIdSlice(hand)
-	handRanks = filter(handRanks, func(i int) bool {
+	handRanks = filterInt(handRanks, func(i int) bool {
 		return i != pair
 	})
 	descendingSort(handRanks)
@@ -115,15 +136,14 @@ func getCardSuitIdSlice(hand []engine.Card) []int {
 	return handSuits
 }
 
-func getRankFrequencies(hand []engine.Card, k int) []int {
-	ranks := getCardRankIdSlice(hand)
-	sort.Sort(sort.Reverse(sort.IntSlice(ranks)))
+func getFrequencies(list []int, k, j int) []int {
+	sort.Sort(sort.Reverse(sort.IntSlice(list)))
 	var matches []int
 	count := 0
-	for i, current := range ranks {
+	for i, current := range list {
 		count++
-		if i == len(ranks) - 1 || ranks[i + 1] != current {
-			if count == k {
+		if i == len(list) - 1 || list[i + 1] != current {
+			if count >= k && count <= j {
 				matches = append(matches, current)
 			}
 			count = 0
@@ -139,8 +159,18 @@ func descendingSort(vs []int) {
 	})
 }
 
-func filter(vs []int, f func(int) bool) []int {
+func filterInt(vs []int, f func(int) bool) []int {
 	vsf := make([]int, 0)
+	for _, v := range vs {
+		if f(v) {
+			vsf = append(vsf, v)
+		}
+	}
+	return vsf
+}
+
+func filterCard(vs []engine.Card, f func(card engine.Card) bool) []engine.Card {
+	vsf := make([]engine.Card, 0)
 	for _, v := range vs {
 		if f(v) {
 			vsf = append(vsf, v)

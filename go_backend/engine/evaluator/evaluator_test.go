@@ -8,19 +8,23 @@ import (
 
 func TestGetRankFrequencies(t *testing.T) {
 	hand := engine.GenerateHand("8S 7H 7S 7D 3S 3C 2C 2S")
-	pairs := getRankFrequencies(hand, 2)
+	handRanks := getCardRankIdSlice(hand)
+	pairs := getFrequencies(handRanks, 2, 2)
 	assert.Equal(t, []int{1, 0}, pairs)
 
 	hand = engine.GenerateHand("8S 7H 7S 7D 3S KC 9C 2S")
-	pairs = getRankFrequencies(hand, 2)
+	handRanks = getCardRankIdSlice(hand)
+	pairs = getFrequencies(handRanks, 2, 2)
 	assert.Nil(t, pairs)
 
 	hand = engine.GenerateHand("8S 7H 7S 7D 3S 3C 2C 2S")
-	trips := getRankFrequencies(hand, 3)
+	handRanks = getCardRankIdSlice(hand)
+	trips := getFrequencies(handRanks, 3, 3)
 	assert.Equal(t, []int{5}, trips)
 
 	hand = engine.GenerateHand("7C 7H 7S 7D 3S 3C 2C 2S")
-	fours := getRankFrequencies(hand, 4)
+	handRanks = getCardRankIdSlice(hand)
+	fours := getFrequencies(handRanks, 4, 4)
 	assert.Equal(t, []int{5}, fours)
 }
 
@@ -159,4 +163,24 @@ func TestCheckStraight(t *testing.T) {
 	match, result = CheckStraight(hand)
 	assert.False(t, match)
 	assert.Nil(t, result)
+}
+
+func TestCheckFlush(t *testing.T) {
+	// Flush check works correctly
+    hand := engine.GenerateHand("JS 3S TS 5S 6S")
+    match, result := CheckFlush(hand)
+    assert.True(t, match)
+    assert.Equal(t, Tiebreakers{9, 8, 4, 3, 1}, result)
+
+    // Flush check works correctly with seven cards, gets high card correctly
+    hand = engine.GenerateHand("JS 3S TS 5S 6S AS 8C")
+    match, result = CheckFlush(hand)
+    assert.True(t, match)
+    assert.Equal(t, Tiebreakers{12, 9, 8, 4, 3}, result)
+
+    // Flush not detected when there is no flush
+    hand = engine.GenerateHand("JS 3S TS 5S 6C AC 8C")
+    match, result = CheckFlush(hand)
+    assert.False(t, match)
+    assert.Nil(t, result)
 }
