@@ -268,3 +268,65 @@ func TestCheckStraightFlush(t *testing.T) {
     assert.False(t, match)
     assert.Nil(t, result)
 }
+
+func TestEvaluator(t *testing.T) {
+	board := "9S TS JS AH AC"
+	flushAJ := "6S 8S " + board
+	flushAK := "KS 8S " + board
+	boatAT := "AS TH " + board
+	straightA := "QS KH " + board
+	handsToEvaluate := []HandForEvaluation{
+		{
+			Hand: engine.GenerateHand(flushAJ),
+			PlayerIndex: 0,
+			HandStrength: nil,
+			HandName: "",
+		},
+		{
+			Hand: engine.GenerateHand(flushAK),
+			PlayerIndex: 1,
+			HandStrength: nil,
+			HandName: "",
+		},
+		{
+			Hand: engine.GenerateHand(boatAT),
+			PlayerIndex: 2,
+			HandStrength: nil,
+			HandName: "",
+		},
+		{
+			Hand: engine.GenerateHand(straightA),
+			PlayerIndex: 3,
+			HandStrength: nil,
+			HandName: "",
+		},
+	}
+	evaluatedHands := EvaluateHands(handsToEvaluate)
+	expectedResult := []HandForEvaluation{
+		{
+			Hand: engine.GenerateHand(boatAT),
+			PlayerIndex: 2,
+			HandStrength: HandStrength{7, 12, 8},
+			HandName: "Full House",
+		},
+		{
+			Hand: engine.GenerateHand(flushAK),
+			PlayerIndex: 1,
+			HandStrength: HandStrength{6, 11, 9, 8, 7, 6},
+			HandName: "Flush",
+		},
+		{
+			Hand: engine.GenerateHand(flushAJ),
+			PlayerIndex: 0,
+			HandStrength: HandStrength{6, 9, 8, 7, 6, 4},
+			HandName: "Flush",
+		},
+		{
+			Hand: engine.GenerateHand(straightA),
+			PlayerIndex: 3,
+			HandStrength: HandStrength{5, 12},
+			HandName: "Straight",
+		},
+	}
+	assert.Equal(t, expectedResult, evaluatedHands)
+}

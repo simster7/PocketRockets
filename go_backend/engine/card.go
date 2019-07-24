@@ -70,7 +70,7 @@ func ToCardId(rank, suit string) int {
 	}
 
 	if !foundRank || !foundSuit {
-		log.Fatal("Card is malformed")
+		log.Fatalf("Card is malformed. Rank: %s, suit: %s", rank, suit)
 	}
 	return id
 }

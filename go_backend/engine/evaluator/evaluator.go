@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"github.com/simster7/PocketRockets/go_backend/engine"
+	"log"
 	"sort"
 )
 
@@ -16,9 +17,24 @@ type HandForEvaluation struct {
 }
 
 func EvaluateHands(handsForEvaluation []HandForEvaluation) []HandForEvaluation {
+	var evaluatedHands []HandForEvaluation
 	for _, handForEval := range handsForEvaluation {
-
+		handStrength := getHandStrength(handForEval.Hand)
+		evaluatedHands = append(evaluatedHands, HandForEvaluation{
+			handForEval.Hand,
+			handStrength,
+			handForEval.PlayerIndex,
+			getHandName(handStrength[0]),
+		})
 	}
+	sort.Slice(evaluatedHands, func(i, j int) bool {
+		// sort.Slice uses this "less" function to indicate whether i is less than j.
+		// In this case, if hand i is worse than j then CompareStrengths returns 1 and -1 vice-versa.
+		// However, this would sort the slice in ascending order, and we want it sorted in descending order.
+		// To do that we simply negate the boolean result by checking if the result is -1 instead of 1.
+		return CompareStrengths(evaluatedHands[i].HandStrength, evaluatedHands[j].HandStrength) < 0
+	})
+	return evaluatedHands
 }
 
 var handChecks = []func([]engine.Card) (bool, Tiebreakers) {
@@ -39,11 +55,28 @@ func getHandStrength(hand []engine.Card) HandStrength {
 		match, result := check(hand)
 		if match {
 			handScore := possibleHands - i
-			return []int{handScore, result...}
+			return append([]int{handScore}, result...)
 		}
 	}
-
+	log.Fatal("Bug in getHandStrength")
+	return nil
 }
+
+func getHandName(handScore int) string {
+	handNames := map[int]string {
+		9: "Straight Flush",
+		8: "Four Of A Kind",
+		7: "Full House",
+		6: "Flush",
+		5: "Straight",
+		4: "Three Of A Kind",
+		3: "Two Pair",
+		2: "Pair",
+		1: "High Card",
+	}
+	return handNames[handScore]
+}
+
 // Returns True if the hand contains a straight flush
 func CheckStraightFlush(hand []engine.Card) (bool, Tiebreakers) {
 	if len(hand) < 5 {
