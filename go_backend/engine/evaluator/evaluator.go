@@ -21,10 +21,10 @@ func EvaluateHands(handsForEvaluation []HandForEvaluation) []HandForEvaluation {
 	for _, handForEval := range handsForEvaluation {
 		handStrength := getHandStrength(handForEval.Hand)
 		evaluatedHands = append(evaluatedHands, HandForEvaluation{
-			handForEval.Hand,
-			handStrength,
-			handForEval.PlayerIndex,
-			getHandName(handStrength[0]),
+			Hand: handForEval.Hand,
+			HandStrength: handStrength,
+			PlayerIndex: handForEval.PlayerIndex,
+			HandName: getHandName(handStrength[0]),
 		})
 	}
 	sort.Slice(evaluatedHands, func(i, j int) bool {

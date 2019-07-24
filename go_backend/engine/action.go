@@ -11,5 +11,5 @@ const (
 
 type Action struct {
 	Action ActionType
-	Value int
+	Value  int
 }
