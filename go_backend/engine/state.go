@@ -43,8 +43,8 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 	newState := GameState{
 		Seats:          seats,
 		ButtonPosition: buttonPosition,
-		FoldVector:     [9]bool{false, false, false, false, false, false, false, false, false},
-		BetVector:      [9]int{0, 0, 0, 0, 0, 0, 0, 0, 0},
+		FoldVector:     getInitialFoldVector(seats),
+		BetVector:      getZeroBetVector(),
 		Pots:           map[int]int{0: 0},
 		Deck:           deck,
 		Round:          PreFlop,
@@ -80,8 +80,32 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 	}
 }
 
-func TakeAction(oldState GameState, action Action) (GameState, ActionConsequence) {
-	return GameState{}, ActionConsequence{ValidAction: false}
+func (gs *GameState) TakeAction(action Action) ActionConsequence {
+	if action.Action == fold {
+		gs.FoldVector[gs.ActingPlayer] = true
+
+	}
+	return ActionConsequence{ValidAction: false}
+}
+
+func (gs *GameState) moveActingPlayer() {
+	gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
+	for gs.FoldVector[gs.ActingPlayer] && !gs.isRoundOver() {
+		gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
+	}
+
+	if gs.isRoundOver() {
+		gs.ActingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
+		gs.LeadingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
+		gs.Pots[len(gs.Pots) - 1] += getSum(gs.BetVector)
+		gs.BetVector = getZeroBetVector()
+		gs.Round++
+	}
+
+	if gs.isHandOver() {
+		gs.IsHandActive = false
+	}
+
 }
 
 // Returns index of player that is `n` active players to the right of `base`
@@ -96,4 +120,43 @@ func (gs *GameState) getNActivePlayerIndexFromIndex(base, n int) int {
 		count += 1
 	}
 	return index
+}
+
+func (gs *GameState) isRoundOver() bool {
+	// TODO hard-code option for big blind when fold-around
+	return gs.ActingPlayer == gs.LeadingPlayer
+}
+
+func (gs *GameState) isHandOver() bool {
+	return (gs.isRoundOver() && gs.Round == River) || gs.isOnePlayerStanding()
+}
+
+func (gs *GameState) isOnePlayerStanding() bool {
+	playersInHand := 0
+	for _, folded := range gs.FoldVector {
+		if !folded {
+			playersInHand++
+		}
+	}
+	return playersInHand == 1
+}
+
+func getInitialFoldVector(seats [9]Seat) [9]bool {
+	var foldVector [9]bool
+	for i, seat := range seats {
+		foldVector[i] = !seat.Occupied || seat.Player.SittingOut
+	}
+	return foldVector
+}
+
+func getZeroBetVector() [9]int {
+	return [9]int{0, 0, 0, 0, 0, 0, 0, 0, 0}
+}
+
+func getSum(a [9]int) int {
+	count := 0
+	for _, val := range a {
+		count += val
+	}
+	return count
 }

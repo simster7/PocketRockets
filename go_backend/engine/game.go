@@ -23,8 +23,8 @@ func NewGame(smallBlind, bigBlind int) Game {
 		ButtonPosition: 0,
 		SmallBlind:     smallBlind,
 		BigBlind:       bigBlind,
-		//GameState: {}, // TODO
-		IsHandActive: false,
+		GameState:      nil,
+		IsHandActive:   false,
 	}
 }
 
