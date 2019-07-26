@@ -11,8 +11,14 @@ const (
 	River
 )
 
+const (
+	Showdown string = "Showdown"
+	Folds    string = "Folds"
+)
+
 type ActionConsequence struct {
 	ValidAction bool
+	Message     string
 
 	Seat       Seat
 	PlayerFold bool
@@ -20,7 +26,7 @@ type ActionConsequence struct {
 
 	// Ends hand
 	EndsHand      bool
-	Payoffs       map[Player]int
+	Payoffs       map[Seat]int
 	WinCondition  string
 	ShowdownHands []evaluator.HandForEvaluation
 }
@@ -43,7 +49,7 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 	newState := GameState{
 		Seats:          seats,
 		ButtonPosition: buttonPosition,
-		FoldVector:     getInitialFoldVector(seats),
+		FoldVector:     getInitialFoldVector(&seats),
 		BetVector:      getZeroBetVector(),
 		Pots:           map[int]int{0: 0},
 		Deck:           deck,
@@ -81,9 +87,22 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 }
 
 func (gs *GameState) TakeAction(action Action) ActionConsequence {
-	if action.Action == fold {
+	switch action.ActionType {
+	case fold:
 		gs.FoldVector[gs.ActingPlayer] = true
+	case check:
+		if gs.getLeadAction().ActionType == bet {
+			return ActionConsequence{ValidAction: false, Message: "Illegal game state: player can't check when there is a bet"}
+		}
+	case call:
+		amountToCall := gs.BetVector[gs.LeadingPlayer] - gs.BetVector[gs.ActingPlayer]
+		// TODO: Replace this with all-in logic
+		if gs.Seats[gs.ActingPlayer].Player.Stack < amountToCall {
+			return ActionConsequence{ValidAction: false, Message: "Illegal game state: player doesn't have enough chips to call"}
+		}
 
+	}
+	if action.ActionType == fold {
 	}
 	return ActionConsequence{ValidAction: false}
 }
@@ -97,13 +116,30 @@ func (gs *GameState) moveActingPlayer() {
 	if gs.isRoundOver() {
 		gs.ActingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.LeadingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
-		gs.Pots[len(gs.Pots) - 1] += getSum(gs.BetVector)
+		gs.Pots[len(gs.Pots)-1] += getSum(gs.BetVector)
 		gs.BetVector = getZeroBetVector()
 		gs.Round++
 	}
 
 	if gs.isHandOver() {
 		gs.IsHandActive = false
+	}
+}
+
+func (gs *GameState) processEndGame(consequence *ActionConsequence) {
+	if onePlayerStanding, player := gs.isOnePlayerStanding(); onePlayerStanding {
+		// TODO: Process all-in logic here
+		consequence.EndsHand = true
+		consequence.WinCondition = Folds
+		consequence.Payoffs[gs.Seats[player]] = gs.Pots[len(gs.Pots)-1]
+	} else {
+		
+	}
+}
+
+func (gs *GameState) checkEndGame(consequence *ActionConsequence) {
+	if !gs.isHandOver() {
+		return
 	}
 
 }
@@ -128,20 +164,27 @@ func (gs *GameState) isRoundOver() bool {
 }
 
 func (gs *GameState) isHandOver() bool {
-	return (gs.isRoundOver() && gs.Round == River) || gs.isOnePlayerStanding()
+	onePlayerStanding, _ := gs.isOnePlayerStanding()
+	return (gs.isRoundOver() && gs.Round == River) || onePlayerStanding
 }
 
-func (gs *GameState) isOnePlayerStanding() bool {
+func (gs *GameState) isOnePlayerStanding() (bool, int) {
 	playersInHand := 0
-	for _, folded := range gs.FoldVector {
+	player := -1
+	for i, folded := range gs.FoldVector {
 		if !folded {
 			playersInHand++
+			player = i
 		}
 	}
-	return playersInHand == 1
+	return playersInHand == 1, player
 }
 
-func getInitialFoldVector(seats [9]Seat) [9]bool {
+func (gs *GameState) getLeadAction() Action {
+	return gs.Seats[gs.LeadingPlayer].Player.LastAction;
+}
+
+func getInitialFoldVector(seats *[9]Seat) [9]bool {
 	var foldVector [9]bool
 	for i, seat := range seats {
 		foldVector[i] = !seat.Occupied || seat.Player.SittingOut

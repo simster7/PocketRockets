@@ -10,6 +10,6 @@ const (
 )
 
 type Action struct {
-	Action ActionType
-	Value  int
+	ActionType ActionType
+	Value      int
 }
