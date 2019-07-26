@@ -36,7 +36,7 @@ type GameState struct {
 	ButtonPosition int
 	FoldVector     [9]bool
 	BetVector      [9]int
-	Pots           map[int]int
+	Pots           []int
 	PotContenders  map[int][]Player
 	Deck           []Card
 	Round          Round
@@ -51,7 +51,7 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 		ButtonPosition: buttonPosition,
 		FoldVector:     getInitialFoldVector(&seats),
 		BetVector:      getZeroBetVector(),
-		Pots:           map[int]int{0: 0},
+		Pots:           []int{0},
 		Deck:           deck,
 		Round:          PreFlop,
 	}
@@ -141,7 +141,6 @@ func (gs *GameState) checkEndGame(consequence *ActionConsequence) {
 	if !gs.isHandOver() {
 		return
 	}
-
 }
 
 // Returns index of player that is `n` active players to the right of `base`
