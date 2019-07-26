@@ -1,7 +1,6 @@
-package evaluator
+package engine
 
 import (
-	"github.com/simster7/PocketRockets/go_backend/engine"
 	"log"
 	"sort"
 )
@@ -10,7 +9,7 @@ type Tiebreakers []int
 type HandStrength []int
 
 type HandForEvaluation struct {
-	Hand []engine.Card
+	Hand []Card
 	HandStrength HandStrength
 	PlayerIndex int
 	HandName string
@@ -37,7 +36,7 @@ func EvaluateHands(handsForEvaluation []HandForEvaluation) []HandForEvaluation {
 	return evaluatedHands
 }
 
-var handChecks = []func([]engine.Card) (bool, Tiebreakers) {
+var handChecks = []func([]Card) (bool, Tiebreakers) {
 	CheckStraightFlush,
 	CheckFourOfAKind,
 	CheckFullHouse,
@@ -49,7 +48,7 @@ var handChecks = []func([]engine.Card) (bool, Tiebreakers) {
 	CheckHighCard,
 }
 
-func getHandStrength(hand []engine.Card) HandStrength {
+func getHandStrength(hand []Card) HandStrength {
 	possibleHands := len(handChecks)
 	for i, check := range handChecks {
 		match, result := check(hand)
@@ -78,7 +77,7 @@ func getHandName(handScore int) string {
 }
 
 // Returns True if the hand contains a straight flush
-func CheckStraightFlush(hand []engine.Card) (bool, Tiebreakers) {
+func CheckStraightFlush(hand []Card) (bool, Tiebreakers) {
 	if len(hand) < 5 {
 		return false, nil
 	}
@@ -88,7 +87,7 @@ func CheckStraightFlush(hand []engine.Card) (bool, Tiebreakers) {
 		return false, nil
 	}
 	suit := flush[0]
-	flushMembers := filterCard(hand, func(card engine.Card) bool {
+	flushMembers := filterCard(hand, func(card Card) bool {
 		return card.GetSuitId() == suit
 	})
 	return CheckStraight(flushMembers)
@@ -97,7 +96,7 @@ func CheckStraightFlush(hand []engine.Card) (bool, Tiebreakers) {
 
 // Returns True if the hand contains a four of a kind, hand could be better than a four of a kind and
 // check_four_of_a_kind would still return true.
-func CheckFourOfAKind(hand []engine.Card) (bool, Tiebreakers) {
+func CheckFourOfAKind(hand []Card) (bool, Tiebreakers) {
 	if len(hand) < 4 {
 		return false, nil
 	}
@@ -111,7 +110,7 @@ func CheckFourOfAKind(hand []engine.Card) (bool, Tiebreakers) {
 
 // Returns True if the hand contains a full house, hand could be better than a full house and check_full_house would
 // still return true.
-func CheckFullHouse(hand []engine.Card) (bool, Tiebreakers) {
+func CheckFullHouse(hand []Card) (bool, Tiebreakers) {
 	if len(hand) < 5 {
 		return false, nil
 	}
@@ -121,7 +120,7 @@ func CheckFullHouse(hand []engine.Card) (bool, Tiebreakers) {
 		return true, Tiebreakers{tripTiebreakers[0], pairTiebreakers[0]}
 	}
 	if tripMatch {
-		newHand := filterCard(hand, func(card engine.Card) bool {
+		newHand := filterCard(hand, func(card Card) bool {
 			return card.GetRankId() != tripTiebreakers[0]
 		})
 		tripMatch2, tripTiebreakers2 := CheckThreeOfAKind(newHand)
@@ -135,7 +134,7 @@ func CheckFullHouse(hand []engine.Card) (bool, Tiebreakers) {
 
 // Returns True if the hand contains a flush, hand could be better than a flush and check_flush would still return
 // true.
-func CheckFlush(hand []engine.Card) (bool, Tiebreakers) {
+func CheckFlush(hand []Card) (bool, Tiebreakers) {
 	if len(hand) < 5 {
 		return false, nil
 	}
@@ -145,7 +144,7 @@ func CheckFlush(hand []engine.Card) (bool, Tiebreakers) {
 		return false, nil
 	}
 	suit := flush[0]
-	flushMembers := filterCard(hand, func(card engine.Card) bool {
+	flushMembers := filterCard(hand, func(card Card) bool {
 		return card.GetSuitId() == suit
 	})
 	rankedFlushMembers := getCardRankIdSlice(flushMembers)
@@ -155,7 +154,7 @@ func CheckFlush(hand []engine.Card) (bool, Tiebreakers) {
 
 // Returns True if the hand contains a straight, hand could be better than a straight and check_straight would still
 // return true.
-func CheckStraight(hand []engine.Card) (bool, Tiebreakers) {
+func CheckStraight(hand []Card) (bool, Tiebreakers) {
 	if len(hand) < 5 {
 		return false, nil
 	}
@@ -183,7 +182,7 @@ func CheckStraight(hand []engine.Card) (bool, Tiebreakers) {
 
 // Returns True if the hand contains a three of a kind, hand could be better than a three of a kind and
 // check_three_of_a_kind would still return true.
-func CheckThreeOfAKind(hand []engine.Card) (bool, Tiebreakers) {
+func CheckThreeOfAKind(hand []Card) (bool, Tiebreakers) {
 	if len(hand) < 3 {
 		return false, nil
 	}
@@ -203,7 +202,7 @@ func CheckThreeOfAKind(hand []engine.Card) (bool, Tiebreakers) {
 
 // Returns True if the hand contains two pairs, hand could be better than two pair and check_two_pair would still
 // return true.
-func CheckTwoPair(hand []engine.Card) (bool, Tiebreakers) {
+func CheckTwoPair(hand []Card) (bool, Tiebreakers) {
 	if len(hand) < 4 {
 		return false, nil
 	}
@@ -225,7 +224,7 @@ func CheckTwoPair(hand []engine.Card) (bool, Tiebreakers) {
 
 // Returns True if the hand contains at only one pair, hand could be better than one pair and check_pair would still
 // return true.
-func CheckPair(hand []engine.Card) (bool, Tiebreakers) {
+func CheckPair(hand []Card) (bool, Tiebreakers) {
 	if len(hand) < 2 {
 		return false, nil
 	}
@@ -244,7 +243,7 @@ func CheckPair(hand []engine.Card) (bool, Tiebreakers) {
 }
 
 // Always returns True, because hand is always at least high card good. Returns ordered cards for tie-breaking
-func CheckHighCard(hand []engine.Card) (bool, Tiebreakers) {
+func CheckHighCard(hand []Card) (bool, Tiebreakers) {
 	handRanks := getCardRankIdSlice(hand)
 	descendingSort(handRanks)
 	return true, handRanks[:min(5, len(handRanks))]
@@ -261,7 +260,7 @@ func CompareStrengths(a, b []int) int {
 	return 0
 }
 
-func getCardRankIdSlice(hand []engine.Card) []int {
+func getCardRankIdSlice(hand []Card) []int {
 	var handRanks []int
 	for _, rank := range hand {
 		handRanks = append(handRanks, rank.GetRankId())
@@ -269,7 +268,7 @@ func getCardRankIdSlice(hand []engine.Card) []int {
 	return handRanks
 }
 
-func getCardSuitIdSlice(hand []engine.Card) []int {
+func getCardSuitIdSlice(hand []Card) []int {
 	var handSuits []int
 	for _, rank := range hand {
 		handSuits = append(handSuits, rank.GetSuitId())
@@ -310,8 +309,8 @@ func filterInt(vs []int, f func(int) bool) []int {
 	return vsf
 }
 
-func filterCard(vs []engine.Card, f func(card engine.Card) bool) []engine.Card {
-	vsf := make([]engine.Card, 0)
+func filterCard(vs []Card, f func(card Card) bool) []Card {
+	vsf := make([]Card, 0)
 	for _, v := range vs {
 		if f(v) {
 			vsf = append(vsf, v)

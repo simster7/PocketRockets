@@ -1,7 +1,5 @@
 package engine
 
-import "github.com/simster7/PocketRockets/go_backend/engine/evaluator"
-
 type Round int
 
 const (
@@ -28,7 +26,7 @@ type ActionConsequence struct {
 	EndsHand      bool
 	Payoffs       map[Seat]int
 	WinCondition  string
-	ShowdownHands []evaluator.HandForEvaluation
+	ShowdownHands []HandForEvaluation
 }
 
 type GameState struct {
@@ -38,14 +36,14 @@ type GameState struct {
 	BetVector      [9]int
 	Pots           []int
 	PotContenders  map[int][]Player
-	Deck           []Card
+	Deck           [52]Card
 	Round          Round
 	ActingPlayer   int
 	LeadingPlayer  int
 	IsHandActive   bool
 }
 
-func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int, deck []Card) (GameState, []ActionConsequence) {
+func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int, deck [52]Card) (GameState, []ActionConsequence) {
 	newState := GameState{
 		Seats:          seats,
 		ButtonPosition: buttonPosition,
@@ -184,16 +182,17 @@ func (gs *GameState) processEndGame(consequence *ActionConsequence) {
 		consequence.WinCondition = Folds
 		consequence.Payoffs[gs.Seats[player]] = gs.Pots[len(gs.Pots)-1]
 	} else {
-		var showdownHands []evaluator.HandForEvaluation
+		var showdownHands []HandForEvaluation
+		communityCards := gs.getCommunityCards()
 		for i, seat := range gs.Seats {
 			if seat.Occupied && !seat.Player.SittingOut && gs.FoldVector[i] == false {
-				showdownHands = append(showdownHands, evaluator.HandForEvaluation{
-					Hand:        append(gs.getPlayerCards(i), gs.getCommunityCards()...),
+				showdownHands = append(showdownHands, HandForEvaluation{
+					Hand:        append(gs.getPlayerCards(i), communityCards...),
 					PlayerIndex: i,
 				})
 			}
 		}
-		rankedHands := evaluator.EvaluateHands(showdownHands)
+		rankedHands := EvaluateHands(showdownHands)
 		// TODO: Add split-pot and all-in logic here
 		consequence.EndsHand = true
 		consequence.WinCondition = Showdown
@@ -248,13 +247,13 @@ func (gs *GameState) getPlayerCards(playerIndex int) []Card {
 func (gs *GameState) getCommunityCards() []Card {
 	var communityCards []Card
 	numPlayers := gs.getNumberOfPlayersInHand()
-	if gs.Round >= 1 {
+	if gs.Round >= Flop {
 		communityCards = append(communityCards, gs.Deck[2*numPlayers+1:2*numPlayers+4]...)
 	}
-	if gs.Round >= 2 {
+	if gs.Round >= Turn {
 		communityCards = append(communityCards, gs.Deck[2*numPlayers+5])
 	}
-	if gs.Round >= 3 {
+	if gs.Round >= River {
 		communityCards = append(communityCards, gs.Deck[2*numPlayers+7])
 	}
 	return communityCards
