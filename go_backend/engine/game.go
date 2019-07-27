@@ -20,6 +20,7 @@ type Game struct {
 	BigBlind       int
 	GameState      GameState
 	IsHandActive   bool
+	Shuffler       func() [52]Card
 }
 
 func NewGame(smallBlind, bigBlind int) Game {
@@ -30,6 +31,19 @@ func NewGame(smallBlind, bigBlind int) Game {
 		SmallBlind:     smallBlind,
 		BigBlind:       bigBlind,
 		IsHandActive:   false,
+		Shuffler:       getShuffledDeck,
+	}
+}
+
+func NewDeterministicGame(smallBlind, bigBlind int) Game {
+	return Game{
+		Seats:          emptyTable(),
+		PlayerSeats:    make(map[Player]Seat),
+		ButtonPosition: 0,
+		SmallBlind:     smallBlind,
+		BigBlind:       bigBlind,
+		IsHandActive:   false,
+		Shuffler:       getDeck,
 	}
 }
 
@@ -100,13 +114,10 @@ func (g *Game) TakeAction(player Player, action Action) error {
 	return nil
 }
 
-func (g *Game) moveButton() {
-	g.ButtonPosition = (g.ButtonPosition + 1) % 9
-	for !g.Seats[g.ButtonPosition].Occupied || g.Seats[g.ButtonPosition].Player.SittingOut {
-		g.ButtonPosition = (g.ButtonPosition + 1) % 9
-	}
+func (g *Game) DealHand() {
+	g.moveButton()
 
-	deck := getShuffledDeck()
+	deck := g.Shuffler()
 
 	gameState, actionConsequences := GetNewHandGameState(g.Seats, g.ButtonPosition, g.BigBlind, g.SmallBlind, deck)
 
@@ -120,11 +131,26 @@ func (g *Game) moveButton() {
 	}
 }
 
+func (g *Game) moveButton() {
+	g.ButtonPosition = (g.ButtonPosition + 1) % 9
+	for !g.Seats[g.ButtonPosition].Occupied || g.Seats[g.ButtonPosition].Player.SittingOut {
+		g.ButtonPosition = (g.ButtonPosition + 1) % 9
+	}
+}
+
 func getShuffledDeck() [52]Card {
 	var deck [52]Card
 	perm := rand.Perm(52)
 	for i := 0; i < 52; i++ {
 		deck[perm[i]] = Card{i}
+	}
+	return deck
+}
+
+func getDeck() [52]Card {
+	var deck [52]Card
+	for i := 0; i < 52; i++ {
+		deck[i] = Card{i}
 	}
 	return deck
 }
