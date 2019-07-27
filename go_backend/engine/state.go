@@ -60,8 +60,6 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 
 	newState.BetVector[bigBlindIndex] = bigBlind
 	newState.BetVector[smallBlindIndex] = smallBlind
-	newState.Seats[bigBlindIndex].Player.LastAction = Action{bet, bigBlind}
-	newState.Seats[smallBlindIndex].Player.LastAction = Action{bet, smallBlind}
 
 	newState.ActingPlayer = utgIndex
 	newState.LeadingPlayer = bigBlindIndex
@@ -109,6 +107,12 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			PlayerBet:   0,
 		}
 	case call:
+		if gs.getLeadAction().ActionType == check {
+			return ActionConsequence{
+				ValidAction: false,
+				Message:     "Illegal game state: player can't call when there is nothing to call",
+			}
+		}
 		amountToCall := gs.BetVector[gs.LeadingPlayer] - gs.BetVector[gs.ActingPlayer]
 		// TODO: Replace this with all-in logic
 		if gs.Seats[gs.ActingPlayer].Player.Stack < amountToCall {
@@ -162,6 +166,7 @@ func (gs *GameState) moveActingPlayer() bool {
 	if gs.isRoundOver() {
 		gs.ActingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.LeadingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
+		gs.Seats[gs.LeadingPlayer].Player.LastAction = Action{ActionType: check}
 		gs.Pots[len(gs.Pots)-1] += getSum(gs.BetVector)
 		gs.BetVector = getZeroBetVector()
 		gs.Round++
