@@ -7,6 +7,7 @@ const (
 	Flop
 	Turn
 	River
+	PostRiver
 )
 
 const (
@@ -121,6 +122,7 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 				Message:     "Illegal game state: player doesn't have enough chips to call",
 			}
 		}
+		gs.BetVector[gs.ActingPlayer] += amountToCall
 		actionConsequence = ActionConsequence{
 			ValidAction: true,
 			Seat:        gs.Seats[gs.ActingPlayer],
@@ -226,7 +228,7 @@ func (gs *GameState) isRoundOver() bool {
 
 func (gs *GameState) isHandOver() bool {
 	onePlayerStanding, _ := gs.isOnePlayerStanding()
-	return (gs.isRoundOver() && gs.Round == River) || onePlayerStanding
+	return (gs.isRoundOver() && gs.Round == PostRiver) || onePlayerStanding
 }
 
 func (gs *GameState) isOnePlayerStanding() (bool, int) {

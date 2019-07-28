@@ -83,7 +83,7 @@ func (g *Game) TakeAction(player *Player, action Action) error {
 	if !g.IsHandActive {
 		return errors.New("cannot take action when hand is not active")
 	}
-	if  player.SeatNumber != g.GameState.ActingPlayer {
+	if player.SeatNumber != g.GameState.ActingPlayer {
 		return errors.New("player is out of turn")
 	}
 
@@ -126,8 +126,7 @@ func (g *Game) DealHand() {
 		if err != nil {
 			log.Fatal("bug: unreachable: player must have had enough to bet")
 		}
-
-
+		g.Seats[action.Seat.Index].Player.LastAction = Action{ActionType: bet, Value: action.PlayerBet}
 	}
 }
 
