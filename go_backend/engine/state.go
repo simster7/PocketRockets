@@ -11,7 +11,7 @@ const (
 	Flop
 	Turn
 	River
-	PostRiver
+	HandEnd
 )
 
 const (
@@ -233,7 +233,7 @@ func (gs *GameState) isRoundOver() bool {
 
 func (gs *GameState) isHandOver() bool {
 	onePlayerStanding, _ := gs.isOnePlayerStanding()
-	return (gs.isRoundOver() && gs.Round == PostRiver) || onePlayerStanding
+	return (gs.isRoundOver() && gs.Round == HandEnd) || onePlayerStanding
 }
 
 func (gs *GameState) isOnePlayerStanding() (bool, int) {

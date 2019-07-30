@@ -114,7 +114,7 @@ func TestGameBasic(t *testing.T) {
 	assert.Equal(t, 73, jarry.Stack)
 
 	// Post River
-	assert.Equal(t, PostRiver, game.GameState.Round)
+	assert.Equal(t, HandEnd, game.GameState.Round)
 	assert.Equal(t, game.GameState.Pots[0], 80)
 	assert.Len(t, game.GameState.getCommunityCards(), 5)
 	assert.False(t, game.IsHandActive)
@@ -178,7 +178,7 @@ func TestGameMultiround(t *testing.T) {
 	err = game.TakeAction(&chien, Action{ActionType: check})
 	assert.NoError(t, err)
 
-	assert.Equal(t, PostRiver, game.GameState.Round)
+	assert.Equal(t, HandEnd, game.GameState.Round)
 	assert.Equal(t, 80, simon.Stack)
 	assert.Equal(t, 130, chien.Stack)
 
@@ -258,7 +258,7 @@ func TestGameMultiround(t *testing.T) {
 
 
 	// PostRiver
-	assert.Equal(t, PostRiver, game.GameState.Round)
+	assert.Equal(t, HandEnd, game.GameState.Round)
 
 	assert.Equal(t, 115, simon.Stack)
 	assert.Equal(t, 68, jason.Stack)
