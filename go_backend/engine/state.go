@@ -1,5 +1,9 @@
 package engine
 
+import (
+	"log"
+)
+
 type Round int
 
 const (
@@ -204,6 +208,7 @@ func (gs *GameState) processEndGame(consequence *ActionConsequence) {
 		consequence.EndsHand = true
 		consequence.WinCondition = Showdown
 		consequence.Payoffs[gs.Seats[rankedHands[0].PlayerIndex]] = gs.Pots[len(gs.Pots)-1]
+		consequence.ShowdownHands = rankedHands
 	}
 }
 
@@ -248,7 +253,7 @@ func (gs *GameState) getLeadAction() Action {
 }
 
 func (gs *GameState) getPlayerCards(playerIndex int) []Card {
-	return []Card{gs.Deck[playerIndex], gs.Deck[playerIndex+gs.getNumberOfPlayersInHand()]}
+	return []Card{gs.Deck[gs.getPlayerIndexInHand(playerIndex)], gs.Deck[gs.getPlayerIndexInHand(playerIndex)+gs.getNumberOfPlayersInHand()]}
 }
 
 func (gs *GameState) getCommunityCards() []Card {
@@ -274,6 +279,23 @@ func (gs *GameState) getNumberOfPlayersInHand() int {
 		}
 	}
 	return count
+}
+
+// Small blind is 0
+func (gs *GameState) getPlayerIndexInHand(seatIndex int) int {
+	count := 0
+	current := (gs.ButtonPosition + 1) % 9
+	for i := 0; i < 9; i++ {
+		if current == seatIndex {
+			return count
+		}
+		if gs.Seats[current].Occupied {
+			count++
+		}
+		current = (current + 1) % 9
+	}
+	log.Fatal("unreachable: getPlayerIndexInHand got a seatIndex that is not active: ", seatIndex)
+	return 0
 }
 
 func getInitialFoldVector(seats *[9]Seat) [9]bool {

@@ -1,6 +1,9 @@
 package engine
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 
 var SuitMap = map[int]string{
 	0: "S",
@@ -50,6 +53,10 @@ func (c *Card) GetRankId() int {
 
 func (c *Card) GetRank() string {
 	return RankMap[c.GetRankId()]
+}
+
+func (c Card) String() string {
+	return fmt.Sprintf("%s%s (%d)", c.GetRank(), c.GetSuit(), c.CardId)
 }
 
 func ToCardId(rank, suit string) int {

@@ -38,10 +38,10 @@ func TestGameBasic(t *testing.T) {
 	assert.Equal(t, 100, jarry.Stack)
 	err = game.TakeAction(&chien, Action{ActionType: bet, Value: 5})
 	assert.NoError(t, err)
-	assert.Equal(t, 95, chien.Stack)
+	assert.Equal(t, 93, chien.Stack)
 	err = game.TakeAction(&jarry, Action{ActionType: call})
 	assert.NoError(t, err)
-	assert.Equal(t, 95, jarry.Stack)
+	assert.Equal(t, 93, jarry.Stack)
 	err = game.TakeAction(&grace, Action{ActionType: fold})
 	assert.NoError(t, err)
 	assert.Equal(t, 100, grace.Stack)
@@ -58,6 +58,8 @@ func TestGameBasic(t *testing.T) {
 	assert.Equal(t, Flop, game.GameState.Round)
 	assert.NotNil(t, game.GameState.getCommunityCards())
 	assert.Len(t, game.GameState.getCommunityCards(), 3)
+	assert.Equal(t, game.GameState.Pots[0], 30)
+
 	// Can't call at start of round
 	err = game.TakeAction(&simon, Action{ActionType: call})
 	assert.Error(t, err)
@@ -70,7 +72,7 @@ func TestGameBasic(t *testing.T) {
 	assert.NoError(t, err)
 	err = game.TakeAction(&jarry, Action{ActionType: bet, Value: 10})
 	assert.NoError(t, err)
-	assert.Equal(t, 85, jarry.Stack)
+	assert.Equal(t, 83, jarry.Stack)
 	// Can't check a bet
 	err = game.TakeAction(&jason, Action{ActionType: check})
 	assert.Error(t, err)
@@ -79,14 +81,16 @@ func TestGameBasic(t *testing.T) {
 	assert.Equal(t, true, jason.Folded)
 	err = game.TakeAction(&simon, Action{ActionType: call})
 	assert.NoError(t, err)
-	assert.Equal(t, 85, simon.Stack)
+	assert.Equal(t, 83, simon.Stack)
 	err = game.TakeAction(&chien, Action{ActionType: call})
 	assert.NoError(t, err)
-	assert.Equal(t, 85, chien.Stack)
+	assert.Equal(t, 83, chien.Stack)
 
 	// Turn
 	assert.Equal(t, Turn, game.GameState.Round)
 	assert.Len(t, game.GameState.getCommunityCards(), 4)
+	assert.Equal(t, game.GameState.Pots[0], 60)
+
 	err = game.TakeAction(&simon, Action{ActionType: check})
 	assert.NoError(t, err)
 	err = game.TakeAction(&chien, Action{ActionType: check})
@@ -97,23 +101,26 @@ func TestGameBasic(t *testing.T) {
 	// River
 	assert.Equal(t, River, game.GameState.Round)
 	assert.Len(t, game.GameState.getCommunityCards(), 5)
+	assert.Equal(t, game.GameState.Pots[0], 60)
+
 	err = game.TakeAction(&simon, Action{ActionType: bet, Value: 10})
 	assert.NoError(t, err)
-	assert.Equal(t, 75, simon.Stack)
+	assert.Equal(t, 73, simon.Stack)
 	err = game.TakeAction(&chien, Action{ActionType: fold})
 	assert.NoError(t, err)
 	assert.Equal(t, true, chien.Folded)
 	err = game.TakeAction(&jarry, Action{ActionType: call})
 	assert.NoError(t, err)
-	assert.Equal(t, 75, jarry.Stack)
+	assert.Equal(t, 73, jarry.Stack)
 
 	// Post River
 	assert.Equal(t, PostRiver, game.GameState.Round)
+	assert.Equal(t, game.GameState.Pots[0], 80)
 	assert.Len(t, game.GameState.getCommunityCards(), 5)
 	assert.False(t, game.IsHandActive)
 	assert.False(t, game.GameState.IsHandActive)
-	assert.Equal(t, 147, simon.Stack)
-	assert.Equal(t, 75, jarry.Stack)
+	assert.Equal(t, 153, simon.Stack)
+	assert.Equal(t, 73, jarry.Stack)
 }
 
 func TestGameMultiround(t *testing.T) {
@@ -132,7 +139,7 @@ func TestGameMultiround(t *testing.T) {
 
 	// Pre flop
 	assert.Equal(t, PreFlop, game.GameState.Round)
-	err = game.TakeAction(&jason, Action{ActionType: bet, Value: 10})
+	err = game.TakeAction(&jason, Action{ActionType: bet, Value: 8})
 	assert.NoError(t, err)
 	assert.Equal(t, 90, jason.Stack)
 	// Can't check a call
@@ -179,7 +186,7 @@ func TestGameMultiround(t *testing.T) {
 
 
 	jarry := NewPlayer("Jarry", 100)
-	err = game.SitPlayer(&jarry, 6)
+	err = game.SitPlayer(&jarry, 8)
 	assert.NoError(t, err)
 
 	game.DealHand()
@@ -206,5 +213,56 @@ func TestGameMultiround(t *testing.T) {
 	assert.NoError(t, err)
 	err = game.TakeAction(&jason, Action{ActionType: call})
 	assert.NoError(t, err)
+
+
+	// Flop 37
+	assert.Equal(t, Flop, game.GameState.Round)
+	assert.Len(t, game.GameState.getCommunityCards(), 3)
+
+	// Can't play out of turn
+	err = game.TakeAction(&simon, Action{ActionType: bet, Value: 5})
+	assert.Error(t, err)
+	err = game.TakeAction(&jason, Action{ActionType: bet, Value: 5})
+	assert.Error(t, err)
+
+
+	err = game.TakeAction(&jarry, Action{ActionType: check})
+	assert.NoError(t, err)
+	err = game.TakeAction(&jason, Action{ActionType: check})
+	assert.NoError(t, err)
+	err = game.TakeAction(&simon, Action{ActionType: bet, Value: 10})
+	assert.NoError(t, err)
+	err = game.TakeAction(&jarry, Action{ActionType: fold})
+	assert.NoError(t, err)
+	assert.True(t, jarry.Folded)
+	err = game.TakeAction(&jason, Action{ActionType: call})
+	assert.NoError(t, err)
+
+	// Turn 57
+	assert.Equal(t, Turn, game.GameState.Round)
+	assert.Len(t, game.GameState.getCommunityCards(), 4)
+
+	err = game.TakeAction(&jason, Action{ActionType: check})
+	assert.NoError(t, err)
+	err = game.TakeAction(&simon, Action{ActionType: check})
+	assert.NoError(t, err)
+
+	// River
+	assert.Equal(t, River, game.GameState.Round)
+	assert.Len(t, game.GameState.getCommunityCards(), 5)
+
+	err = game.TakeAction(&jason, Action{ActionType: check})
+	assert.NoError(t, err)
+	err = game.TakeAction(&simon, Action{ActionType: check})
+	assert.NoError(t, err)
+
+
+	// PostRiver
+	assert.Equal(t, PostRiver, game.GameState.Round)
+
+	assert.Equal(t, 115, simon.Stack)
+	assert.Equal(t, 68, jason.Stack)
+	assert.Equal(t, 88, jarry.Stack)
+	assert.Equal(t, 129, chien.Stack)
 
 }
