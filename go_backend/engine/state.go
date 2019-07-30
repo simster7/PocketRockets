@@ -1,5 +1,9 @@
 package engine
 
+import (
+	"log"
+)
+
 type Round int
 
 const (
@@ -7,6 +11,7 @@ const (
 	Flop
 	Turn
 	River
+	PostRiver
 )
 
 const (
@@ -60,8 +65,6 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 
 	newState.BetVector[bigBlindIndex] = bigBlind
 	newState.BetVector[smallBlindIndex] = smallBlind
-	newState.Seats[bigBlindIndex].Player.LastAction = Action{bet, bigBlind}
-	newState.Seats[smallBlindIndex].Player.LastAction = Action{bet, smallBlind}
 
 	newState.ActingPlayer = utgIndex
 	newState.LeadingPlayer = bigBlindIndex
@@ -109,6 +112,12 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			PlayerBet:   0,
 		}
 	case call:
+		if gs.getLeadAction().ActionType == check {
+			return ActionConsequence{
+				ValidAction: false,
+				Message:     "Illegal game state: player can't call when there is nothing to call",
+			}
+		}
 		amountToCall := gs.BetVector[gs.LeadingPlayer] - gs.BetVector[gs.ActingPlayer]
 		// TODO: Replace this with all-in logic
 		if gs.Seats[gs.ActingPlayer].Player.Stack < amountToCall {
@@ -117,6 +126,7 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 				Message:     "Illegal game state: player doesn't have enough chips to call",
 			}
 		}
+		gs.BetVector[gs.ActingPlayer] += amountToCall
 		actionConsequence = ActionConsequence{
 			ValidAction: true,
 			Seat:        gs.Seats[gs.ActingPlayer],
@@ -162,6 +172,7 @@ func (gs *GameState) moveActingPlayer() bool {
 	if gs.isRoundOver() {
 		gs.ActingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.LeadingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
+		gs.Seats[gs.LeadingPlayer].Player.LastAction = Action{ActionType: check}
 		gs.Pots[len(gs.Pots)-1] += getSum(gs.BetVector)
 		gs.BetVector = getZeroBetVector()
 		gs.Round++
@@ -197,6 +208,7 @@ func (gs *GameState) processEndGame(consequence *ActionConsequence) {
 		consequence.EndsHand = true
 		consequence.WinCondition = Showdown
 		consequence.Payoffs[gs.Seats[rankedHands[0].PlayerIndex]] = gs.Pots[len(gs.Pots)-1]
+		consequence.ShowdownHands = rankedHands
 	}
 }
 
@@ -221,7 +233,7 @@ func (gs *GameState) isRoundOver() bool {
 
 func (gs *GameState) isHandOver() bool {
 	onePlayerStanding, _ := gs.isOnePlayerStanding()
-	return (gs.isRoundOver() && gs.Round == River) || onePlayerStanding
+	return (gs.isRoundOver() && gs.Round == PostRiver) || onePlayerStanding
 }
 
 func (gs *GameState) isOnePlayerStanding() (bool, int) {
@@ -241,7 +253,7 @@ func (gs *GameState) getLeadAction() Action {
 }
 
 func (gs *GameState) getPlayerCards(playerIndex int) []Card {
-	return []Card{gs.Deck[playerIndex], gs.Deck[playerIndex+gs.getNumberOfPlayersInHand()]}
+	return []Card{gs.Deck[gs.getPlayerIndexInHand(playerIndex)], gs.Deck[gs.getPlayerIndexInHand(playerIndex)+gs.getNumberOfPlayersInHand()]}
 }
 
 func (gs *GameState) getCommunityCards() []Card {
@@ -267,6 +279,23 @@ func (gs *GameState) getNumberOfPlayersInHand() int {
 		}
 	}
 	return count
+}
+
+// Small blind is 0
+func (gs *GameState) getPlayerIndexInHand(seatIndex int) int {
+	count := 0
+	current := (gs.ButtonPosition + 1) % 9
+	for i := 0; i < 9; i++ {
+		if current == seatIndex {
+			return count
+		}
+		if gs.Seats[current].Occupied {
+			count++
+		}
+		current = (current + 1) % 9
+	}
+	log.Fatal("unreachable: getPlayerIndexInHand got a seatIndex that is not active: ", seatIndex)
+	return 0
 }
 
 func getInitialFoldVector(seats *[9]Seat) [9]bool {

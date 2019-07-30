@@ -9,7 +9,7 @@ import (
 type Seat struct {
 	Index    int
 	Occupied bool
-	Player   Player
+	Player   *Player
 }
 
 type Game struct {
@@ -26,7 +26,6 @@ type Game struct {
 func NewGame(smallBlind, bigBlind int) Game {
 	return Game{
 		Seats:          emptyTable(),
-		PlayerSeats:    make(map[Player]Seat),
 		ButtonPosition: 0,
 		SmallBlind:     smallBlind,
 		BigBlind:       bigBlind,
@@ -38,7 +37,6 @@ func NewGame(smallBlind, bigBlind int) Game {
 func NewDeterministicGame(smallBlind, bigBlind int) Game {
 	return Game{
 		Seats:          emptyTable(),
-		PlayerSeats:    make(map[Player]Seat),
 		ButtonPosition: 0,
 		SmallBlind:     smallBlind,
 		BigBlind:       bigBlind,
@@ -47,7 +45,7 @@ func NewDeterministicGame(smallBlind, bigBlind int) Game {
 	}
 }
 
-func (g *Game) SitPlayer(player Player, seatNumber int) error {
+func (g *Game) SitPlayer(player *Player, seatNumber int) error {
 	if seatNumber < 0 || seatNumber >= 9 {
 		return errors.New("invalid seat number")
 	}
@@ -59,34 +57,33 @@ func (g *Game) SitPlayer(player Player, seatNumber int) error {
 		Occupied: true,
 		Player:   player,
 	}
-	g.PlayerSeats[player] = g.Seats[seatNumber]
+	player.SeatNumber = seatNumber
 	return nil
 }
 
-func (g *Game) StandPlayer(player Player, seatNumber int) error {
+func (g *Game) StandPlayer(player *Player, seatNumber int) error {
 	if seatNumber < 0 || seatNumber >= 9 {
 		return errors.New("invalid seat number")
 	}
 	if !g.Seats[seatNumber].Occupied {
 		return errors.New("seat is already empty")
 	}
-	// TODO Fix this
-	if g.Seats[seatNumber].Player != player {
+	if player.SeatNumber != seatNumber {
 		return errors.New("incorrect player/seat number combination")
 	}
 	g.Seats[seatNumber] = Seat{
 		Index:    seatNumber,
 		Occupied: false,
 	}
-	delete(g.PlayerSeats, player)
+	player.SeatNumber = -1
 	return nil
 }
 
-func (g *Game) TakeAction(player Player, action Action) error {
+func (g *Game) TakeAction(player *Player, action Action) error {
 	if !g.IsHandActive {
 		return errors.New("cannot take action when hand is not active")
 	}
-	if val, ok := g.PlayerSeats[player]; !ok || val.Index != g.GameState.ActingPlayer {
+	if player.SeatNumber != g.GameState.ActingPlayer {
 		return errors.New("player is out of turn")
 	}
 
@@ -95,11 +92,12 @@ func (g *Game) TakeAction(player Player, action Action) error {
 		return errors.New(actionConsequence.Message)
 	}
 
-	if player != g.Seats[actionConsequence.Seat.Index].Player {
+	if player.SeatNumber != actionConsequence.Seat.Index {
 		log.Fatal("bug: unreachable: only acting player can have action consequence")
 	}
 
-	player.Folded = actionConsequence.PlayerFold
+	player.SetLastAction(action)
+	player.SetFolded(actionConsequence.PlayerFold)
 	err := player.MakeBet(actionConsequence.PlayerBet)
 	if err != nil {
 		log.Fatal("bug: unreachable: player must have had enough to bet")
@@ -128,6 +126,7 @@ func (g *Game) DealHand() {
 		if err != nil {
 			log.Fatal("bug: unreachable: player must have had enough to bet")
 		}
+		g.Seats[action.Seat.Index].Player.LastAction = Action{ActionType: bet, Value: action.PlayerBet}
 	}
 }
 
@@ -161,7 +160,7 @@ func emptyTable() [9]Seat {
 		seats[i] = Seat{
 			Index:    i,
 			Occupied: false,
-			Player:   Player{},
+			Player:   nil,
 		}
 	}
 	return seats

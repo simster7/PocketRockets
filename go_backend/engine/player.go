@@ -33,3 +33,11 @@ func (p *Player) MakeBet(betSize int) error {
 func (p *Player) ReceivePot(potSize int) {
 	p.Stack += potSize
 }
+
+func (p *Player) SetLastAction(lastAction Action) {
+	p.LastAction = lastAction
+}
+
+func (p *Player) SetFolded(folded bool) {
+	p.Folded = folded
+}
