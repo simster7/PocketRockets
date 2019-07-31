@@ -34,11 +34,16 @@ type ActionConsequence struct {
 	ShowdownHands []HandForEvaluation
 }
 
+type BetVectorNode struct {
+	Amount  int
+	IsAllIn bool
+}
+
 type GameState struct {
 	Seats          [9]Seat
 	ButtonPosition int
 	FoldVector     [9]bool
-	BetVector      [9]int
+	BetVector      [9]BetVectorNode
 	Pots           []int
 	PotContenders  map[int][]Player
 	Deck           [52]Card
@@ -63,8 +68,8 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 	bigBlindIndex := newState.getNActivePlayerIndexFromIndex(buttonPosition, 2)
 	utgIndex := newState.getNActivePlayerIndexFromIndex(buttonPosition, 3)
 
-	newState.BetVector[bigBlindIndex] = bigBlind
-	newState.BetVector[smallBlindIndex] = smallBlind
+	newState.BetVector[bigBlindIndex].Amount = bigBlind
+	newState.BetVector[smallBlindIndex].Amount = smallBlind
 
 	newState.ActingPlayer = utgIndex
 	newState.LeadingPlayer = bigBlindIndex
@@ -118,15 +123,12 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 				Message:     "Illegal game state: player can't call when there is nothing to call",
 			}
 		}
-		amountToCall := gs.BetVector[gs.LeadingPlayer] - gs.BetVector[gs.ActingPlayer]
-		// TODO: Replace this with all-in logic
+		amountToCall := gs.BetVector[gs.LeadingPlayer].Amount - gs.BetVector[gs.ActingPlayer].Amount
 		if gs.Seats[gs.ActingPlayer].Player.Stack < amountToCall {
-			return ActionConsequence{
-				ValidAction: false,
-				Message:     "Illegal game state: player doesn't have enough chips to call",
-			}
+			amountToCall = gs.Seats[gs.ActingPlayer].Player.Stack
+			gs.BetVector[gs.ActingPlayer].IsAllIn = true
 		}
-		gs.BetVector[gs.ActingPlayer] += amountToCall
+		gs.BetVector[gs.ActingPlayer].Amount += amountToCall
 		actionConsequence = ActionConsequence{
 			ValidAction: true,
 			Seat:        gs.Seats[gs.ActingPlayer],
@@ -136,8 +138,8 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 	case bet:
 		leadAction := gs.getLeadAction()
 		toCall := 0
-		if leadAction.ActionType == bet && leadAction.Value-gs.BetVector[gs.ActingPlayer] > 0 {
-			toCall = leadAction.Value - gs.BetVector[gs.ActingPlayer]
+		if leadAction.ActionType == bet && leadAction.Value-gs.BetVector[gs.ActingPlayer].Amount > 0 {
+			toCall = leadAction.Value - gs.BetVector[gs.ActingPlayer].Amount
 		}
 		// TODO: All-in logic here
 		if gs.Seats[gs.ActingPlayer].Player.Stack < action.Value {
@@ -147,7 +149,7 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			}
 		}
 		callAndBet := toCall + action.Value
-		gs.BetVector[gs.ActingPlayer] += callAndBet
+		gs.BetVector[gs.ActingPlayer].Amount += callAndBet
 		gs.LeadingPlayer = gs.ActingPlayer
 		actionConsequence = ActionConsequence{
 			ValidAction: true,
@@ -165,7 +167,7 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 
 func (gs *GameState) moveActingPlayer() bool {
 	gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
-	for gs.FoldVector[gs.ActingPlayer] && !gs.isRoundOver() {
+	for (gs.FoldVector[gs.ActingPlayer] || gs.Seats[gs.ActingPlayer].Player.IsAllIn) && !gs.isRoundOver() {
 		gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
 	}
 
@@ -173,6 +175,7 @@ func (gs *GameState) moveActingPlayer() bool {
 		gs.ActingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.LeadingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.Seats[gs.LeadingPlayer].Player.LastAction = Action{ActionType: check}
+		gs.processPots()
 		gs.Pots[len(gs.Pots)-1] += getSum(gs.BetVector)
 		gs.BetVector = getZeroBetVector()
 		gs.Round++
@@ -183,6 +186,15 @@ func (gs *GameState) moveActingPlayer() bool {
 		return true
 	}
 	return false
+}
+
+func (gs *GameState) processPots() {
+	for i, node := range gs.BetVector {
+		if node.IsAllIn {
+			
+		}
+	}
+
 }
 
 func (gs *GameState) processEndGame(consequence *ActionConsequence) {
@@ -306,14 +318,21 @@ func getInitialFoldVector(seats *[9]Seat) [9]bool {
 	return foldVector
 }
 
-func getZeroBetVector() [9]int {
-	return [9]int{0, 0, 0, 0, 0, 0, 0, 0, 0}
+func getZeroBetVector() [9]BetVectorNode {
+	var betVector [9]BetVectorNode
+	for i := range betVector {
+		betVector[i] = BetVectorNode{
+			Amount:  0,
+			IsAllIn: false,
+		}
+	}
+	return betVector
 }
 
-func getSum(a [9]int) int {
+func getSum(a [9]BetVectorNode) int {
 	count := 0
-	for _, val := range a {
-		count += val
+	for _, node := range a {
+		count += node.Amount
 	}
 	return count
 }

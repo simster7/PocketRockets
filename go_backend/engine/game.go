@@ -34,14 +34,14 @@ func NewGame(smallBlind, bigBlind int) Game {
 	}
 }
 
-func NewDeterministicGame(smallBlind, bigBlind int) Game {
+func NewDeterministicGame(smallBlind, bigBlind int, shuffler func() [52]Card) Game {
 	return Game{
 		Seats:          emptyTable(),
 		ButtonPosition: 0,
 		SmallBlind:     smallBlind,
 		BigBlind:       bigBlind,
 		IsHandActive:   false,
-		Shuffler:       getDeck,
+		Shuffler:       shuffler,
 	}
 }
 

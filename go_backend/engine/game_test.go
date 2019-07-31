@@ -7,7 +7,7 @@ import (
 
 func TestGameBasic(t *testing.T) {
 	// TODO Replace GameState calls with API calls
-	game := NewDeterministicGame(1, 2)
+	game := NewDeterministicGame(1, 2, getDeck)
 	grace := NewPlayer("Grace", 100)
 	err := game.SitPlayer(&grace, 0)
 	assert.NoError(t, err)
@@ -124,7 +124,7 @@ func TestGameBasic(t *testing.T) {
 }
 
 func TestGameMultiround(t *testing.T) {
-	game := NewDeterministicGame(1, 2)
+	game := NewDeterministicGame(1, 2, getDeck)
 	jason := NewPlayer("Jason", 100)
 	err := game.SitPlayer(&jason, 2)
 	assert.NoError(t, err)
@@ -150,6 +150,9 @@ func TestGameMultiround(t *testing.T) {
 	assert.Equal(t, 90, jason.Stack)
 	err = game.TakeAction(&chien, Action{ActionType: call})
 	assert.NoError(t, err)
+
+	// Flop
+	assert.Equal(t, Flop, game.GameState.Round)
 	err = game.TakeAction(&simon, Action{ActionType: check})
 	assert.NoError(t, err)
 	err = game.TakeAction(&chien, Action{ActionType: check})
@@ -225,7 +228,6 @@ func TestGameMultiround(t *testing.T) {
 	err = game.TakeAction(&jason, Action{ActionType: bet, Value: 5})
 	assert.Error(t, err)
 
-
 	err = game.TakeAction(&jarry, Action{ActionType: check})
 	assert.NoError(t, err)
 	err = game.TakeAction(&jason, Action{ActionType: check})
@@ -264,5 +266,44 @@ func TestGameMultiround(t *testing.T) {
 	assert.Equal(t, 68, jason.Stack)
 	assert.Equal(t, 88, jarry.Stack)
 	assert.Equal(t, 129, chien.Stack)
+}
+
+func TestGameAllInSimple(t *testing.T) {
+	game := NewDeterministicGame(1, 2, getDeck)
+	jason := NewPlayer("Jason", 100)
+	err := game.SitPlayer(&jason, 2)
+	assert.NoError(t, err)
+	simon := NewPlayer("Simon", 50)
+	err = game.SitPlayer(&simon, 5)
+	assert.NoError(t, err)
+	chien := NewPlayer("Chien", 20)
+	err = game.SitPlayer(&chien, 7)
+	assert.NoError(t, err)
+
+	game.DealHand()
+
+	// Pre flop
+	assert.Equal(t, PreFlop, game.GameState.Round)
+	err = game.TakeAction(&jason, Action{ActionType: bet, Value: 8})
+	assert.NoError(t, err)
+	assert.Equal(t, 90, jason.Stack)
+	err = game.TakeAction(&simon, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 40, simon.Stack)
+	err = game.TakeAction(&chien, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 10, chien.Stack)
+
+	// Flop
+	assert.Equal(t, Flop, game.GameState.Round)
+	err = game.TakeAction(&simon, Action{ActionType: bet, Value: 40})
+	assert.NoError(t, err)
+	assert.Equal(t, 0, simon.Stack)
+	err = game.TakeAction(&chien, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 0, chien.Stack)
+	err = game.TakeAction(&jason, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 50, jason.Stack)
 
 }

@@ -7,6 +7,7 @@ type Player struct {
 	Stack      int
 	SeatNumber int
 	Folded     bool
+	IsAllIn    bool
 	LastAction Action
 	SittingOut bool
 }
