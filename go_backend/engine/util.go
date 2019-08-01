@@ -72,9 +72,18 @@ func min(a, b int) int {
 	return b
 }
 
-func contains(contenders []*ProcessPotsPQItem, playerIndex int) bool {
+func containsIntInProcessPotsPQSlice(contenders []*ProcessPotsPQItem, playerIndex int) bool {
 	for _, item := range contenders {
 		if item.playerIndex == playerIndex {
+			return true
+		}
+	}
+	return false
+}
+
+func containsIntInIntSlice(slice []int, i int) bool {
+	for _, item := range slice {
+		if item == i {
 			return true
 		}
 	}

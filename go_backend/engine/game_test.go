@@ -240,7 +240,7 @@ func TestGameMultiround(t *testing.T) {
 	err = game.TakeAction(&jason, Action{ActionType: call})
 	assert.NoError(t, err)
 
-	// Turn 57
+	// Turn
 	assert.Equal(t, Turn, game.GameState.Round)
 	assert.Len(t, game.GameState.getCommunityCards(), 4)
 
@@ -266,6 +266,49 @@ func TestGameMultiround(t *testing.T) {
 	assert.Equal(t, 68, jason.Stack)
 	assert.Equal(t, 88, jarry.Stack)
 	assert.Equal(t, 129, chien.Stack)
+
+
+	game.DealHand()
+
+	// Pre flop
+	assert.Equal(t, PreFlop, game.GameState.Round)
+	assert.Nil(t, game.GameState.getCommunityCards())
+
+
+	err = game.TakeAction(&simon, Action{ActionType: bet, Value: 10})
+	assert.NoError(t, err)
+	err = game.TakeAction(&chien, Action{ActionType: call})
+	assert.NoError(t, err)
+	err = game.TakeAction(&jarry, Action{ActionType: call})
+	assert.NoError(t, err)
+	err = game.TakeAction(&jason, Action{ActionType: call})
+	assert.NoError(t, err)
+
+	assert.Equal(t, 103, simon.Stack)
+	assert.Equal(t, 56, jason.Stack)
+	assert.Equal(t, 76, jarry.Stack)
+	assert.Equal(t, 117, chien.Stack)
+
+	// Pre flop
+	assert.Equal(t, Flop, game.GameState.Round)
+	// DONK
+	err = game.TakeAction(&jarry, Action{ActionType: bet, Value: 50})
+	assert.NoError(t, err)
+	assert.Equal(t, 26, jarry.Stack)
+	err = game.TakeAction(&jason, Action{ActionType: fold})
+	assert.NoError(t, err)
+	err = game.TakeAction(&simon, Action{ActionType: fold})
+	assert.NoError(t, err)
+	err = game.TakeAction(&chien, Action{ActionType: fold})
+	assert.NoError(t, err)
+
+	assert.False(t, game.IsHandActive)
+	assert.Equal(t, 103, simon.Stack)
+	assert.Equal(t, 56, jason.Stack)
+	assert.Equal(t, 124, jarry.Stack)
+	assert.Equal(t, 117, chien.Stack)
+
+
 }
 
 func TestGameAllInSimple(t *testing.T) {

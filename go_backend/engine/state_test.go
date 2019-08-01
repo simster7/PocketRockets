@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -28,9 +29,98 @@ func getNewTestGameState() GameState {
 }
 
 func TestProcessPots(t *testing.T) {
-	gs := getNewTestGameState()
 
-	gs.BetVector = [9]BetVectorNode{
-		
+	// Test standard pot
+	betVector := [9]BetVectorNode{
+		{Amount: 0, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 10, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 10, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 10, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
 	}
+
+	pots := []int{0}
+	potContenders := [][]int{{2, 5, 7}}
+
+	processPots(&betVector, &potContenders, &pots)
+
+	assert.Equal(t, []int{30}, pots)
+	assert.Equal(t, [][]int{{2, 5, 7}}, potContenders)
+	assert.Equal(t, getZeroBetVector(), betVector)
+
+	// Test one all in
+
+	betVector = [9]BetVectorNode{
+		{Amount: 0, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 30, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 30, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 20, IsAllIn: true},
+		{Amount: 0, IsAllIn: false},
+	}
+
+	pots = []int{0}
+	potContenders =[][]int{{2, 5, 7}}
+
+	processPots(&betVector, &potContenders, &pots)
+
+	assert.Equal(t, []int{60, 20}, pots)
+	assert.Equal(t, [][]int{{2, 5, 7}, {2, 5}}, potContenders)
+	assert.Equal(t, getZeroBetVector(), betVector)
+
+
+	// Test two all ins
+
+	betVector = [9]BetVectorNode{
+		{Amount: 40, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 40, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 30, IsAllIn: true},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 20, IsAllIn: true},
+		{Amount: 0, IsAllIn: false},
+	}
+
+	pots = []int{0}
+	potContenders =[][]int{{0, 2, 5, 7}}
+
+	processPots(&betVector, &potContenders, &pots)
+
+	assert.Equal(t, []int{80, 30, 20}, pots)
+	assert.Equal(t, [][]int{{0, 2, 5, 7}, {0, 2, 5}, {0, 2}}, potContenders)
+	assert.Equal(t, getZeroBetVector(), betVector)
+
+
+	// Test two all ins with folds
+
+	betVector = [9]BetVectorNode{
+		{Amount: 40, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 40, IsAllIn: false},
+		{Amount: 10, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 30, IsAllIn: true},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 20, IsAllIn: true},
+		{Amount: 0, IsAllIn: false},
+	}
+
+	pots = []int{0}
+	potContenders =[][]int{{0, 2, 3, 5, 7}}
+
+	processPots(&betVector, &potContenders, &pots)
+
+	assert.Equal(t, []int{90, 30, 20}, pots)
+	assert.Equal(t, [][]int{{0, 2, 3, 5, 7}, {0, 2, 3, 5}, {0, 2, 3}}, potContenders)
+	assert.Equal(t, getZeroBetVector(), betVector)
+
 }

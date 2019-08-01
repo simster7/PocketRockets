@@ -20,6 +20,8 @@ const (
 	Folds    string = "Folds"
 )
 
+var AllPlayers = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
+
 type ActionConsequence struct {
 	ValidAction bool
 	Message     string
@@ -61,6 +63,7 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 		FoldVector:     getInitialFoldVector(&seats),
 		BetVector:      getZeroBetVector(),
 		Pots:           []int{0},
+		PotContenders:  [][]int{AllPlayers},
 		Deck:           deck,
 		Round:          PreFlop,
 	}
@@ -142,11 +145,10 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 		if leadAction.ActionType == bet && leadAction.Value-gs.BetVector[gs.ActingPlayer].Amount > 0 {
 			toCall = leadAction.Value - gs.BetVector[gs.ActingPlayer].Amount
 		}
-		// TODO: All-in logic here
 		if gs.Seats[gs.ActingPlayer].Player.Stack < action.Value {
 			return ActionConsequence{
 				ValidAction: false,
-				Message:     "Illegal game state: player doesn't have enough chips to make that bet",
+				Message:     "Illegal game state: player doesn't have enough chips to bet, should call all-in",
 			}
 		}
 		callAndBet := toCall + action.Value
@@ -176,8 +178,7 @@ func (gs *GameState) moveActingPlayer() bool {
 		gs.ActingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.LeadingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.Seats[gs.LeadingPlayer].Player.LastAction = Action{ActionType: check}
-		gs.processPots()
-		gs.BetVector = getZeroBetVector()
+		processPots(&gs.BetVector, &gs.PotContenders, &gs.Pots)
 		gs.Round++
 	}
 
@@ -188,10 +189,10 @@ func (gs *GameState) moveActingPlayer() bool {
 	return false
 }
 
-func (gs *GameState) processPots() {
+func processPots(betVector *[9]BetVectorNode, potContenders *[][]int, pots *[]int) {
 	var processPotsPQ ProcessPotsPQ
 	totalRoundPot := 0
-	for i, node := range gs.BetVector {
+	for i, node := range betVector {
 		totalRoundPot += node.Amount
 		if node.IsAllIn {
 			processPotsPQ = append(processPotsPQ, &ProcessPotsPQItem{
@@ -203,59 +204,71 @@ func (gs *GameState) processPots() {
 	}
 	heap.Init(&processPotsPQ)
 
+	allInAlreadyContributed := 0
 	for len(processPotsPQ) > 0 {
 		var allInsAtCurrentAmount []*ProcessPotsPQItem
 		allInsAtCurrentAmount = append(allInsAtCurrentAmount, heap.Pop(&processPotsPQ).(*ProcessPotsPQItem))
-		currentAllInValue := allInsAtCurrentAmount[0].allInAmount
+		currentAllInValue := allInsAtCurrentAmount[0].allInAmount - allInAlreadyContributed
 
-		for processPotsPQ[0].allInAmount == currentAllInValue {
+		for len(processPotsPQ) > 0 && processPotsPQ[0].allInAmount == currentAllInValue {
 			allInsAtCurrentAmount = append(allInsAtCurrentAmount, heap.Pop(&processPotsPQ).(*ProcessPotsPQItem))
 		}
 
 		currentContendersPot := 0
-		for i, node := range gs.BetVector {
+		for i, node := range betVector {
 			if node.Amount > 0 {
 				amountAddedToThisContention := min(node.Amount, currentAllInValue)
 				currentContendersPot += amountAddedToThisContention
-				gs.BetVector[i].Amount -= amountAddedToThisContention
+				betVector[i].Amount -= amountAddedToThisContention
 				totalRoundPot -= amountAddedToThisContention
 			}
 		}
 
-		currentContenders := gs.PotContenders[len(gs.PotContenders) - 1]
+		currentContenders := (*potContenders)[len(*potContenders)-1]
 		newContenders := filterInt(currentContenders, func(i int) bool {
-			return !contains(allInsAtCurrentAmount, currentContenders[i])
+			return !containsIntInProcessPotsPQSlice(allInsAtCurrentAmount, i)
 		})
-		gs.PotContenders = append(gs.PotContenders, newContenders)
+		(*pots)[len(*pots)-1] += currentContendersPot
+		*pots = append(*pots, 0)
+		*potContenders = append(*potContenders, newContenders)
+		allInAlreadyContributed += currentAllInValue
 	}
-	gs.Pots[len(gs.Pots)-1] += totalRoundPot
-
+	(*pots)[len(*pots)-1] += totalRoundPot
+	*betVector = getZeroBetVector()
 }
 
 func (gs *GameState) processEndGame(consequence *ActionConsequence) {
 	consequence.Payoffs = make(map[Seat]int)
-	if onePlayerStanding, player := gs.isOnePlayerStanding(); onePlayerStanding {
-		// TODO: Process all-in logic here
-		consequence.EndsHand = true
-		consequence.WinCondition = Folds
-		consequence.Payoffs[gs.Seats[player]] = gs.Pots[len(gs.Pots)-1]
-	} else {
-		var showdownHands []HandForEvaluation
-		communityCards := gs.getCommunityCards()
-		for i, seat := range gs.Seats {
-			if seat.Occupied && !seat.Player.SittingOut && gs.FoldVector[i] == false {
-				showdownHands = append(showdownHands, HandForEvaluation{
-					Hand:        append(gs.getPlayerCards(i), communityCards...),
-					PlayerIndex: i,
-				})
+
+	if len(gs.Pots) != len(gs.PotContenders) {
+		log.Fatal("bug: Pots and PotContenders are out of sync")
+	}
+
+	// Go through the side pots from latest to earliest
+	for potIndex := len(gs.Pots) - 1; potIndex >= 0; potIndex-- {
+		if onePlayerStanding, player := gs.isOnePlayerStanding(gs.PotContenders[potIndex]); onePlayerStanding {
+			// TODO: Process all-in logic here
+			consequence.EndsHand = true
+			consequence.WinCondition = Folds
+			consequence.Payoffs[gs.Seats[player]] += gs.Pots[potIndex]
+		} else {
+			var showdownHands []HandForEvaluation
+			communityCards := gs.getCommunityCards()
+			for i, seat := range gs.Seats {
+				if seat.Occupied && !seat.Player.SittingOut && gs.FoldVector[i] == false && containsIntInIntSlice(gs.PotContenders[potIndex], i) {
+					showdownHands = append(showdownHands, HandForEvaluation{
+						Hand:        append(gs.getPlayerCards(i), communityCards...),
+						PlayerIndex: i,
+					})
+				}
 			}
+			rankedHands := EvaluateHands(showdownHands)
+			// TODO: Add split-pot and all-in logic here
+			consequence.EndsHand = true
+			consequence.WinCondition = Showdown
+			consequence.Payoffs[gs.Seats[rankedHands[0].PlayerIndex]] += gs.Pots[potIndex]
+			consequence.ShowdownHands = rankedHands
 		}
-		rankedHands := EvaluateHands(showdownHands)
-		// TODO: Add split-pot and all-in logic here
-		consequence.EndsHand = true
-		consequence.WinCondition = Showdown
-		consequence.Payoffs[gs.Seats[rankedHands[0].PlayerIndex]] = gs.Pots[len(gs.Pots)-1]
-		consequence.ShowdownHands = rankedHands
 	}
 }
 
@@ -279,15 +292,15 @@ func (gs *GameState) isRoundOver() bool {
 }
 
 func (gs *GameState) isHandOver() bool {
-	onePlayerStanding, _ := gs.isOnePlayerStanding()
+	onePlayerStanding, _ := gs.isOnePlayerStanding(AllPlayers)
 	return (gs.isRoundOver() && gs.Round == HandEnd) || onePlayerStanding
 }
 
-func (gs *GameState) isOnePlayerStanding() (bool, int) {
+func (gs *GameState) isOnePlayerStanding(playersToConsider []int) (bool, int) {
 	playersInHand := 0
 	player := -1
 	for i, folded := range gs.FoldVector {
-		if !folded {
+		if !folded && containsIntInIntSlice(playersToConsider, i) {
 			playersInHand++
 			player = i
 		}
