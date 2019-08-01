@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"container/heap"
 	"log"
 )
 
@@ -45,7 +46,7 @@ type GameState struct {
 	FoldVector     [9]bool
 	BetVector      [9]BetVectorNode
 	Pots           []int
-	PotContenders  map[int][]Player
+	PotContenders  [][]int
 	Deck           [52]Card
 	Round          Round
 	ActingPlayer   int
@@ -176,7 +177,6 @@ func (gs *GameState) moveActingPlayer() bool {
 		gs.LeadingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.Seats[gs.LeadingPlayer].Player.LastAction = Action{ActionType: check}
 		gs.processPots()
-		gs.Pots[len(gs.Pots)-1] += getSum(gs.BetVector)
 		gs.BetVector = getZeroBetVector()
 		gs.Round++
 	}
@@ -189,11 +189,46 @@ func (gs *GameState) moveActingPlayer() bool {
 }
 
 func (gs *GameState) processPots() {
+	var processPotsPQ ProcessPotsPQ
+	totalRoundPot := 0
 	for i, node := range gs.BetVector {
+		totalRoundPot += node.Amount
 		if node.IsAllIn {
-			
+			processPotsPQ = append(processPotsPQ, &ProcessPotsPQItem{
+				playerIndex: i,
+				allInAmount: node.Amount,
+				index:       len(processPotsPQ),
+			})
 		}
 	}
+	heap.Init(&processPotsPQ)
+
+	for len(processPotsPQ) > 0 {
+		var allInsAtCurrentAmount []*ProcessPotsPQItem
+		allInsAtCurrentAmount = append(allInsAtCurrentAmount, heap.Pop(&processPotsPQ).(*ProcessPotsPQItem))
+		currentAllInValue := allInsAtCurrentAmount[0].allInAmount
+
+		for processPotsPQ[0].allInAmount == currentAllInValue {
+			allInsAtCurrentAmount = append(allInsAtCurrentAmount, heap.Pop(&processPotsPQ).(*ProcessPotsPQItem))
+		}
+
+		currentContendersPot := 0
+		for i, node := range gs.BetVector {
+			if node.Amount > 0 {
+				amountAddedToThisContention := min(node.Amount, currentAllInValue)
+				currentContendersPot += amountAddedToThisContention
+				gs.BetVector[i].Amount -= amountAddedToThisContention
+				totalRoundPot -= amountAddedToThisContention
+			}
+		}
+
+		currentContenders := gs.PotContenders[len(gs.PotContenders) - 1]
+		newContenders := filterInt(currentContenders, func(i int) bool {
+			return !contains(allInsAtCurrentAmount, currentContenders[i])
+		})
+		gs.PotContenders = append(gs.PotContenders, newContenders)
+	}
+	gs.Pots[len(gs.Pots)-1] += totalRoundPot
 
 }
 
