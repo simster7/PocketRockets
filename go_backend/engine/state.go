@@ -29,6 +29,7 @@ type ActionConsequence struct {
 	Seat       Seat
 	PlayerFold bool
 	PlayerBet  int
+	IsAllIn    bool
 
 	// Ends hand
 	EndsHand      bool
@@ -105,6 +106,7 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			ValidAction: true,
 			Seat:        gs.Seats[gs.ActingPlayer],
 			PlayerFold:  true,
+			IsAllIn:     false,
 			PlayerBet:   0,
 		}
 	case check:
@@ -118,6 +120,7 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			ValidAction: true,
 			Seat:        gs.Seats[gs.ActingPlayer],
 			PlayerFold:  false,
+			IsAllIn:     false,
 			PlayerBet:   0,
 		}
 	case call:
@@ -127,21 +130,25 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 				Message:     "Illegal game state: player can't call when there is nothing to call",
 			}
 		}
+		isAllIn := false
 		amountToCall := gs.BetVector[gs.LeadingPlayer].Amount - gs.BetVector[gs.ActingPlayer].Amount
 		if gs.Seats[gs.ActingPlayer].Player.Stack < amountToCall {
 			amountToCall = gs.Seats[gs.ActingPlayer].Player.Stack
 			gs.BetVector[gs.ActingPlayer].IsAllIn = true
+			isAllIn = true
 		}
 		gs.BetVector[gs.ActingPlayer].Amount += amountToCall
 		actionConsequence = ActionConsequence{
 			ValidAction: true,
 			Seat:        gs.Seats[gs.ActingPlayer],
 			PlayerFold:  false,
+			IsAllIn:     isAllIn,
 			PlayerBet:   amountToCall,
 		}
 	case bet:
 		leadAction := gs.getLeadAction()
 		toCall := 0
+		isAllIn := false
 		if leadAction.ActionType == bet && leadAction.Value-gs.BetVector[gs.ActingPlayer].Amount > 0 {
 			toCall = leadAction.Value - gs.BetVector[gs.ActingPlayer].Amount
 		}
@@ -151,6 +158,10 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 				Message:     "Illegal game state: player doesn't have enough chips to bet, should call all-in",
 			}
 		}
+		if action.Value == (gs.Seats[gs.ActingPlayer].Player.Stack - toCall) {
+			gs.BetVector[gs.ActingPlayer].IsAllIn = true
+			isAllIn = true
+		}
 		callAndBet := toCall + action.Value
 		gs.BetVector[gs.ActingPlayer].Amount += callAndBet
 		gs.LeadingPlayer = gs.ActingPlayer
@@ -158,6 +169,7 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			ValidAction: true,
 			Seat:        gs.Seats[gs.ActingPlayer],
 			PlayerFold:  false,
+			IsAllIn:     isAllIn,
 			PlayerBet:   callAndBet,
 		}
 	}

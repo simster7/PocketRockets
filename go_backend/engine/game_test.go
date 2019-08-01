@@ -313,40 +313,148 @@ func TestGameMultiround(t *testing.T) {
 
 func TestGameAllInSimple(t *testing.T) {
 	game := NewDeterministicGame(1, 2, getDeck)
-	jason := NewPlayer("Jason", 100)
+	jason := NewPlayer("Jason", 20)
 	err := game.SitPlayer(&jason, 2)
 	assert.NoError(t, err)
 	simon := NewPlayer("Simon", 50)
 	err = game.SitPlayer(&simon, 5)
 	assert.NoError(t, err)
-	chien := NewPlayer("Chien", 20)
+	chien := NewPlayer("Chien", 100)
 	err = game.SitPlayer(&chien, 7)
 	assert.NoError(t, err)
 
 	game.DealHand()
 
 	// Pre flop
+	// Bet is 10 each, Jason is left with 10 at round end
 	assert.Equal(t, PreFlop, game.GameState.Round)
 	err = game.TakeAction(&jason, Action{ActionType: bet, Value: 8})
 	assert.NoError(t, err)
-	assert.Equal(t, 90, jason.Stack)
+	assert.Equal(t, 10, jason.Stack)
 	err = game.TakeAction(&simon, Action{ActionType: call})
 	assert.NoError(t, err)
 	assert.Equal(t, 40, simon.Stack)
 	err = game.TakeAction(&chien, Action{ActionType: call})
 	assert.NoError(t, err)
-	assert.Equal(t, 10, chien.Stack)
+	assert.Equal(t, 90, chien.Stack)
 
 	// Flop
+	// Bet is 30 each, Jason can only afford 10. Main pot becomes 60 (30 from flop + 10 (Jason's all-in) * 3 (players))
+	// Side pot becomes 40 (20 each from Simon and Chien)
 	assert.Equal(t, Flop, game.GameState.Round)
-	err = game.TakeAction(&simon, Action{ActionType: bet, Value: 40})
+	err = game.TakeAction(&simon, Action{ActionType: bet, Value: 30})
 	assert.NoError(t, err)
-	assert.Equal(t, 0, simon.Stack)
+	assert.Equal(t, 10, simon.Stack)
 	err = game.TakeAction(&chien, Action{ActionType: call})
 	assert.NoError(t, err)
-	assert.Equal(t, 0, chien.Stack)
+	assert.Equal(t, 60, chien.Stack)
 	err = game.TakeAction(&jason, Action{ActionType: call})
 	assert.NoError(t, err)
-	assert.Equal(t, 50, jason.Stack)
+	assert.Equal(t, 0, jason.Stack)
+
+	// Turn
+	assert.Equal(t, Turn, game.GameState.Round)
+	err = game.TakeAction(&simon, Action{ActionType: check})
+	assert.NoError(t, err)
+	err = game.TakeAction(&chien, Action{ActionType: check})
+	assert.NoError(t, err)
+
+	// River
+	assert.Equal(t, River, game.GameState.Round)
+	err = game.TakeAction(&simon, Action{ActionType: check})
+	assert.NoError(t, err)
+	err = game.TakeAction(&chien, Action{ActionType: check})
+	assert.NoError(t, err)
+
+	// HandEnd
+	// Jason wins main pot of 60, Chien wins side pot of 40
+	assert.Equal(t, HandEnd, game.GameState.Round)
+	assert.Equal(t, 60, jason.Stack)
+	assert.Equal(t, 100, chien.Stack)
+	assert.Equal(t, 10, simon.Stack)
+}
+
+
+func TestGameAllInTwoSidePots(t *testing.T) {
+	game := NewDeterministicGame(1, 2, getDeck)
+	jason := NewPlayer("Jason", 20)
+	err := game.SitPlayer(&jason, 2)
+	assert.NoError(t, err)
+	simon := NewPlayer("Simon", 50)
+	err = game.SitPlayer(&simon, 5)
+	assert.NoError(t, err)
+	chien := NewPlayer("Chien", 100)
+	err = game.SitPlayer(&chien, 7)
+	assert.NoError(t, err)
+	jarry := NewPlayer("Jarry", 30)
+	err = game.SitPlayer(&jarry, 8)
+	assert.NoError(t, err)
+
+	game.DealHand()
+
+	// Pre flop
+	// Bet is 10 each, Jason is left with 10 at round end and Jarry with 20
+	assert.Equal(t, PreFlop, game.GameState.Round)
+	err = game.TakeAction(&jarry, Action{ActionType: bet, Value: 8})
+	assert.NoError(t, err)
+	assert.Equal(t, 20, jason.Stack)
+	err = game.TakeAction(&jason, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 10, jason.Stack)
+	err = game.TakeAction(&simon, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 40, simon.Stack)
+	err = game.TakeAction(&chien, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 90, chien.Stack)
+
+	// Flop
+	// Bet is 15 each, Jason can only afford 10. Main pot becomes 80 (40 from flop + 10 (Jason's all-in) * 4 (players))
+	// First side pot becomes 15 (5 each from Simon, Chien, and Jarry)
+	assert.Equal(t, Flop, game.GameState.Round)
+	err = game.TakeAction(&simon, Action{ActionType: bet, Value: 15})
+	assert.NoError(t, err)
+	assert.Equal(t, 25, simon.Stack)
+	err = game.TakeAction(&chien, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 75, chien.Stack)
+	err = game.TakeAction(&jarry, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 5, jarry.Stack)
+	err = game.TakeAction(&jason, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 0, jason.Stack)
+
+	// Turn
+	// Bet is 15 each, Jarry can only afford 5. First side pot becomes 30 (15 from flop + 5 (Jarry's all-in) * 3 (players))
+	// Second side pot becomes 20 (10 each from Simon and Chien)
+	assert.Equal(t, Turn, game.GameState.Round)
+	err = game.TakeAction(&simon, Action{ActionType: bet, Value: 15})
+	assert.NoError(t, err)
+	assert.Equal(t, 10, simon.Stack)
+	err = game.TakeAction(&chien, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 60, chien.Stack)
+	err = game.TakeAction(&jarry, Action{ActionType: call})
+	assert.NoError(t, err)
+	assert.Equal(t, 0, jarry.Stack)
+	// Jason is already all-in
+	err = game.TakeAction(&jason, Action{ActionType: call})
+	assert.Error(t, err)
+
+	// River
+	assert.Equal(t, River, game.GameState.Round)
+	err = game.TakeAction(&simon, Action{ActionType: check})
+	assert.NoError(t, err)
+	err = game.TakeAction(&chien, Action{ActionType: check})
+	assert.NoError(t, err)
+
+	// HandEnd
+	// TODO: Figure out if this is actually right
+	assert.Equal(t, HandEnd, game.GameState.Round)
+	assert.Equal(t, 80, jason.Stack)
+	assert.Equal(t, 80, chien.Stack)
+	assert.Equal(t, 10, simon.Stack)
+	assert.Equal(t, 30, jarry.Stack)
 
 }

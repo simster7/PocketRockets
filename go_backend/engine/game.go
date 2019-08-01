@@ -97,6 +97,7 @@ func (g *Game) TakeAction(player *Player, action Action) error {
 	}
 
 	player.SetLastAction(action)
+	player.SetIsAllIn(actionConsequence.IsAllIn)
 	player.SetFolded(actionConsequence.PlayerFold)
 	err := player.MakeBet(actionConsequence.PlayerBet)
 	if err != nil {
