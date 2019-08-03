@@ -133,7 +133,7 @@ func (g *Game) DealHand() {
 		if err != nil {
 			log.Fatal("bug: unreachable: player must have had enough to bet")
 		}
-		g.Seats[action.PlayerIndex].Player.LastAction = Action{ActionType: bet, Value: action.PlayerBet}
+		g.Seats[action.PlayerIndex].Player.LastAction = Action{ActionType: Blind, Value: action.PlayerBet}
 	}
 }
 
