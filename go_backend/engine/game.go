@@ -104,7 +104,7 @@ func (g *Game) TakeAction(player *Player, action Action) error {
 		log.Fatal("bug: unreachable: player must have had enough to bet")
 	}
 
-	// Some actions may result in a player getting money refunded (such as over-betting an all-in that can'e be fully
+	// Some actions may result in a player getting money refunded (such as over-betting an all-in that can't be fully
 	// called)
 	if actionConsequence.RefundsMoney {
 		g.Seats[actionConsequence.RefundPlayerIndex].Player.Stack += actionConsequence.RefundAmount

@@ -224,8 +224,7 @@ func processPots(betVector *[9]BetVectorNode, potContenders *[][]int, pots *[]in
 		}
 		if node.Amount == highestBetAmount {
 			isHighestBetCalled = true
-		}
-		if node.Amount > highestBetAmount {
+		} else if node.Amount > highestBetAmount {
 			isHighestBetCalled = false
 			secondHighestBetAmount = highestBetAmount
 			highestBetAmount = node.Amount
