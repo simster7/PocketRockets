@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestGameBasic(t *testing.T) {
+func TestGameBasicSplitPot(t *testing.T) {
 	// TODO Replace GameState calls with API calls
 	game := NewDeterministicGame(1, 2, getDeck)
 	grace := NewPlayer("Grace", 100)
@@ -111,16 +111,16 @@ func TestGameBasic(t *testing.T) {
 	assert.Equal(t, true, chien.Folded)
 	err = game.TakeAction(&jarry, Action{ActionType: Call})
 	assert.NoError(t, err)
-	assert.Equal(t, 73, jarry.Stack)
 
 	// Post River
+	// Board hits a flush, split pot
 	assert.Equal(t, HandEnd, game.GameState.Round)
 	assert.Equal(t, game.GameState.Pots[0], 80)
 	assert.Len(t, game.GameState.getCommunityCards(), 5)
 	assert.False(t, game.IsHandActive)
 	assert.False(t, game.GameState.IsHandActive)
-	assert.Equal(t, 153, simon.Stack)
-	assert.Equal(t, 73, jarry.Stack)
+	assert.Equal(t, 113, simon.Stack)
+	assert.Equal(t, 113, jarry.Stack)
 }
 
 func TestGameMultiround(t *testing.T) {
@@ -291,7 +291,7 @@ func TestGameMultiround(t *testing.T) {
 
 	// Pre flop
 	assert.Equal(t, Flop, game.GameState.Round)
-	// DONK
+	// DONK!
 	err = game.TakeAction(&jarry, Action{ActionType: Bet, Value: 50})
 	assert.NoError(t, err)
 	assert.Equal(t, 26, jarry.Stack)
@@ -307,8 +307,6 @@ func TestGameMultiround(t *testing.T) {
 	assert.Equal(t, 56, jason.Stack)
 	assert.Equal(t, 124, jarry.Stack)
 	assert.Equal(t, 117, chien.Stack)
-
-
 }
 
 func TestGameAllInSimple(t *testing.T) {
@@ -576,6 +574,8 @@ func TestGamePreFlopOption(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, Flop, game.GameState.Round)
+	err = game.TakeAction(&simon, Action{ActionType: Check})
+	assert.NoError(t, err)
 	assert.Equal(t, 98, jason.Stack)
 	assert.Equal(t, 98, simon.Stack)
 	assert.Equal(t, 98, chien.Stack)
@@ -610,6 +610,8 @@ func TestGamePreFlopOption(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, Flop, game.GameState.Round)
+	err = game.TakeAction(&simon, Action{ActionType: Check})
+	assert.NoError(t, err)
 	assert.Equal(t, 93, jason.Stack)
 	assert.Equal(t, 93, simon.Stack)
 	assert.Equal(t, 93, chien.Stack)

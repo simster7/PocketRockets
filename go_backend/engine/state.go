@@ -39,6 +39,7 @@ type ActionConsequence struct {
 	// Ends hand
 	EndsHand      bool
 	Payoffs       map[Seat]int
+	PotRemainder  int
 	WinCondition  string
 	ShowdownHands []HandForEvaluation
 }
@@ -306,11 +307,19 @@ func (gs *GameState) processEndGame(consequence *ActionConsequence) {
 				}
 			}
 			rankedHands := EvaluateHands(showdownHands)
-			// TODO: Add split-pot logic here
 			consequence.EndsHand = true
 			consequence.WinCondition = Showdown
-			consequence.Payoffs[gs.Seats[rankedHands[0].PlayerIndex]] += gs.Pots[potIndex]
 			consequence.ShowdownHands = rankedHands
+
+			numberOfWinners := 1
+			for i := 1; i < len(rankedHands) && CompareStrengths(rankedHands[0].HandStrength, rankedHands[i].HandStrength) == 0; i++ {
+				numberOfWinners++
+			}
+
+			for i := 0; i < numberOfWinners; i++ {
+				consequence.Payoffs[gs.Seats[rankedHands[i].PlayerIndex]] += gs.Pots[potIndex] / numberOfWinners
+			}
+			consequence.PotRemainder += gs.Pots[potIndex] % numberOfWinners
 		}
 	}
 }
