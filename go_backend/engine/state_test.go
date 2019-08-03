@@ -44,12 +44,14 @@ func TestProcessPots(t *testing.T) {
 	}
 
 	pots := []int{0}
-	potContenders := [][]int{{2, 5, 7}}
+	potContenders := [][]int{AllPlayers}
 
-	processPots(&betVector, &potContenders, &pots)
+	consequence := ActionConsequence{}
+
+	processPots(&betVector, &potContenders, &pots, &consequence)
 
 	assert.Equal(t, []int{30}, pots)
-	assert.Equal(t, [][]int{{2, 5, 7}}, potContenders)
+	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}}, potContenders)
 	assert.Equal(t, getZeroBetVector(), betVector)
 
 	// Test one all in
@@ -67,12 +69,14 @@ func TestProcessPots(t *testing.T) {
 	}
 
 	pots = []int{0}
-	potContenders =[][]int{{2, 5, 7}}
+	potContenders =[][]int{AllPlayers}
 
-	processPots(&betVector, &potContenders, &pots)
+	consequence = ActionConsequence{}
+
+	processPots(&betVector, &potContenders, &pots, &consequence)
 
 	assert.Equal(t, []int{60, 20}, pots)
-	assert.Equal(t, [][]int{{2, 5, 7}, {2, 5}}, potContenders)
+	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}}, potContenders)
 	assert.Equal(t, getZeroBetVector(), betVector)
 
 
@@ -91,12 +95,14 @@ func TestProcessPots(t *testing.T) {
 	}
 
 	pots = []int{0}
-	potContenders =[][]int{{0, 2, 5, 7}}
+	potContenders =[][]int{AllPlayers}
 
-	processPots(&betVector, &potContenders, &pots)
+	consequence = ActionConsequence{}
+
+	processPots(&betVector, &potContenders, &pots, &consequence)
 
 	assert.Equal(t, []int{80, 30, 20}, pots)
-	assert.Equal(t, [][]int{{0, 2, 5, 7}, {0, 2, 5}, {0, 2}}, potContenders)
+	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}, {0, 1, 2, 3, 4, 6, 8}}, potContenders)
 	assert.Equal(t, getZeroBetVector(), betVector)
 
 
@@ -115,12 +121,41 @@ func TestProcessPots(t *testing.T) {
 	}
 
 	pots = []int{0}
-	potContenders =[][]int{{0, 2, 3, 5, 7}}
+	potContenders =[][]int{AllPlayers}
 
-	processPots(&betVector, &potContenders, &pots)
+	consequence = ActionConsequence{}
+
+	processPots(&betVector, &potContenders, &pots, &consequence)
 
 	assert.Equal(t, []int{90, 30, 20}, pots)
-	assert.Equal(t, [][]int{{0, 2, 3, 5, 7}, {0, 2, 3, 5}, {0, 2, 3}}, potContenders)
+	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}, {0, 1, 2, 3, 4, 6, 8}}, potContenders)
 	assert.Equal(t, getZeroBetVector(), betVector)
+
+
+	// Test all in with over-bet amount that can't be matched
+
+	betVector = [9]BetVectorNode{
+		{Amount: 0, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 30, IsAllIn: false},
+		{Amount: 0, IsAllIn: false},
+		{Amount: 10, IsAllIn: true},
+		{Amount: 0, IsAllIn: false},
+	}
+
+	pots = []int{0}
+	potContenders =[][]int{AllPlayers}
+
+	consequence = ActionConsequence{}
+
+	processPots(&betVector, &potContenders, &pots, &consequence)
+
+	assert.Equal(t, []int{20, 0}, pots)
+	assert.Equal(t, [][]int{AllPlayers, {0, 1, 2, 3, 4, 5, 6, 8}}, potContenders)
+	assert.Equal(t, getZeroBetVector(), betVector)
+
 
 }

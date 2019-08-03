@@ -26,10 +26,15 @@ type ActionConsequence struct {
 	ValidAction bool
 	Message     string
 
-	Seat       Seat
-	PlayerFold bool
-	PlayerBet  int
-	IsAllIn    bool
+	PlayerIndex int
+	PlayerFold  bool
+	PlayerBet   int
+	IsAllIn     bool
+
+	// Refund over-bet money that can't be matched
+	RefundsMoney      bool
+	RefundPlayerIndex int
+	RefundAmount      int
 
 	// Ends hand
 	EndsHand      bool
@@ -85,13 +90,13 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 		{
 			EndsHand:    false,
 			ValidAction: true,
-			Seat:        newState.Seats[bigBlindIndex],
+			PlayerIndex: bigBlindIndex,
 			PlayerBet:   bigBlind,
 		},
 		{
 			EndsHand:    false,
 			ValidAction: true,
-			Seat:        newState.Seats[smallBlindIndex],
+			PlayerIndex: smallBlindIndex,
 			PlayerBet:   smallBlind,
 		},
 	}
@@ -104,7 +109,7 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 		gs.FoldVector[gs.ActingPlayer] = true
 		actionConsequence = ActionConsequence{
 			ValidAction: true,
-			Seat:        gs.Seats[gs.ActingPlayer],
+			PlayerIndex: gs.ActingPlayer,
 			PlayerFold:  true,
 			IsAllIn:     false,
 			PlayerBet:   0,
@@ -118,7 +123,7 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 		}
 		actionConsequence = ActionConsequence{
 			ValidAction: true,
-			Seat:        gs.Seats[gs.ActingPlayer],
+			PlayerIndex: gs.ActingPlayer,
 			PlayerFold:  false,
 			IsAllIn:     false,
 			PlayerBet:   0,
@@ -140,7 +145,7 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 		gs.BetVector[gs.ActingPlayer].Amount += amountToCall
 		actionConsequence = ActionConsequence{
 			ValidAction: true,
-			Seat:        gs.Seats[gs.ActingPlayer],
+			PlayerIndex: gs.ActingPlayer,
 			PlayerFold:  false,
 			IsAllIn:     isAllIn,
 			PlayerBet:   amountToCall,
@@ -167,20 +172,20 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 		gs.LeadingPlayer = gs.ActingPlayer
 		actionConsequence = ActionConsequence{
 			ValidAction: true,
-			Seat:        gs.Seats[gs.ActingPlayer],
+			PlayerIndex: gs.ActingPlayer,
 			PlayerFold:  false,
 			IsAllIn:     isAllIn,
 			PlayerBet:   callAndBet,
 		}
 	}
-	endsHand := gs.moveActingPlayer()
+	endsHand := gs.moveActingPlayer(&actionConsequence)
 	if endsHand {
 		gs.processEndGame(&actionConsequence)
 	}
 	return actionConsequence
 }
 
-func (gs *GameState) moveActingPlayer() bool {
+func (gs *GameState) moveActingPlayer(consequence *ActionConsequence) bool {
 	gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
 	for (gs.FoldVector[gs.ActingPlayer] || gs.Seats[gs.ActingPlayer].Player.IsAllIn) && !gs.isRoundOver() {
 		gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
@@ -190,7 +195,7 @@ func (gs *GameState) moveActingPlayer() bool {
 		gs.ActingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.LeadingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.Seats[gs.LeadingPlayer].Player.LastAction = Action{ActionType: check}
-		processPots(&gs.BetVector, &gs.PotContenders, &gs.Pots)
+		processPots(&gs.BetVector, &gs.PotContenders, &gs.Pots, consequence)
 		gs.Round++
 	}
 
@@ -201,9 +206,13 @@ func (gs *GameState) moveActingPlayer() bool {
 	return false
 }
 
-func processPots(betVector *[9]BetVectorNode, potContenders *[][]int, pots *[]int) {
+func processPots(betVector *[9]BetVectorNode, potContenders *[][]int, pots *[]int, consequence *ActionConsequence) {
 	var processPotsPQ ProcessPotsPQ
 	totalRoundPot := 0
+	highestBetAmountPlayerIndex := -1
+	highestBetAmount := 0
+	secondHighestBetAmount := 0
+	isHighestBetCalled := false
 	for i, node := range betVector {
 		totalRoundPot += node.Amount
 		if node.IsAllIn {
@@ -213,7 +222,28 @@ func processPots(betVector *[9]BetVectorNode, potContenders *[][]int, pots *[]in
 				index:       len(processPotsPQ),
 			})
 		}
+		if node.Amount == highestBetAmount {
+			isHighestBetCalled = true
+		}
+		if node.Amount > highestBetAmount {
+			isHighestBetCalled = false
+			secondHighestBetAmount = highestBetAmount
+			highestBetAmount = node.Amount
+			highestBetAmountPlayerIndex = i
+		} else if node.Amount > secondHighestBetAmount {
+			secondHighestBetAmount = node.Amount
+		}
 	}
+
+	// One player's bet wasn't fully called (because of an all-in). Refund over-bet money.
+	if highestBetAmount >= 0 && !isHighestBetCalled {
+		consequence.RefundsMoney = true
+		consequence.RefundPlayerIndex = highestBetAmountPlayerIndex
+		amountToRefund := highestBetAmount - secondHighestBetAmount
+		consequence.RefundAmount = amountToRefund
+		totalRoundPot -= amountToRefund
+	}
+
 	heap.Init(&processPotsPQ)
 
 	allInAlreadyContributed := 0
@@ -259,7 +289,6 @@ func (gs *GameState) processEndGame(consequence *ActionConsequence) {
 	// Go through the side pots from latest to earliest
 	for potIndex := len(gs.Pots) - 1; potIndex >= 0; potIndex-- {
 		if onePlayerStanding, player := gs.isOnePlayerStanding(gs.PotContenders[potIndex]); onePlayerStanding {
-			// TODO: Process all-in logic here
 			consequence.EndsHand = true
 			consequence.WinCondition = Folds
 			consequence.Payoffs[gs.Seats[player]] += gs.Pots[potIndex]
@@ -275,7 +304,7 @@ func (gs *GameState) processEndGame(consequence *ActionConsequence) {
 				}
 			}
 			rankedHands := EvaluateHands(showdownHands)
-			// TODO: Add split-pot and all-in logic here
+			// TODO: Add split-pot logic here
 			consequence.EndsHand = true
 			consequence.WinCondition = Showdown
 			consequence.Payoffs[gs.Seats[rankedHands[0].PlayerIndex]] += gs.Pots[potIndex]

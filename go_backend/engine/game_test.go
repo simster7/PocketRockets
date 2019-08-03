@@ -533,9 +533,7 @@ func TestGameAllInWithFold(t *testing.T) {
 	err = game.TakeAction(&jason, Action{ActionType: call})
 	assert.Error(t, err)
 
-	// TODO fix this:
 	// Simon bet 15, but only 5 was called, so 10 should have been added back to Simon's stack
-	// Possible fix: refund overdue money in process pots
 	assert.Equal(t, 20, simon.Stack)
 
 	// River
