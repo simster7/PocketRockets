@@ -34,14 +34,14 @@ func NewGame(smallBlind, bigBlind int) Game {
 	}
 }
 
-func NewDeterministicGame(smallBlind, bigBlind int) Game {
+func NewDeterministicGame(smallBlind, bigBlind int, shuffler func() [52]Card) Game {
 	return Game{
 		Seats:          emptyTable(),
 		ButtonPosition: 0,
 		SmallBlind:     smallBlind,
 		BigBlind:       bigBlind,
 		IsHandActive:   false,
-		Shuffler:       getDeck,
+		Shuffler:       shuffler,
 	}
 }
 
@@ -92,15 +92,22 @@ func (g *Game) TakeAction(player *Player, action Action) error {
 		return errors.New(actionConsequence.Message)
 	}
 
-	if player.SeatNumber != actionConsequence.Seat.Index {
+	if player.SeatNumber != actionConsequence.PlayerIndex {
 		log.Fatal("bug: unreachable: only acting player can have action consequence")
 	}
 
 	player.SetLastAction(action)
+	player.SetIsAllIn(actionConsequence.IsAllIn)
 	player.SetFolded(actionConsequence.PlayerFold)
 	err := player.MakeBet(actionConsequence.PlayerBet)
 	if err != nil {
 		log.Fatal("bug: unreachable: player must have had enough to bet")
+	}
+
+	// Some actions may result in a player getting money refunded (such as over-betting an all-in that can't be fully
+	// called)
+	if actionConsequence.RefundsMoney {
+		g.Seats[actionConsequence.RefundPlayerIndex].Player.Stack += actionConsequence.RefundAmount
 	}
 
 	if actionConsequence.EndsHand {
@@ -122,11 +129,11 @@ func (g *Game) DealHand() {
 	g.GameState = gameState
 	g.IsHandActive = true
 	for _, action := range actionConsequences {
-		err := g.Seats[action.Seat.Index].Player.MakeBet(action.PlayerBet)
+		err := g.Seats[action.PlayerIndex].Player.MakeBet(action.PlayerBet)
 		if err != nil {
 			log.Fatal("bug: unreachable: player must have had enough to bet")
 		}
-		g.Seats[action.Seat.Index].Player.LastAction = Action{ActionType: bet, Value: action.PlayerBet}
+		g.Seats[action.PlayerIndex].Player.LastAction = Action{ActionType: bet, Value: action.PlayerBet}
 	}
 }
 

@@ -319,17 +319,3 @@ func filterCard(vs []Card, f func(card Card) bool) []Card {
 	return vsf
 }
 
-func maxMin(a, b int) (int, int) {
-	if a >= b {
-		return a, b
-	}
-	return b, a
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-

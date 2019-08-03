@@ -7,6 +7,7 @@ type Player struct {
 	Stack      int
 	SeatNumber int
 	Folded     bool
+	IsAllIn    bool
 	LastAction Action
 	SittingOut bool
 }
@@ -40,4 +41,8 @@ func (p *Player) SetLastAction(lastAction Action) {
 
 func (p *Player) SetFolded(folded bool) {
 	p.Folded = folded
+}
+
+func (p *Player) SetIsAllIn(isAllIn bool) {
+	p.IsAllIn = isAllIn
 }
