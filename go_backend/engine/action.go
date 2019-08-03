@@ -3,10 +3,11 @@ package engine
 type ActionType int
 
 const (
-	check ActionType = iota
-	call
-	fold
-	bet
+	Check ActionType = iota
+	Call
+	Fold
+	Bet
+	Blind
 )
 
 type Action struct {

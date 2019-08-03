@@ -60,6 +60,8 @@ type GameState struct {
 	ActingPlayer   int
 	LeadingPlayer  int
 	IsHandActive   bool
+
+	currentAction Action
 }
 
 func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int, deck [52]Card) (GameState, []ActionConsequence) {
@@ -103,9 +105,10 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 }
 
 func (gs *GameState) TakeAction(action Action) ActionConsequence {
+	gs.currentAction = action
 	var actionConsequence ActionConsequence
 	switch action.ActionType {
-	case fold:
+	case Fold:
 		gs.FoldVector[gs.ActingPlayer] = true
 		actionConsequence = ActionConsequence{
 			ValidAction: true,
@@ -114,8 +117,8 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			IsAllIn:     false,
 			PlayerBet:   0,
 		}
-	case check:
-		if gs.getLeadAction().ActionType == bet {
+	case Check:
+		if gs.getLeadAction().ActionType == Bet {
 			return ActionConsequence{
 				ValidAction: false,
 				Message:     "Illegal game state: player can't check when there is a bet",
@@ -128,8 +131,8 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			IsAllIn:     false,
 			PlayerBet:   0,
 		}
-	case call:
-		if gs.getLeadAction().ActionType == check {
+	case Call:
+		if gs.getLeadAction().ActionType == Check {
 			return ActionConsequence{
 				ValidAction: false,
 				Message:     "Illegal game state: player can't call when there is nothing to call",
@@ -150,11 +153,11 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			IsAllIn:     isAllIn,
 			PlayerBet:   amountToCall,
 		}
-	case bet:
+	case Bet:
 		leadAction := gs.getLeadAction()
 		toCall := 0
 		isAllIn := false
-		if leadAction.ActionType == bet && leadAction.Value-gs.BetVector[gs.ActingPlayer].Amount > 0 {
+		if leadAction.ActionType == Bet || leadAction.ActionType == Blind && leadAction.Value-gs.BetVector[gs.ActingPlayer].Amount > 0 {
 			toCall = leadAction.Value - gs.BetVector[gs.ActingPlayer].Amount
 		}
 		if gs.Seats[gs.ActingPlayer].Player.Stack < action.Value {
@@ -194,7 +197,7 @@ func (gs *GameState) moveActingPlayer(consequence *ActionConsequence) bool {
 	if gs.isRoundOver() {
 		gs.ActingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.LeadingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
-		gs.Seats[gs.LeadingPlayer].Player.LastAction = Action{ActionType: check}
+		gs.Seats[gs.LeadingPlayer].Player.LastAction = Action{ActionType: Check}
 		processPots(&gs.BetVector, &gs.PotContenders, &gs.Pots, consequence)
 		gs.Round++
 	}
@@ -327,7 +330,19 @@ func (gs *GameState) getNActivePlayerIndexFromIndex(base, n int) int {
 }
 
 func (gs *GameState) isRoundOver() bool {
-	// TODO hard-code option for big blind when fold-around
+	// If limps around to big blind, give them option
+	if gs.Round == PreFlop {
+		bigBlindIndex := gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 2)
+		// Limps to big blind, give option
+		if gs.ActingPlayer == bigBlindIndex && gs.LeadingPlayer == bigBlindIndex && gs.Seats[bigBlindIndex].Player.LastAction.ActionType == Blind {
+			return false
+		}
+		// Big blind checked, end round
+		utgPlayerIndex := gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 3)
+		if gs.ActingPlayer == utgPlayerIndex && gs.LeadingPlayer == bigBlindIndex && gs.currentAction.ActionType == Check {
+			return true
+		}
+	}
 	return gs.ActingPlayer == gs.LeadingPlayer
 }
 
