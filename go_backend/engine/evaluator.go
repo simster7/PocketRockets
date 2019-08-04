@@ -9,10 +9,10 @@ type Tiebreakers []int
 type HandStrength []int
 
 type HandForEvaluation struct {
-	Hand []Card
+	Hand         []Card
 	HandStrength HandStrength
-	PlayerIndex int
-	HandName string
+	PlayerIndex  int
+	HandName     string
 }
 
 func EvaluateHands(handsForEvaluation []HandForEvaluation) []HandForEvaluation {
@@ -20,10 +20,10 @@ func EvaluateHands(handsForEvaluation []HandForEvaluation) []HandForEvaluation {
 	for _, handForEval := range handsForEvaluation {
 		handStrength := getHandStrength(handForEval.Hand)
 		evaluatedHands = append(evaluatedHands, HandForEvaluation{
-			Hand: handForEval.Hand,
+			Hand:         handForEval.Hand,
 			HandStrength: handStrength,
-			PlayerIndex: handForEval.PlayerIndex,
-			HandName: getHandName(handStrength[0]),
+			PlayerIndex:  handForEval.PlayerIndex,
+			HandName:     getHandName(handStrength[0]),
 		})
 	}
 	sort.Slice(evaluatedHands, func(i, j int) bool {
@@ -36,7 +36,7 @@ func EvaluateHands(handsForEvaluation []HandForEvaluation) []HandForEvaluation {
 	return evaluatedHands
 }
 
-var handChecks = []func([]Card) (bool, Tiebreakers) {
+var handChecks = []func([]Card) (bool, Tiebreakers){
 	CheckStraightFlush,
 	CheckFourOfAKind,
 	CheckFullHouse,
@@ -62,7 +62,7 @@ func getHandStrength(hand []Card) HandStrength {
 }
 
 func getHandName(handScore int) string {
-	handNames := map[int]string {
+	handNames := map[int]string{
 		9: "Straight Flush",
 		8: "Four Of A Kind",
 		7: "Full House",
@@ -165,10 +165,10 @@ func CheckStraight(hand []Card) (bool, Tiebreakers) {
 	if handRanks[0] == 12 {
 		handRanks = append(handRanks, -1)
 	}
-	for i := 0; i < len(handRanks) - 4; i++ {
+	for i := 0; i < len(handRanks)-4; i++ {
 		startsStraight := true
-		for j := i; j < 4; j ++ {
-			if handRanks[j] - handRanks[j + 1] != 1 {
+		for j := i; j < 4; j++ {
+			if handRanks[j]-handRanks[j+1] != 1 {
 				startsStraight = false
 				break
 			}
@@ -282,7 +282,7 @@ func getFrequencies(list []int, k, j int) []int {
 	count := 0
 	for i, current := range list {
 		count++
-		if i == len(list) - 1 || list[i + 1] != current {
+		if i == len(list)-1 || list[i+1] != current {
 			if count >= k && count <= j {
 				matches = append(matches, current)
 			}
@@ -318,4 +318,3 @@ func filterCard(vs []Card, f func(card Card) bool) []Card {
 	}
 	return vsf
 }
-

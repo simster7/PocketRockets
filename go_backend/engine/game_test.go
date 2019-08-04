@@ -187,7 +187,6 @@ func TestGameMultiround(t *testing.T) {
 
 	assert.False(t, game.IsHandActive)
 
-
 	jarry := NewPlayer("Jarry", 100)
 	err = game.SitPlayer(&jarry, 8)
 	assert.NoError(t, err)
@@ -216,7 +215,6 @@ func TestGameMultiround(t *testing.T) {
 	assert.NoError(t, err)
 	err = game.TakeAction(&jason, Action{ActionType: Call})
 	assert.NoError(t, err)
-
 
 	// Flop 37
 	assert.Equal(t, Flop, game.GameState.Round)
@@ -258,7 +256,6 @@ func TestGameMultiround(t *testing.T) {
 	err = game.TakeAction(&simon, Action{ActionType: Check})
 	assert.NoError(t, err)
 
-
 	// PostRiver
 	assert.Equal(t, HandEnd, game.GameState.Round)
 
@@ -267,13 +264,11 @@ func TestGameMultiround(t *testing.T) {
 	assert.Equal(t, 88, jarry.Stack)
 	assert.Equal(t, 129, chien.Stack)
 
-
 	game.DealHand()
 
 	// Pre flop
 	assert.Equal(t, PreFlop, game.GameState.Round)
 	assert.Nil(t, game.GameState.getCommunityCards())
-
 
 	err = game.TakeAction(&simon, Action{ActionType: Bet, Value: 10})
 	assert.NoError(t, err)
@@ -371,7 +366,6 @@ func TestGameAllInSimple(t *testing.T) {
 	assert.Equal(t, 100, chien.Stack)
 	assert.Equal(t, 10, simon.Stack)
 }
-
 
 func TestGameAllInTwoSidePots(t *testing.T) {
 	game := NewDeterministicGame(1, 2, getDeck)
@@ -579,7 +573,6 @@ func TestGamePreFlopOption(t *testing.T) {
 	assert.Equal(t, 98, jason.Stack)
 	assert.Equal(t, 98, simon.Stack)
 	assert.Equal(t, 98, chien.Stack)
-
 
 	game = NewDeterministicGame(1, 2, getDeck)
 	jason = NewPlayer("Jason", 100)
