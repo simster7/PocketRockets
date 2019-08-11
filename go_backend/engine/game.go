@@ -6,12 +6,6 @@ import (
 	"math/rand"
 )
 
-type Seat struct {
-	Index    int
-	Occupied bool
-	Player   *Player
-}
-
 type Game struct {
 	Seats          [9]Seat
 	PlayerSeats    map[Player]Seat
