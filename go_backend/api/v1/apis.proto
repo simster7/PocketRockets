@@ -1,5 +1,5 @@
 syntax = "proto3";
-package api;
+package v1;
 
 message PlayerState {
     int32 buttonPosition = 1;

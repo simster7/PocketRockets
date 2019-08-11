@@ -89,3 +89,19 @@ func containsIntInIntSlice(slice []int, i int) bool {
 	}
 	return false
 }
+
+func intSliceToInt32Slice(intSlice []int) []int32 {
+	out := make([]int32, len(intSlice))
+	for i := 0; i < len(intSlice); i++ {
+		out[i] = int32(intSlice[i])
+	}
+	return out
+}
+
+func cardSliceToInt32Slice(intSlice []Card) []int32 {
+	out := make([]int32, len(intSlice))
+	for i := 0; i < len(intSlice); i++ {
+		out[i] = int32(intSlice[i])
+	}
+	return out
+}

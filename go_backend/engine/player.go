@@ -2,7 +2,7 @@ package engine
 
 import (
 	"errors"
-	"github.com/simster7/PocketRockets/go_backend/api"
+	"github.com/simster7/PocketRockets/go_backend/api/v1"
 )
 
 type Player struct {
@@ -50,8 +50,8 @@ func (p *Player) SetIsAllIn(isAllIn bool) {
 	p.IsAllIn = isAllIn
 }
 
-func (p *Player) GetMessage() *api.Player {
-	return &api.Player{
+func (p *Player) GetMessage() *v1.Player {
+	return &v1.Player{
 		Name:       p.Name,
 		Stack:      int32(p.Stack),
 		SeatNumber: int32(p.SeatNumber),

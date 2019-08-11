@@ -1,6 +1,6 @@
 package engine
 
-import "github.com/simster7/PocketRockets/go_backend/api"
+import "github.com/simster7/PocketRockets/go_backend/api/v1"
 
 type ActionType int
 
@@ -17,8 +17,8 @@ type Action struct {
 	Value      int
 }
 
-func (a *Action) GetMessage() *api.Action {
-	return &api.Action{
+func (a *Action) GetMessage() *v1.Action {
+	return &v1.Action{
 		ActionType: int32(a.ActionType),
 		Value:      int32(a.Value),
 	}

@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	v1 "github.com/simster7/PocketRockets/go_backend/api/v1"
 	"log"
 	"math/rand"
 )
@@ -111,6 +112,10 @@ func (g *Game) TakeAction(player *Player, action Action) error {
 		}
 	}
 	return nil
+}
+
+func (g *Game) GetPlayerState(player Player) *v1.PlayerState {
+	return g.GameState.GetPlayerState(player)
 }
 
 func (g *Game) DealHand() {
