@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -608,4 +609,37 @@ func TestGamePreFlopOption(t *testing.T) {
 	assert.Equal(t, 93, jason.Stack)
 	assert.Equal(t, 93, simon.Stack)
 	assert.Equal(t, 93, chien.Stack)
+}
+
+func TestGetPlayerState(t *testing.T) {
+	game := NewDeterministicGame(1, 2, getDeck)
+	jason := NewPlayer("Jason", 100)
+	err := game.SitPlayer(&jason, 2)
+	assert.NoError(t, err)
+	simon := NewPlayer("Simon", 100)
+	err = game.SitPlayer(&simon, 5)
+	assert.NoError(t, err)
+	chien := NewPlayer("Chien", 100)
+	err = game.SitPlayer(&chien, 7)
+	assert.NoError(t, err)
+
+	game.DealHand()
+
+	assert.Equal(t, PreFlop, game.GameState.Round)
+	err = game.TakeAction(&jason, Action{ActionType: Call})
+	assert.NoError(t, err)
+	ps := game.GetPlayerState(&jason)
+	fmt.Println(ps)
+	err = game.TakeAction(&simon, Action{ActionType: Call})
+	assert.NoError(t, err)
+	// Option check
+	err = game.TakeAction(&chien, Action{ActionType: Check})
+	assert.NoError(t, err)
+
+	assert.Equal(t, Flop, game.GameState.Round)
+	err = game.TakeAction(&simon, Action{ActionType: Check})
+	assert.NoError(t, err)
+	assert.Equal(t, 98, jason.Stack)
+	assert.Equal(t, 98, simon.Stack)
+	assert.Equal(t, 98, chien.Stack)
 }

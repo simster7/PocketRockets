@@ -114,7 +114,7 @@ func (g *Game) TakeAction(player *Player, action Action) error {
 	return nil
 }
 
-func (g *Game) GetPlayerState(player Player) *v1.PlayerState {
+func (g *Game) GetPlayerState(player *Player) *v1.PlayerState {
 	return g.GameState.GetPlayerState(player)
 }
 
@@ -147,7 +147,7 @@ func getShuffledDeck() [52]Card {
 	var deck [52]Card
 	perm := rand.Perm(52)
 	for i := 0; i < 52; i++ {
-		deck[perm[i]] = Card{i}
+		deck[perm[i]] = Card(i)
 	}
 	return deck
 }
@@ -155,7 +155,7 @@ func getShuffledDeck() [52]Card {
 func getDeck() [52]Card {
 	var deck [52]Card
 	for i := 0; i < 52; i++ {
-		deck[i] = Card{i}
+		deck[i] = Card(i)
 	}
 	return deck
 }

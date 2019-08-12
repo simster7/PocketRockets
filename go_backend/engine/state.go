@@ -106,7 +106,7 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 	}
 }
 
-func (gs *GameState) GetPlayerState(player Player) *v1.PlayerState {
+func (gs *GameState) GetPlayerState(player *Player) *v1.PlayerState {
 	seatsMessage := make([]*v1.Seat, len(gs.Seats))
 	for i := 0; i < len(gs.Seats); i++ {
 		seatsMessage[i] = gs.Seats[i].GetMessage()

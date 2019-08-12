@@ -9,9 +9,15 @@ type Seat struct {
 }
 
 func (s *Seat) GetMessage() *v1.Seat {
+	if s.Occupied {
+		return &v1.Seat{
+			Index:    int32(s.Index),
+			Occupied: true,
+			Player:   s.Player.GetMessage(),
+		}
+	}
 	return &v1.Seat{
 		Index:    int32(s.Index),
-		Occupied: s.Occupied,
-		Player:   s.Player.GetMessage(),
+		Occupied: false,
 	}
 }
