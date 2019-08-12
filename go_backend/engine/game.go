@@ -28,14 +28,14 @@ func NewGame(smallBlind, bigBlind int) Game {
 	}
 }
 
-func NewDeterministicGame(smallBlind, bigBlind int, shuffler func() [52]Card) Game {
+func NewDeterministicGame(smallBlind, bigBlind int) Game {
 	return Game{
 		Seats:          emptyTable(),
 		ButtonPosition: 0,
 		SmallBlind:     smallBlind,
 		BigBlind:       bigBlind,
 		IsHandActive:   false,
-		Shuffler:       shuffler,
+		Shuffler:       getDeck,
 	}
 }
 
@@ -51,7 +51,7 @@ func (g *Game) SitPlayer(player *Player, seatNumber int) error {
 		Occupied: true,
 		Player:   player,
 	}
-	player.SeatNumber = seatNumber
+	(*player).SeatNumber = seatNumber
 	return nil
 }
 
@@ -117,7 +117,16 @@ func (g *Game) GetPlayerState(player *Player) *v1.PlayerState {
 	return g.GameState.GetPlayerState(player)
 }
 
-func (g *Game) DealHand() {
+func (g *Game) DealHand() error {
+
+	if g.IsHandActive {
+		return errors.New("cannot deal a hand while one is active")
+	}
+
+	if g.numberActivePlayers() < 2 {
+		return errors.New("cannot deal a hand when only one player is active")
+	}
+
 	g.moveButton()
 
 	deck := g.Shuffler()
@@ -133,6 +142,7 @@ func (g *Game) DealHand() {
 		}
 		g.Seats[action.PlayerIndex].Player.LastAction = Action{ActionType: Blind, Value: action.PlayerBet}
 	}
+	return nil
 }
 
 func (g *Game) moveButton() {
@@ -140,6 +150,16 @@ func (g *Game) moveButton() {
 	for !g.Seats[g.ButtonPosition].Occupied || g.Seats[g.ButtonPosition].Player.SittingOut {
 		g.ButtonPosition = (g.ButtonPosition + 1) % 9
 	}
+}
+
+func (g *Game) numberActivePlayers() int {
+	count := 0
+	for _, seat := range g.Seats {
+		if seat.Occupied && !seat.Player.SittingOut {
+			count++
+		}
+	}
+	return count
 }
 
 func getShuffledDeck() [52]Card {

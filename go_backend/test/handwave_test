@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# This test is very hand-wavey and used as a dev tool, should not be considered a real test
+
+grpcurl -plaintext -d '{"gameId": 0, "smallBlind": 1, "bigBlind": 2}' localhost:1234 v1.PokerService.StartGame
+
+grpcurl -plaintext -d '{"playerId": 0, "name": "Jason", "stack": 100}' localhost:1234 v1.PokerService.AddPlayer
+grpcurl -plaintext -d '{"gameId": 0, "playerId": 0, "seatNumber": 2}' localhost:1234 v1.PokerService.SitPlayer
+grpcurl -plaintext -d '{"playerId": 1, "name": "Simon", "stack": 100}' localhost:1234 v1.PokerService.AddPlayer
+grpcurl -plaintext -d '{"gameId": 0, "playerId": 1, "seatNumber": 5}' localhost:1234 v1.PokerService.SitPlayer
+grpcurl -plaintext -d '{"playerId": 2, "name": "Chien", "stack": 100}' localhost:1234 v1.PokerService.AddPlayer
+grpcurl -plaintext -d '{"gameId": 0, "playerId": 2, "seatNumber": 7}' localhost:1234 v1.PokerService.SitPlayer
+
+grpcurl -plaintext -d '{"gameId": 0}' localhost:1234 v1.PokerService.DealHand
+
+grpcurl -plaintext -d '{"gameId": 0, "playerId": 0, "action": {"actionType": 3, "value": 8}}' localhost:1234 v1.PokerService.TakeAction
+grpcurl -plaintext -d '{"gameId": 0, "playerId": 1, "action": {"actionType": 1}}' localhost:1234 v1.PokerService.TakeAction
+grpcurl -plaintext -d '{"gameId": 0, "playerId": 2, "action": {"actionType": 1}}' localhost:1234 v1.PokerService.TakeAction

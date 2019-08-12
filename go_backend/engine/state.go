@@ -62,8 +62,7 @@ type GameState struct {
 	ActingPlayer   int
 	LeadingPlayer  int
 	IsHandActive   bool
-
-	currentAction Action
+	currentAction  Action
 }
 
 func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int, deck [52]Card) (GameState, []ActionConsequence) {
@@ -119,8 +118,9 @@ func (gs *GameState) GetPlayerState(player *Player) *v1.PlayerState {
 		LeadPlayer:     int32(gs.LeadingPlayer),
 		ActingPlayer:   int32(gs.ActingPlayer),
 		Seats:          seatsMessage,
-		PlayerCards:	cardSliceToInt32Slice(gs.getPlayerCards(player.SeatNumber)),
+		PlayerCards:    cardSliceToInt32Slice(gs.getPlayerCards(player.SeatNumber)),
 		CommunityCards: cardSliceToInt32Slice(gs.getCommunityCards()),
+		IsHandActive:   gs.IsHandActive,
 	}
 }
 

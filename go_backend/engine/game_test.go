@@ -7,7 +7,7 @@ import (
 )
 
 func TestGameBasicSplitPot(t *testing.T) {
-	game := NewDeterministicGame(1, 2, getDeck)
+	game := NewDeterministicGame(1, 2)
 	grace := NewPlayer("Grace", 100)
 	err := game.SitPlayer(&grace, 0)
 	assert.NoError(t, err)
@@ -27,7 +27,8 @@ func TestGameBasicSplitPot(t *testing.T) {
 	err = game.SitPlayer(&jarry, 6)
 	assert.NoError(t, err)
 
-	game.DealHand()
+	err = game.DealHand()
+	assert.NoError(t, err)
 
 	// Pre flop
 	assert.Equal(t, int32(PreFlop), game.GetPlayerState(&simon).BettingRound)
@@ -123,7 +124,7 @@ func TestGameBasicSplitPot(t *testing.T) {
 }
 
 func TestGameMultiround(t *testing.T) {
-	game := NewDeterministicGame(1, 2, getDeck)
+	game := NewDeterministicGame(1, 2)
 	jason := NewPlayer("Jason", 100)
 	err := game.SitPlayer(&jason, 2)
 	assert.NoError(t, err)
@@ -134,7 +135,8 @@ func TestGameMultiround(t *testing.T) {
 	err = game.SitPlayer(&chien, 7)
 	assert.NoError(t, err)
 
-	game.DealHand()
+	err = game.DealHand()
+	assert.NoError(t, err)
 
 	// Pre flop
 	assert.Equal(t, int32(PreFlop), game.GetPlayerState(&simon).BettingRound)
@@ -190,7 +192,8 @@ func TestGameMultiround(t *testing.T) {
 	err = game.SitPlayer(&jarry, 8)
 	assert.NoError(t, err)
 
-	game.DealHand()
+	err = game.DealHand()
+	assert.NoError(t, err)
 
 	// Pre flop
 	assert.Equal(t, int32(PreFlop), game.GetPlayerState(&simon).BettingRound)
@@ -263,7 +266,8 @@ func TestGameMultiround(t *testing.T) {
 	assert.Equal(t, int32(88), game.GetPlayerState(&jarry).Seats[jarry.SeatNumber].Player.Stack)
 	assert.Equal(t, int32(129), game.GetPlayerState(&chien).Seats[chien.SeatNumber].Player.Stack)
 
-	game.DealHand()
+	err = game.DealHand()
+	assert.NoError(t, err)
 
 	// Pre flop
 	assert.Equal(t, int32(PreFlop), game.GetPlayerState(&simon).BettingRound)
@@ -304,7 +308,7 @@ func TestGameMultiround(t *testing.T) {
 }
 
 func TestGameAllInSimple(t *testing.T) {
-	game := NewDeterministicGame(1, 2, getDeck)
+	game := NewDeterministicGame(1, 2)
 	jason := NewPlayer("Jason", 20)
 	err := game.SitPlayer(&jason, 2)
 	assert.NoError(t, err)
@@ -315,7 +319,8 @@ func TestGameAllInSimple(t *testing.T) {
 	err = game.SitPlayer(&chien, 7)
 	assert.NoError(t, err)
 
-	game.DealHand()
+	err = game.DealHand()
+	assert.NoError(t, err)
 
 	// Pre flop
 	// Bet is 10 each, Jason is left with 10 at round end
@@ -367,7 +372,7 @@ func TestGameAllInSimple(t *testing.T) {
 }
 
 func TestGameAllInTwoSidePots(t *testing.T) {
-	game := NewDeterministicGame(1, 2, getDeck)
+	game := NewDeterministicGame(1, 2)
 	jason := NewPlayer("Jason", 20)
 	err := game.SitPlayer(&jason, 2)
 	assert.NoError(t, err)
@@ -381,7 +386,8 @@ func TestGameAllInTwoSidePots(t *testing.T) {
 	err = game.SitPlayer(&jarry, 8)
 	assert.NoError(t, err)
 
-	game.DealHand()
+	err = game.DealHand()
+	assert.NoError(t, err)
 
 	// Pre flop
 	// Bet is 10 each, Jason is left with 10 at round end and Jarry with 20
@@ -453,7 +459,7 @@ func TestGameAllInTwoSidePots(t *testing.T) {
 }
 
 func TestGameAllInWithFold(t *testing.T) {
-	game := NewDeterministicGame(1, 2, getDeck)
+	game := NewDeterministicGame(1, 2)
 	jason := NewPlayer("Jason", 20)
 	err := game.SitPlayer(&jason, 2)
 	assert.NoError(t, err)
@@ -467,7 +473,8 @@ func TestGameAllInWithFold(t *testing.T) {
 	err = game.SitPlayer(&jarry, 8)
 	assert.NoError(t, err)
 
-	game.DealHand()
+	err = game.DealHand()
+	assert.NoError(t, err)
 
 	// Pre flop
 	// Bet is 10 each, Jason is left with 10 at round end and Jarry with 20
@@ -544,7 +551,7 @@ func TestGameAllInWithFold(t *testing.T) {
 }
 
 func TestGamePreFlopOption(t *testing.T) {
-	game := NewDeterministicGame(1, 2, getDeck)
+	game := NewDeterministicGame(1, 2)
 	jason := NewPlayer("Jason", 100)
 	err := game.SitPlayer(&jason, 2)
 	assert.NoError(t, err)
@@ -555,7 +562,8 @@ func TestGamePreFlopOption(t *testing.T) {
 	err = game.SitPlayer(&chien, 7)
 	assert.NoError(t, err)
 
-	game.DealHand()
+	err = game.DealHand()
+	assert.NoError(t, err)
 
 	assert.Equal(t, int32(PreFlop), game.GetPlayerState(&simon).BettingRound)
 	err = game.TakeAction(&jason, Action{ActionType: Call})
@@ -573,7 +581,7 @@ func TestGamePreFlopOption(t *testing.T) {
 	assert.Equal(t, int32(98), game.GetPlayerState(&simon).Seats[simon.SeatNumber].Player.Stack)
 	assert.Equal(t, int32(98), game.GetPlayerState(&chien).Seats[chien.SeatNumber].Player.Stack)
 
-	game = NewDeterministicGame(1, 2, getDeck)
+	game = NewDeterministicGame(1, 2)
 	jason = NewPlayer("Jason", 100)
 	err = game.SitPlayer(&jason, 2)
 	assert.NoError(t, err)
@@ -584,7 +592,8 @@ func TestGamePreFlopOption(t *testing.T) {
 	err = game.SitPlayer(&chien, 7)
 	assert.NoError(t, err)
 
-	game.DealHand()
+	err = game.DealHand()
+	assert.NoError(t, err)
 
 	assert.Equal(t, int32(PreFlop), game.GetPlayerState(&simon).BettingRound)
 	err = game.TakeAction(&jason, Action{ActionType: Call})
@@ -610,7 +619,7 @@ func TestGamePreFlopOption(t *testing.T) {
 }
 
 func TestGetPlayerState(t *testing.T) {
-	game := NewDeterministicGame(1, 2, getDeck)
+	game := NewDeterministicGame(1, 2)
 	jason := NewPlayer("Jason", 100)
 	err := game.SitPlayer(&jason, 2)
 	assert.NoError(t, err)
@@ -621,7 +630,8 @@ func TestGetPlayerState(t *testing.T) {
 	err = game.SitPlayer(&chien, 7)
 	assert.NoError(t, err)
 
-	game.DealHand()
+	err = game.DealHand()
+	assert.NoError(t, err)
 
 	assert.Equal(t, int32(PreFlop), game.GetPlayerState(&simon).BettingRound)
 	err = game.TakeAction(&jason, Action{ActionType: Call})
