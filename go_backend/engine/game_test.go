@@ -7,7 +7,6 @@ import (
 )
 
 func TestGameBasicSplitPot(t *testing.T) {
-	// TODO Replace GameState calls with API calls
 	game := NewDeterministicGame(1, 2, getDeck)
 	grace := NewPlayer("Grace", 100)
 	err := game.SitPlayer(&grace, 0)
@@ -32,7 +31,7 @@ func TestGameBasicSplitPot(t *testing.T) {
 
 	// Pre flop
 	assert.Equal(t, int32(PreFlop), game.GetPlayerState(&simon).BettingRound)
-	assert.Nil(t, game.GameState.getCommunityCards())
+	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 0)
 	// Can't play out of turn
 	err = game.TakeAction(&jarry, Action{ActionType: Bet, Value: 5})
 	assert.Error(t, err)
@@ -46,19 +45,19 @@ func TestGameBasicSplitPot(t *testing.T) {
 	err = game.TakeAction(&grace, Action{ActionType: Fold})
 	assert.NoError(t, err)
 	assert.Equal(t, int32(100), game.GetPlayerState(&grace).Seats[grace.SeatNumber].Player.Stack)
-	assert.Equal(t, true, game.GetPlayerState(&grace).Seats[grace.SeatNumber].Player.Folded)
+	assert.True(t, game.GetPlayerState(&grace).Seats[grace.SeatNumber].Player.Folded)
 	err = game.TakeAction(&jason, Action{ActionType: Call})
 	assert.NoError(t, err)
 	err = game.TakeAction(&simon, Action{ActionType: Call})
 	assert.NoError(t, err)
 	err = game.TakeAction(&hersh, Action{ActionType: Fold})
 	assert.NoError(t, err)
-	assert.Equal(t, true, game.GetPlayerState(&hersh).Seats[hersh.SeatNumber].Player.Folded)
+	assert.True(t, game.GetPlayerState(&hersh).Seats[hersh.SeatNumber].Player.Folded)
 
 	// Flop
 	assert.Equal(t, int32(Flop), game.GetPlayerState(&simon).BettingRound)
-	assert.Len(t, game.GameState.getCommunityCards(), 3)
-	assert.Equal(t, game.GameState.Pots[0], 30)
+	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 3)
+	assert.Equal(t, int32(30), game.GetPlayerState(&simon).Pots[0])
 
 	// Can't call at start of round
 	err = game.TakeAction(&simon, Action{ActionType: Call})
@@ -78,7 +77,7 @@ func TestGameBasicSplitPot(t *testing.T) {
 	assert.Error(t, err)
 	err = game.TakeAction(&jason, Action{ActionType: Fold})
 	assert.NoError(t, err)
-	assert.Equal(t, true, game.GetPlayerState(&jason).Seats[jason.SeatNumber].Player.Folded)
+	assert.True(t, game.GetPlayerState(&jason).Seats[jason.SeatNumber].Player.Folded)
 	err = game.TakeAction(&simon, Action{ActionType: Call})
 	assert.NoError(t, err)
 	assert.Equal(t, int32(83), game.GetPlayerState(&simon).Seats[simon.SeatNumber].Player.Stack)
@@ -88,8 +87,8 @@ func TestGameBasicSplitPot(t *testing.T) {
 
 	// Turn
 	assert.Equal(t, int32(Turn), game.GetPlayerState(&simon).BettingRound)
-	assert.Len(t, game.GameState.getCommunityCards(), 4)
-	assert.Equal(t, game.GameState.Pots[0], 60)
+	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 4)
+	assert.Equal(t, int32(60), game.GetPlayerState(&simon).Pots[0])
 
 	err = game.TakeAction(&simon, Action{ActionType: Check})
 	assert.NoError(t, err)
@@ -100,23 +99,23 @@ func TestGameBasicSplitPot(t *testing.T) {
 
 	// River
 	assert.Equal(t, int32(River), game.GetPlayerState(&simon).BettingRound)
-	assert.Len(t, game.GameState.getCommunityCards(), 5)
-	assert.Equal(t, game.GameState.Pots[0], 60)
+	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 5)
+	assert.Equal(t, int32(60), game.GetPlayerState(&simon).Pots[0])
 
 	err = game.TakeAction(&simon, Action{ActionType: Bet, Value: 10})
 	assert.NoError(t, err)
 	assert.Equal(t, int32(73), game.GetPlayerState(&simon).Seats[simon.SeatNumber].Player.Stack)
 	err = game.TakeAction(&chien, Action{ActionType: Fold})
 	assert.NoError(t, err)
-	assert.Equal(t, true, game.GetPlayerState(&chien).Seats[chien.SeatNumber].Player.Folded)
+	assert.True(t, game.GetPlayerState(&chien).Seats[chien.SeatNumber].Player.Folded)
 	err = game.TakeAction(&jarry, Action{ActionType: Call})
 	assert.NoError(t, err)
 
 	// Post River
 	// Board hits a flush, split pot
 	assert.Equal(t, int32(HandEnd), game.GetPlayerState(&simon).BettingRound)
-	assert.Equal(t, game.GameState.Pots[0], 80)
-	assert.Len(t, game.GameState.getCommunityCards(), 5)
+	assert.Equal(t, int32(80), game.GetPlayerState(&simon).Pots[0])
+	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 5)
 	assert.False(t, game.IsHandActive)
 	assert.False(t, game.GameState.IsHandActive)
 	assert.Equal(t, int32(113), game.GetPlayerState(&simon).Seats[simon.SeatNumber].Player.Stack)
@@ -195,7 +194,7 @@ func TestGameMultiround(t *testing.T) {
 
 	// Pre flop
 	assert.Equal(t, int32(PreFlop), game.GetPlayerState(&simon).BettingRound)
-	assert.Nil(t, game.GameState.getCommunityCards())
+	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 0)
 
 	// Can't play out of turn
 	err = game.TakeAction(&simon, Action{ActionType: Bet, Value: 5})
@@ -218,7 +217,7 @@ func TestGameMultiround(t *testing.T) {
 
 	// Flop 37
 	assert.Equal(t, int32(Flop), game.GetPlayerState(&simon).BettingRound)
-	assert.Len(t, game.GameState.getCommunityCards(), 3)
+	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 3)
 
 	// Can't play out of turn
 	err = game.TakeAction(&simon, Action{ActionType: Bet, Value: 5})
@@ -234,13 +233,13 @@ func TestGameMultiround(t *testing.T) {
 	assert.NoError(t, err)
 	err = game.TakeAction(&jarry, Action{ActionType: Fold})
 	assert.NoError(t, err)
-	assert.True(t, jarry.Folded)
+	assert.True(t, game.GetPlayerState(&jarry).Seats[jarry.SeatNumber].Player.Folded)
 	err = game.TakeAction(&jason, Action{ActionType: Call})
 	assert.NoError(t, err)
 
 	// Turn
 	assert.Equal(t, int32(Turn), game.GetPlayerState(&simon).BettingRound)
-	assert.Len(t, game.GameState.getCommunityCards(), 4)
+	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 4)
 
 	err = game.TakeAction(&jason, Action{ActionType: Check})
 	assert.NoError(t, err)
@@ -249,7 +248,7 @@ func TestGameMultiround(t *testing.T) {
 
 	// River
 	assert.Equal(t, int32(River), game.GetPlayerState(&simon).BettingRound)
-	assert.Len(t, game.GameState.getCommunityCards(), 5)
+	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 5)
 
 	err = game.TakeAction(&jason, Action{ActionType: Check})
 	assert.NoError(t, err)
@@ -268,7 +267,7 @@ func TestGameMultiround(t *testing.T) {
 
 	// Pre flop
 	assert.Equal(t, int32(PreFlop), game.GetPlayerState(&simon).BettingRound)
-	assert.Nil(t, game.GameState.getCommunityCards())
+	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 0)
 
 	err = game.TakeAction(&simon, Action{ActionType: Bet, Value: 10})
 	assert.NoError(t, err)
