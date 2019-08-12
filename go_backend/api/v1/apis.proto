@@ -32,3 +32,11 @@ message Action {
     int32 actionType = 1;
     int32 value = 2;
 }
+
+message PlayerStateRequest {
+
+}
+
+service PokerService {
+    rpc GetPlayerState(PlayerStateRequest) returns (PlayerState) {}
+}
