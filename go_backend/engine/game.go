@@ -9,7 +9,6 @@ import (
 
 type Game struct {
 	Seats          [9]Seat
-	PlayerSeats    map[Player]Seat
 	ButtonPosition int
 	SmallBlind     int
 	BigBlind       int
