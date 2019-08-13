@@ -69,7 +69,7 @@ func TestProcessPots(t *testing.T) {
 	}
 
 	pots = []int{0}
-	potContenders =[][]int{AllPlayers}
+	potContenders = [][]int{AllPlayers}
 
 	consequence = ActionConsequence{}
 
@@ -78,7 +78,6 @@ func TestProcessPots(t *testing.T) {
 	assert.Equal(t, []int{60, 20}, pots)
 	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}}, potContenders)
 	assert.Equal(t, getZeroBetVector(), betVector)
-
 
 	// Test two all ins
 
@@ -95,7 +94,7 @@ func TestProcessPots(t *testing.T) {
 	}
 
 	pots = []int{0}
-	potContenders =[][]int{AllPlayers}
+	potContenders = [][]int{AllPlayers}
 
 	consequence = ActionConsequence{}
 
@@ -104,7 +103,6 @@ func TestProcessPots(t *testing.T) {
 	assert.Equal(t, []int{80, 30, 20}, pots)
 	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}, {0, 1, 2, 3, 4, 6, 8}}, potContenders)
 	assert.Equal(t, getZeroBetVector(), betVector)
-
 
 	// Test two all ins with folds
 
@@ -121,7 +119,7 @@ func TestProcessPots(t *testing.T) {
 	}
 
 	pots = []int{0}
-	potContenders =[][]int{AllPlayers}
+	potContenders = [][]int{AllPlayers}
 
 	consequence = ActionConsequence{}
 
@@ -130,7 +128,6 @@ func TestProcessPots(t *testing.T) {
 	assert.Equal(t, []int{90, 30, 20}, pots)
 	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}, {0, 1, 2, 3, 4, 6, 8}}, potContenders)
 	assert.Equal(t, getZeroBetVector(), betVector)
-
 
 	// Test all in with over-bet amount that can't be matched
 
@@ -147,7 +144,7 @@ func TestProcessPots(t *testing.T) {
 	}
 
 	pots = []int{0}
-	potContenders =[][]int{AllPlayers}
+	potContenders = [][]int{AllPlayers}
 
 	consequence = ActionConsequence{}
 
@@ -156,6 +153,5 @@ func TestProcessPots(t *testing.T) {
 	assert.Equal(t, []int{20, 0}, pots)
 	assert.Equal(t, [][]int{AllPlayers, {0, 1, 2, 3, 4, 5, 6, 8}}, potContenders)
 	assert.Equal(t, getZeroBetVector(), betVector)
-
 
 }

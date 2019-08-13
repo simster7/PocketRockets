@@ -2,19 +2,13 @@ package engine
 
 import (
 	"errors"
+	v1 "github.com/simster7/PocketRockets/go_backend/api/v1"
 	"log"
 	"math/rand"
 )
 
-type Seat struct {
-	Index    int
-	Occupied bool
-	Player   *Player
-}
-
 type Game struct {
 	Seats          [9]Seat
-	PlayerSeats    map[Player]Seat
 	ButtonPosition int
 	SmallBlind     int
 	BigBlind       int
@@ -34,14 +28,14 @@ func NewGame(smallBlind, bigBlind int) Game {
 	}
 }
 
-func NewDeterministicGame(smallBlind, bigBlind int, shuffler func() [52]Card) Game {
+func NewDeterministicGame(smallBlind, bigBlind int) Game {
 	return Game{
 		Seats:          emptyTable(),
 		ButtonPosition: 0,
 		SmallBlind:     smallBlind,
 		BigBlind:       bigBlind,
 		IsHandActive:   false,
-		Shuffler:       shuffler,
+		Shuffler:       getDeck,
 	}
 }
 
@@ -119,7 +113,20 @@ func (g *Game) TakeAction(player *Player, action Action) error {
 	return nil
 }
 
-func (g *Game) DealHand() {
+func (g *Game) GetPlayerState(player *Player) *v1.PlayerState {
+	return g.GameState.GetPlayerState(player)
+}
+
+func (g *Game) DealHand() error {
+
+	if g.IsHandActive {
+		return errors.New("cannot deal a hand while one is active")
+	}
+
+	if g.numberActivePlayers() < 2 {
+		return errors.New("cannot deal a hand when only one player is active")
+	}
+
 	g.moveButton()
 
 	deck := g.Shuffler()
@@ -135,6 +142,7 @@ func (g *Game) DealHand() {
 		}
 		g.Seats[action.PlayerIndex].Player.LastAction = Action{ActionType: Blind, Value: action.PlayerBet}
 	}
+	return nil
 }
 
 func (g *Game) moveButton() {
@@ -144,11 +152,21 @@ func (g *Game) moveButton() {
 	}
 }
 
+func (g *Game) numberActivePlayers() int {
+	count := 0
+	for _, seat := range g.Seats {
+		if seat.Occupied && !seat.Player.SittingOut {
+			count++
+		}
+	}
+	return count
+}
+
 func getShuffledDeck() [52]Card {
 	var deck [52]Card
 	perm := rand.Perm(52)
 	for i := 0; i < 52; i++ {
-		deck[perm[i]] = Card{i}
+		deck[perm[i]] = Card(i)
 	}
 	return deck
 }
@@ -156,7 +174,7 @@ func getShuffledDeck() [52]Card {
 func getDeck() [52]Card {
 	var deck [52]Card
 	for i := 0; i < 52; i++ {
-		deck[i] = Card{i}
+		deck[i] = Card(i)
 	}
 	return deck
 }

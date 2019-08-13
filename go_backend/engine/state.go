@@ -2,6 +2,7 @@ package engine
 
 import (
 	"container/heap"
+	v1 "github.com/simster7/PocketRockets/go_backend/api/v1"
 	"log"
 )
 
@@ -61,8 +62,7 @@ type GameState struct {
 	ActingPlayer   int
 	LeadingPlayer  int
 	IsHandActive   bool
-
-	currentAction Action
+	currentAction  Action
 }
 
 func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int, deck [52]Card) (GameState, []ActionConsequence) {
@@ -102,6 +102,25 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 			PlayerIndex: smallBlindIndex,
 			PlayerBet:   smallBlind,
 		},
+	}
+}
+
+func (gs *GameState) GetPlayerState(player *Player) *v1.PlayerState {
+	seatsMessage := make([]*v1.Seat, len(gs.Seats))
+	for i := 0; i < len(gs.Seats); i++ {
+		seatsMessage[i] = gs.Seats[i].GetMessage()
+	}
+
+	return &v1.PlayerState{
+		ButtonPosition: int32(gs.ButtonPosition),
+		BettingRound:   int32(gs.Round),
+		Pots:           intSliceToInt32Slice(gs.Pots),
+		LeadPlayer:     int32(gs.LeadingPlayer),
+		ActingPlayer:   int32(gs.ActingPlayer),
+		Seats:          seatsMessage,
+		PlayerCards:    cardSliceToInt32Slice(gs.getPlayerCards(player.SeatNumber)),
+		CommunityCards: cardSliceToInt32Slice(gs.getCommunityCards()),
+		IsHandActive:   gs.IsHandActive,
 	}
 }
 

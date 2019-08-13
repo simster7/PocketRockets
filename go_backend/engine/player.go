@@ -1,6 +1,9 @@
 package engine
 
-import "errors"
+import (
+	"errors"
+	"github.com/simster7/PocketRockets/go_backend/api/v1"
+)
 
 type Player struct {
 	Name       string
@@ -45,4 +48,16 @@ func (p *Player) SetFolded(folded bool) {
 
 func (p *Player) SetIsAllIn(isAllIn bool) {
 	p.IsAllIn = isAllIn
+}
+
+func (p *Player) GetMessage() *v1.Player {
+	return &v1.Player{
+		Name:       p.Name,
+		Stack:      int32(p.Stack),
+		SeatNumber: int32(p.SeatNumber),
+		Folded:     p.Folded,
+		IsAllIn:    p.IsAllIn,
+		SittingOut: p.SittingOut,
+		LastAction: p.LastAction.GetMessage(),
+	}
 }

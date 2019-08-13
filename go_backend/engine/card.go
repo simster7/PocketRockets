@@ -28,35 +28,33 @@ var RankMap = map[int]string{
 	12: "A",
 }
 
-type Card struct {
-	CardId int
-}
+type Card int
 
 func NewCard(cardId int) Card {
 	if cardId < 0 || cardId >= 52 {
 		log.Fatal("Card id must be an integer in [0, 51]")
 	}
-	return Card{cardId}
+	return Card(cardId)
 }
 
-func (c *Card) GetSuitId() int {
-	return c.CardId / 13
+func (c Card) GetSuitId() int {
+	return int(c / 13)
 }
 
-func (c *Card) GetSuit() string {
+func (c Card) GetSuit() string {
 	return SuitMap[c.GetSuitId()]
 }
 
-func (c *Card) GetRankId() int {
-	return c.CardId % 13
+func (c Card) GetRankId() int {
+	return int(c % 13)
 }
 
-func (c *Card) GetRank() string {
+func (c Card) GetRank() string {
 	return RankMap[c.GetRankId()]
 }
 
 func (c Card) String() string {
-	return fmt.Sprintf("%s%s (%d)", c.GetRank(), c.GetSuit(), c.CardId)
+	return fmt.Sprintf("%s%s (%d)", c.GetRank(), c.GetSuit(), c)
 }
 
 func ToCardId(rank, suit string) int {
