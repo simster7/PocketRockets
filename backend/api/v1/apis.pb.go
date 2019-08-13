@@ -8,6 +8,8 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -897,6 +899,32 @@ type PokerServiceServer interface {
 	TakeAction(context.Context, *TakeActionRequest) (*OperationResponse, error)
 	DealHand(context.Context, *DealHandRequest) (*OperationResponse, error)
 	GetPlayerState(context.Context, *GetPlayerStateRequest) (*PlayerState, error)
+}
+
+// UnimplementedPokerServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedPokerServiceServer struct {
+}
+
+func (*UnimplementedPokerServiceServer) StartGame(ctx context.Context, req *StartGameRequest) (*OperationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartGame not implemented")
+}
+func (*UnimplementedPokerServiceServer) AddPlayer(ctx context.Context, req *AddPlayerRequest) (*OperationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddPlayer not implemented")
+}
+func (*UnimplementedPokerServiceServer) SitPlayer(ctx context.Context, req *SitPlayerRequest) (*OperationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SitPlayer not implemented")
+}
+func (*UnimplementedPokerServiceServer) StandPlayer(ctx context.Context, req *StandPlayerRequest) (*OperationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StandPlayer not implemented")
+}
+func (*UnimplementedPokerServiceServer) TakeAction(ctx context.Context, req *TakeActionRequest) (*OperationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TakeAction not implemented")
+}
+func (*UnimplementedPokerServiceServer) DealHand(ctx context.Context, req *DealHandRequest) (*OperationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DealHand not implemented")
+}
+func (*UnimplementedPokerServiceServer) GetPlayerState(ctx context.Context, req *GetPlayerStateRequest) (*PlayerState, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPlayerState not implemented")
 }
 
 func RegisterPokerServiceServer(s *grpc.Server, srv PokerServiceServer) {

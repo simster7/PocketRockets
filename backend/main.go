@@ -1,6 +1,6 @@
 package main
 
-import "github.com/simster7/PocketRockets/go_backend/server"
+import "github.com/simster7/PocketRockets/backend/server"
 
 func main() {
 	server.StartDevServer()
