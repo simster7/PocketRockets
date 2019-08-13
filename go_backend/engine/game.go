@@ -51,7 +51,7 @@ func (g *Game) SitPlayer(player *Player, seatNumber int) error {
 		Occupied: true,
 		Player:   player,
 	}
-	(*player).SeatNumber = seatNumber
+	player.SeatNumber = seatNumber
 	return nil
 }
 
