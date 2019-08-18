@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {Action, PlayerState} from "../../api/v1/apis_pb";
+import {PokerServiceClient} from "../../api/v1/apis_pb_service";
 
 
 export interface Message {
@@ -22,6 +23,8 @@ interface IState {
 }
 
 class PokerClient extends React.Component<IProp, IState> {
+
+    private client: PokerServiceClient;
 
     public constructor(props: IProp) {
         super(props);
