@@ -1,10 +1,10 @@
 import * as React from 'react';
+import PokerClient from "./PokerClient";
 
 class App extends React.Component {
     render() {
         return (<div>
-                <h1>Welcome to React with Typescript</h1>
-                <p>The color of this page is: red</p>
+                <PokerClient roomName="test" />
             </div>
         );
     }
