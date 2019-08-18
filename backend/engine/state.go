@@ -2,7 +2,7 @@ package engine
 
 import (
 	"container/heap"
-	v1 "github.com/simster7/PocketRockets/go_backend/api/v1"
+	v1 "github.com/simster7/PocketRockets/backend/api/v1"
 	"log"
 )
 
