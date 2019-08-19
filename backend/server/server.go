@@ -112,6 +112,7 @@ func (s *PokerServer) TakeAction(_ context.Context, request *v1.TakeActionReques
 }
 
 func (s *PokerServer) GetPlayerState(_ context.Context, request *v1.GetPlayerStateRequest) (*v1.PlayerState, error) {
+	fmt.Println("Got GetPlayerState request")
 	player, ok := s.Players[request.PlayerId]
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
