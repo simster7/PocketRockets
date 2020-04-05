@@ -34,7 +34,11 @@ func GetNewHandState(players Players, buttonPosition, bigBlind, smallBlind int, 
 	utgIndex := newState.getNActivePlayerIndexFromIndex(buttonPosition, 3)
 
 	newState.Players[bigBlindIndex].Bet = bigBlind
+	newState.Players[bigBlindIndex].Stack -= bigBlind
+	newState.Players[bigBlindIndex].LastAction = Action{ActionType: ActionTypeBlind, Value: bigBlind}
 	newState.Players[smallBlindIndex].Bet = smallBlind
+	newState.Players[smallBlindIndex].Stack -= smallBlind
+	newState.Players[smallBlindIndex].LastAction = Action{ActionType: ActionTypeBlind, Value: smallBlind}
 
 	newState.ActingPlayer = utgIndex
 	newState.LeadingPlayer = bigBlindIndex
@@ -63,6 +67,7 @@ func (gs *State) TakeAction(action Action) error {
 			gs.Players[gs.ActingPlayer].IsAllIn = true
 		}
 		gs.Players[gs.ActingPlayer].Bet += amountToCall
+		gs.Players[gs.ActingPlayer].Stack -= amountToCall
 	case ActionTypeBet:
 		leadAction := gs.getLeadAction()
 		toCall := 0
@@ -77,6 +82,7 @@ func (gs *State) TakeAction(action Action) error {
 		}
 		callAndBet := toCall + action.Value
 		gs.Players[gs.ActingPlayer].Bet += callAndBet
+		gs.Players[gs.ActingPlayer].Stack -= callAndBet
 		gs.LeadingPlayer = gs.ActingPlayer
 	}
 	gs.Players[gs.ActingPlayer].LastAction = action
@@ -89,7 +95,7 @@ func (gs *State) TakeAction(action Action) error {
 
 func (gs *State) moveActingPlayer() bool {
 	gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
-	for (gs.Players[gs.ActingPlayer].Folded || gs.Players[gs.ActingPlayer].IsAllIn) && !gs.isRoundOver() {
+	for (gs.Players[gs.ActingPlayer] == nil || gs.Players[gs.ActingPlayer].Folded || gs.Players[gs.ActingPlayer].IsAllIn) && !gs.isRoundOver() {
 		gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
 	}
 
@@ -181,6 +187,12 @@ func (gs *State) processPots() {
 		allInAlreadyContributed += currentAllInValue
 	}
 	gs.Pots[len(gs.Pots)-1] += totalRoundPot
+
+	for _, player := range gs.Players {
+		if player != nil {
+			player.Bet = 0
+		}
+	}
 }
 
 func (gs *State) processEndGame() {
@@ -259,7 +271,7 @@ func (gs *State) isOnePlayerStanding(playersToConsider []int) (bool, int) {
 	playersInHand := 0
 	playerStanding := -1
 	for i, player := range gs.Players {
-		if !player.Folded && containsIntInIntSlice(playersToConsider, i) {
+		if player != nil && !player.Folded && containsIntInIntSlice(playersToConsider, i) {
 			playersInHand++
 			playerStanding = i
 		}
@@ -315,4 +327,11 @@ func (gs *State) getPlayerIndexInHand(seatIndex int) int {
 	}
 	log.Fatal("unreachable: getPlayerIndexInHand got a seatIndex that is not active: ", seatIndex)
 	return 0
+}
+
+func (gs *State) moveButton() {
+	gs.ButtonPosition = (gs.ButtonPosition + 1) % 9
+	for gs.Players[gs.ButtonPosition] == nil || gs.Players[gs.ButtonPosition].SittingOut {
+		gs.ButtonPosition = (gs.ButtonPosition + 1) % 9
+	}
 }

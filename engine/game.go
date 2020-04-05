@@ -34,32 +34,7 @@ func NewDeterministicGame(smallBlind, bigBlind int) Game {
 	}
 }
 
-func (g *Game) SitPlayer(name string, stack int, seatNumber int) error {
-	if seatNumber < 0 || seatNumber >= 9 {
-		return errors.New("invalid seat number")
-	}
-	if g.Seats[seatNumber] != nil {
-		return errors.New("cannot sit player on an occupied seat")
-	}
-	g.Seats[seatNumber] = &Seat{
-		Name:     name,
-		Stack:    stack,
-	}
-	return nil
-}
-
-func (g *Game) StandPlayer(player *Player, seatNumber int) error {
-	if seatNumber < 0 || seatNumber >= 9 {
-		return errors.New("invalid seat number")
-	}
-	if g.Seats[seatNumber] == nil {
-		return errors.New("seat is already empty")
-	}
-	g.Seats[seatNumber] = nil
-	return nil
-}
-
-func (g *Game) TakeAction(player *Player, action Action) error {
+func (g *Game) TakeAction(action Action) error {
 	if !g.IsHandActive {
 		return errors.New("cannot take action when hand is not active")
 	}
