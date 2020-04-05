@@ -3,7 +3,7 @@ package v1;
 
 message PlayerState {
     int32 buttonPosition = 1;
-    int32 bettingRound = 2;
+    string bettingRound = 2;
     int32 leadPlayer = 3;
     int32 actingPlayer = 4;
     repeated int32 pots = 5;
@@ -30,7 +30,7 @@ message Player {
 }
 
 message Action {
-    int32 actionType = 1;
+    string actionType = 1;
     int32 value = 2;
 }
 
