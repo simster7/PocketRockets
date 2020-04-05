@@ -91,22 +91,6 @@ func containsIntInIntSlice(slice []int, i int) bool {
 	return false
 }
 
-func intSliceToInt32Slice(intSlice []int) []int32 {
-	out := make([]int32, len(intSlice))
-	for i := 0; i < len(intSlice); i++ {
-		out[i] = int32(intSlice[i])
-	}
-	return out
-}
-
-func cardSliceToInt32Slice(intSlice []Card) []int32 {
-	out := make([]int32, len(intSlice))
-	for i := 0; i < len(intSlice); i++ {
-		out[i] = int32(intSlice[i])
-	}
-	return out
-}
-
 func getShuffledDeck() Deck{
 	var deck Deck
 	perm := rand.Perm(52)
@@ -124,14 +108,6 @@ func getDeck() Deck {
 	return deck
 }
 
-func emptyTable() [9]Seat {
-	var seats [9]Seat
-	for i := 0; i < 9; i++ {
-		seats[i] = Seat{
-			Index:    i,
-			Occupied: false,
-			Player:   nil,
-		}
-	}
-	return seats
+func emptyTable() Seats {
+	return *new(Seats)
 }

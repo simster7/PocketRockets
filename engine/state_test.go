@@ -5,153 +5,91 @@ import (
 	"testing"
 )
 
-func getNewTestGameState() State {
-	jason := NewPlayer("Jason", 100)
-	simon := NewPlayer("Simon", 50)
-	chien := NewPlayer("Chien", 20)
-
-	seats := [9]Seat{
-		{Index: 0, Occupied: false, Player: nil},
-		{Index: 1, Occupied: false, Player: nil},
-		{Index: 2, Occupied: true, Player: &jason},
-		{Index: 3, Occupied: false, Player: nil},
-		{Index: 4, Occupied: false, Player: nil},
-		{Index: 5, Occupied: true, Player: &simon},
-		{Index: 6, Occupied: false, Player: nil},
-		{Index: 7, Occupied: true, Player: &chien},
-		{Index: 8, Occupied: false, Player: nil},
+func getNewTestGameState(seats []int) State {
+	players := new(Players)
+	for _, seat := range seats {
+		players[seat] = &Player{Name: string(seat), Stack: 100}
 	}
-
-	deck := getDeck()
-
-	gs, _ := GetNewHandState(seats, 2, 2, 1, deck)
-	return gs
+	return GetNewHandState(*players, 2, 2, 1, getDeck())
 }
 
 func TestProcessPots(t *testing.T) {
 
 	// Test standard pot
-	betVector := BetVector{
-		{Amount: 0, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 10, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 10, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 10, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-	}
+	gs := getNewTestGameState([]int{2, 5, 7})
+	gs.Players[2].Bet = 10
+	gs.Players[5].Bet = 10
+	gs.Players[7].Bet = 10
 
-	pots := []int{0}
-	potContenders := [][]int{AllPlayers}
+	gs.Pots = []int{0}
+	gs.PotContenders = [][]int{AllPlayers}
 
-	consequence := ActionConsequence{}
+	gs.processPots()
 
-	processPots(&betVector, &potContenders, &pots, &consequence)
-
-	assert.Equal(t, []int{30}, pots)
-	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}}, potContenders)
-	assert.Equal(t, getZeroBetVector(), betVector)
+	assert.Equal(t, []int{30}, gs.Pots)
+	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}}, gs.PotContenders)
 
 	// Test one all in
+	gs = getNewTestGameState([]int{2, 5, 7})
+	gs.Players[2].Bet = 30
+	gs.Players[5].Bet = 30
+	gs.Players[7].Bet = 20
+	gs.Players[7].IsAllIn = true
 
-	betVector = [9]BetVectorNode{
-		{Amount: 0, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 30, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 30, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 20, IsAllIn: true},
-		{Amount: 0, IsAllIn: false},
-	}
+	gs.Pots = []int{0}
+	gs.PotContenders = [][]int{AllPlayers}
 
-	pots = []int{0}
-	potContenders = [][]int{AllPlayers}
+	gs.processPots()
 
-	consequence = ActionConsequence{}
-
-	processPots(&betVector, &potContenders, &pots, &consequence)
-
-	assert.Equal(t, []int{60, 20}, pots)
-	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}}, potContenders)
-	assert.Equal(t, getZeroBetVector(), betVector)
+	assert.Equal(t, []int{60, 20}, gs.Pots)
+	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}}, gs.PotContenders)
 
 	// Test two all ins
+	gs = getNewTestGameState([]int{0, 2, 5, 7})
+	gs.Players[0].Bet = 40
+	gs.Players[2].Bet = 40
+	gs.Players[5].Bet = 30
+	gs.Players[5].IsAllIn = true
+	gs.Players[7].Bet = 20
+	gs.Players[7].IsAllIn = true
 
-	betVector = [9]BetVectorNode{
-		{Amount: 40, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 40, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 30, IsAllIn: true},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 20, IsAllIn: true},
-		{Amount: 0, IsAllIn: false},
-	}
+	gs.Pots = []int{0}
+	gs.PotContenders = [][]int{AllPlayers}
 
-	pots = []int{0}
-	potContenders = [][]int{AllPlayers}
+	gs.processPots()
 
-	consequence = ActionConsequence{}
-
-	processPots(&betVector, &potContenders, &pots, &consequence)
-
-	assert.Equal(t, []int{80, 30, 20}, pots)
-	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}, {0, 1, 2, 3, 4, 6, 8}}, potContenders)
-	assert.Equal(t, getZeroBetVector(), betVector)
+	assert.Equal(t, []int{80, 30, 20}, gs.Pots)
+	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}, {0, 1, 2, 3, 4, 6, 8}}, gs.PotContenders)
 
 	// Test two all ins with folds
+	gs = getNewTestGameState([]int{0, 2, 3, 5, 7})
+	gs.Players[0].Bet = 40
+	gs.Players[2].Bet = 40
+	gs.Players[3].Bet = 10
+	gs.Players[5].Bet = 30
+	gs.Players[5].IsAllIn = true
+	gs.Players[7].Bet = 20
+	gs.Players[7].IsAllIn = true
 
-	betVector = [9]BetVectorNode{
-		{Amount: 40, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 40, IsAllIn: false},
-		{Amount: 10, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 30, IsAllIn: true},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 20, IsAllIn: true},
-		{Amount: 0, IsAllIn: false},
-	}
+	gs.Pots = []int{0}
+	gs.PotContenders = [][]int{AllPlayers}
 
-	pots = []int{0}
-	potContenders = [][]int{AllPlayers}
+	gs.processPots()
 
-	consequence = ActionConsequence{}
-
-	processPots(&betVector, &potContenders, &pots, &consequence)
-
-	assert.Equal(t, []int{90, 30, 20}, pots)
-	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}, {0, 1, 2, 3, 4, 6, 8}}, potContenders)
-	assert.Equal(t, getZeroBetVector(), betVector)
+	assert.Equal(t, []int{90, 30, 20}, gs.Pots)
+	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}, {0, 1, 2, 3, 4, 6, 8}}, gs.PotContenders)
 
 	// Test all in with over-bet amount that can't be matched
+	gs = getNewTestGameState([]int{5, 7})
+	gs.Players[5].Bet = 30
+	gs.Players[7].Bet = 10
+	gs.Players[7].IsAllIn = true
 
-	betVector = [9]BetVectorNode{
-		{Amount: 0, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 30, IsAllIn: false},
-		{Amount: 0, IsAllIn: false},
-		{Amount: 10, IsAllIn: true},
-		{Amount: 0, IsAllIn: false},
-	}
+	gs.Pots = []int{0}
+	gs.PotContenders = [][]int{AllPlayers}
 
-	pots = []int{0}
-	potContenders = [][]int{AllPlayers}
+	gs.processPots()
 
-	consequence = ActionConsequence{}
-
-	processPots(&betVector, &potContenders, &pots, &consequence)
-
-	assert.Equal(t, []int{20, 0}, pots)
-	assert.Equal(t, [][]int{AllPlayers, {0, 1, 2, 3, 4, 5, 6, 8}}, potContenders)
-	assert.Equal(t, getZeroBetVector(), betVector)
-
+	assert.Equal(t, []int{20, 0}, gs.Pots)
+	assert.Equal(t, [][]int{AllPlayers, {0, 1, 2, 3, 4, 5, 6, 8}}, gs.PotContenders)
 }
