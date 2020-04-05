@@ -46,11 +46,9 @@ func (g *Game) SitPlayer(player *Player, seatNumber int) error {
 		return errors.New("cannot sit player on an occupied seat")
 	}
 	g.Seats[seatNumber] = Seat{
-		Index:    seatNumber,
 		Occupied: true,
 		Player:   player,
 	}
-	player.SeatNumber = seatNumber
 	return nil
 }
 
@@ -61,14 +59,9 @@ func (g *Game) StandPlayer(player *Player, seatNumber int) error {
 	if !g.Seats[seatNumber].Occupied {
 		return errors.New("seat is already empty")
 	}
-	if player.SeatNumber != seatNumber {
-		return errors.New("incorrect player/seat number combination")
-	}
 	g.Seats[seatNumber] = Seat{
-		Index:    seatNumber,
 		Occupied: false,
 	}
-	player.SeatNumber = -1
 	return nil
 }
 

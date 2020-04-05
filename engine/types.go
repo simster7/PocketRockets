@@ -64,7 +64,7 @@ type ActionConsequence struct {
 
 	// Ends hand
 	EndsHand      bool
-	Payoffs       map[Seat]int
+	Payoffs       map[int]int
 	PotRemainder  int
 	WinCondition  WinCondition
 	ShowdownHands []HandForEvaluation
@@ -79,7 +79,6 @@ type BetVectorNode struct {
 }
 
 type Seat struct {
-	Index    int
 	Occupied bool
 	Player   *Player
 }
@@ -87,13 +86,11 @@ type Seat struct {
 func (s *Seat) GetMessage() *v1.Seat {
 	if s.Occupied {
 		return &v1.Seat{
-			Index:    int32(s.Index),
 			Occupied: true,
 			Player:   s.Player.GetMessage(),
 		}
 	}
 	return &v1.Seat{
-		Index:    int32(s.Index),
 		Occupied: false,
 	}
 }

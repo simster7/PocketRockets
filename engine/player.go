@@ -8,7 +8,7 @@ import (
 type Player struct {
 	Name       string
 	Stack      int
-	SeatNumber int
+	Bet        int
 	Folded     bool
 	IsAllIn    bool
 	LastAction Action
@@ -19,7 +19,6 @@ func NewPlayer(name string, stack int) Player {
 	return Player{
 		Name:       name,
 		Stack:      stack,
-		SeatNumber: -1,
 		Folded:     false,
 		LastAction: Action{},
 		SittingOut: false,
@@ -54,7 +53,6 @@ func (p *Player) GetMessage() *v1.Player {
 	return &v1.Player{
 		Name:       p.Name,
 		Stack:      int32(p.Stack),
-		SeatNumber: int32(p.SeatNumber),
 		Folded:     p.Folded,
 		IsAllIn:    p.IsAllIn,
 		SittingOut: p.SittingOut,
