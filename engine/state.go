@@ -2,62 +2,18 @@ package engine
 
 import (
 	"container/heap"
-	v1 "github.com/simster7/PocketRockets/backend/api/v1"
+	v1 "github.com/simster7/PocketRockets/api/v1"
 	"log"
 )
 
-type Round int
-
-const (
-	PreFlop Round = iota
-	Flop
-	Turn
-	River
-	HandEnd
-)
-
-const (
-	Showdown string = "Showdown"
-	Folds    string = "Folds"
-)
-
-var AllPlayers = []int{0, 1, 2, 3, 4, 5, 6, 7, 8}
-
-type ActionConsequence struct {
-	ValidAction bool
-	Message     string
-
-	PlayerIndex int
-	PlayerFold  bool
-	PlayerBet   int
-	IsAllIn     bool
-
-	// Refund over-bet money that can't be matched
-	RefundsMoney      bool
-	RefundPlayerIndex int
-	RefundAmount      int
-
-	// Ends hand
-	EndsHand      bool
-	Payoffs       map[Seat]int
-	PotRemainder  int
-	WinCondition  string
-	ShowdownHands []HandForEvaluation
-}
-
-type BetVectorNode struct {
-	Amount  int
-	IsAllIn bool
-}
-
-type GameState struct {
+type State struct {
 	Seats          [9]Seat
 	ButtonPosition int
-	FoldVector     [9]bool
-	BetVector      [9]BetVectorNode
+	FoldVector     FoldVector
+	BetVector      BetVector
 	Pots           []int
 	PotContenders  [][]int
-	Deck           [52]Card
+	Deck           Deck
 	Round          Round
 	ActingPlayer   int
 	LeadingPlayer  int
@@ -65,8 +21,8 @@ type GameState struct {
 	currentAction  Action
 }
 
-func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int, deck [52]Card) (GameState, []ActionConsequence) {
-	newState := GameState{
+func GetNewHandState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int, deck Deck) (State, []ActionConsequence) {
+	newState := State{
 		Seats:          seats,
 		ButtonPosition: buttonPosition,
 		FoldVector:     getInitialFoldVector(&seats),
@@ -74,7 +30,7 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 		Pots:           []int{0},
 		PotContenders:  [][]int{AllPlayers},
 		Deck:           deck,
-		Round:          PreFlop,
+		Round:          RoundPreFlop,
 	}
 
 	smallBlindIndex := newState.getNActivePlayerIndexFromIndex(buttonPosition, 1)
@@ -105,7 +61,7 @@ func GetNewHandGameState(seats [9]Seat, buttonPosition, bigBlind, smallBlind int
 	}
 }
 
-func (gs *GameState) GetPlayerState(player *Player) *v1.PlayerState {
+func (gs *State) GetPlayerState(player *Player) *v1.PlayerState {
 	seatsMessage := make([]*v1.Seat, len(gs.Seats))
 	for i := 0; i < len(gs.Seats); i++ {
 		seatsMessage[i] = gs.Seats[i].GetMessage()
@@ -113,7 +69,7 @@ func (gs *GameState) GetPlayerState(player *Player) *v1.PlayerState {
 
 	return &v1.PlayerState{
 		ButtonPosition: int32(gs.ButtonPosition),
-		BettingRound:   int32(gs.Round),
+		BettingRound:   string(gs.Round),
 		Pots:           intSliceToInt32Slice(gs.Pots),
 		LeadPlayer:     int32(gs.LeadingPlayer),
 		ActingPlayer:   int32(gs.ActingPlayer),
@@ -124,11 +80,11 @@ func (gs *GameState) GetPlayerState(player *Player) *v1.PlayerState {
 	}
 }
 
-func (gs *GameState) TakeAction(action Action) ActionConsequence {
+func (gs *State) TakeAction(action Action) ActionConsequence {
 	gs.currentAction = action
 	var actionConsequence ActionConsequence
 	switch action.ActionType {
-	case Fold:
+	case ActionTypeFold:
 		gs.FoldVector[gs.ActingPlayer] = true
 		actionConsequence = ActionConsequence{
 			ValidAction: true,
@@ -137,8 +93,8 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			IsAllIn:     false,
 			PlayerBet:   0,
 		}
-	case Check:
-		if gs.getLeadAction().ActionType == Bet {
+	case ActionTypeCheck:
+		if gs.getLeadAction().ActionType == ActionTypeBet {
 			return ActionConsequence{
 				ValidAction: false,
 				Message:     "Illegal game state: player can't check when there is a bet",
@@ -151,8 +107,8 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			IsAllIn:     false,
 			PlayerBet:   0,
 		}
-	case Call:
-		if gs.getLeadAction().ActionType == Check {
+	case ActionTypeCall:
+		if gs.getLeadAction().ActionType == ActionTypeCheck {
 			return ActionConsequence{
 				ValidAction: false,
 				Message:     "Illegal game state: player can't call when there is nothing to call",
@@ -173,11 +129,11 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 			IsAllIn:     isAllIn,
 			PlayerBet:   amountToCall,
 		}
-	case Bet:
+	case ActionTypeBet:
 		leadAction := gs.getLeadAction()
 		toCall := 0
 		isAllIn := false
-		if leadAction.ActionType == Bet || leadAction.ActionType == Blind && leadAction.Value-gs.BetVector[gs.ActingPlayer].Amount > 0 {
+		if leadAction.ActionType == ActionTypeBet || leadAction.ActionType == ActionTypeBlind && leadAction.Value-gs.BetVector[gs.ActingPlayer].Amount > 0 {
 			toCall = leadAction.Value - gs.BetVector[gs.ActingPlayer].Amount
 		}
 		if gs.Seats[gs.ActingPlayer].Player.Stack < action.Value {
@@ -208,7 +164,7 @@ func (gs *GameState) TakeAction(action Action) ActionConsequence {
 	return actionConsequence
 }
 
-func (gs *GameState) moveActingPlayer(consequence *ActionConsequence) bool {
+func (gs *State) moveActingPlayer(consequence *ActionConsequence) bool {
 	gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
 	for (gs.FoldVector[gs.ActingPlayer] || gs.Seats[gs.ActingPlayer].Player.IsAllIn) && !gs.isRoundOver() {
 		gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
@@ -217,9 +173,9 @@ func (gs *GameState) moveActingPlayer(consequence *ActionConsequence) bool {
 	if gs.isRoundOver() {
 		gs.ActingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
 		gs.LeadingPlayer = gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
-		gs.Seats[gs.LeadingPlayer].Player.LastAction = Action{ActionType: Check}
+		gs.Seats[gs.LeadingPlayer].Player.LastAction = Action{ActionType: ActionTypeCheck}
 		processPots(&gs.BetVector, &gs.PotContenders, &gs.Pots, consequence)
-		gs.Round++
+		gs.Round = gs.Round.GetNextRound()
 	}
 
 	if gs.isHandOver() {
@@ -229,7 +185,7 @@ func (gs *GameState) moveActingPlayer(consequence *ActionConsequence) bool {
 	return false
 }
 
-func processPots(betVector *[9]BetVectorNode, potContenders *[][]int, pots *[]int, consequence *ActionConsequence) {
+func processPots(betVector *BetVector, potContenders *[][]int, pots *[]int, consequence *ActionConsequence) {
 	var processPotsPQ ProcessPotsPQ
 	totalRoundPot := 0
 	highestBetAmountPlayerIndex := -1
@@ -301,7 +257,7 @@ func processPots(betVector *[9]BetVectorNode, potContenders *[][]int, pots *[]in
 	*betVector = getZeroBetVector()
 }
 
-func (gs *GameState) processEndGame(consequence *ActionConsequence) {
+func (gs *State) processEndGame(consequence *ActionConsequence) {
 	consequence.Payoffs = make(map[Seat]int)
 
 	if len(gs.Pots) != len(gs.PotContenders) {
@@ -312,7 +268,7 @@ func (gs *GameState) processEndGame(consequence *ActionConsequence) {
 	for potIndex := len(gs.Pots) - 1; potIndex >= 0; potIndex-- {
 		if onePlayerStanding, player := gs.isOnePlayerStanding(gs.PotContenders[potIndex]); onePlayerStanding {
 			consequence.EndsHand = true
-			consequence.WinCondition = Folds
+			consequence.WinCondition = WinConditionFolds
 			consequence.Payoffs[gs.Seats[player]] += gs.Pots[potIndex]
 		} else {
 			var showdownHands []HandForEvaluation
@@ -327,7 +283,7 @@ func (gs *GameState) processEndGame(consequence *ActionConsequence) {
 			}
 			rankedHands := EvaluateHands(showdownHands)
 			consequence.EndsHand = true
-			consequence.WinCondition = Showdown
+			consequence.WinCondition = WinConditionShowdown
 			consequence.ShowdownHands = rankedHands
 
 			numberOfWinners := 1
@@ -344,7 +300,7 @@ func (gs *GameState) processEndGame(consequence *ActionConsequence) {
 }
 
 // Returns index of player that is `n` active players to the right of `base`
-func (gs *GameState) getNActivePlayerIndexFromIndex(base, n int) int {
+func (gs *State) getNActivePlayerIndexFromIndex(base, n int) int {
 	index := base
 	count := 0
 	for count != n {
@@ -357,29 +313,29 @@ func (gs *GameState) getNActivePlayerIndexFromIndex(base, n int) int {
 	return index
 }
 
-func (gs *GameState) isRoundOver() bool {
+func (gs *State) isRoundOver() bool {
 	// If limps around to big blind, give them option
-	if gs.Round == PreFlop {
+	if gs.Round == RoundPreFlop {
 		bigBlindIndex := gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 2)
 		// Limps to big blind, give option
-		if gs.ActingPlayer == bigBlindIndex && gs.LeadingPlayer == bigBlindIndex && gs.Seats[bigBlindIndex].Player.LastAction.ActionType == Blind {
+		if gs.ActingPlayer == bigBlindIndex && gs.LeadingPlayer == bigBlindIndex && gs.Seats[bigBlindIndex].Player.LastAction.ActionType == ActionTypeBlind {
 			return false
 		}
 		// Big blind checked, end round
 		utgPlayerIndex := gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 3)
-		if gs.ActingPlayer == utgPlayerIndex && gs.LeadingPlayer == bigBlindIndex && gs.currentAction.ActionType == Check {
+		if gs.ActingPlayer == utgPlayerIndex && gs.LeadingPlayer == bigBlindIndex && gs.currentAction.ActionType == ActionTypeCheck {
 			return true
 		}
 	}
 	return gs.ActingPlayer == gs.LeadingPlayer
 }
 
-func (gs *GameState) isHandOver() bool {
+func (gs *State) isHandOver() bool {
 	onePlayerStanding, _ := gs.isOnePlayerStanding(AllPlayers)
-	return (gs.isRoundOver() && gs.Round == HandEnd) || onePlayerStanding
+	return (gs.isRoundOver() && gs.Round == RoundHandEnd) || onePlayerStanding
 }
 
-func (gs *GameState) isOnePlayerStanding(playersToConsider []int) (bool, int) {
+func (gs *State) isOnePlayerStanding(playersToConsider []int) (bool, int) {
 	playersInHand := 0
 	player := -1
 	for i, folded := range gs.FoldVector {
@@ -391,30 +347,30 @@ func (gs *GameState) isOnePlayerStanding(playersToConsider []int) (bool, int) {
 	return playersInHand == 1, player
 }
 
-func (gs *GameState) getLeadAction() Action {
+func (gs *State) getLeadAction() Action {
 	return gs.Seats[gs.LeadingPlayer].Player.LastAction
 }
 
-func (gs *GameState) getPlayerCards(playerIndex int) []Card {
+func (gs *State) getPlayerCards(playerIndex int) []Card {
 	return []Card{gs.Deck[gs.getPlayerIndexInHand(playerIndex)], gs.Deck[gs.getPlayerIndexInHand(playerIndex)+gs.getNumberOfPlayersInHand()]}
 }
 
-func (gs *GameState) getCommunityCards() []Card {
+func (gs *State) getCommunityCards() []Card {
 	var communityCards []Card
 	numPlayers := gs.getNumberOfPlayersInHand()
-	if gs.Round >= Flop {
+	if gs.Round.IsAtOrAfter(RoundFlop) {
 		communityCards = append(communityCards, gs.Deck[2*numPlayers+1:2*numPlayers+4]...)
 	}
-	if gs.Round >= Turn {
+	if gs.Round.IsAtOrAfter(RoundTurn) {
 		communityCards = append(communityCards, gs.Deck[2*numPlayers+5])
 	}
-	if gs.Round >= River {
+	if gs.Round.IsAtOrAfter(RoundRiver) {
 		communityCards = append(communityCards, gs.Deck[2*numPlayers+7])
 	}
 	return communityCards
 }
 
-func (gs *GameState) getNumberOfPlayersInHand() int {
+func (gs *State) getNumberOfPlayersInHand() int {
 	count := 0
 	for _, seat := range gs.Seats {
 		if seat.Occupied && !seat.Player.SittingOut {
@@ -425,7 +381,7 @@ func (gs *GameState) getNumberOfPlayersInHand() int {
 }
 
 // Small blind is 0
-func (gs *GameState) getPlayerIndexInHand(seatIndex int) int {
+func (gs *State) getPlayerIndexInHand(seatIndex int) int {
 	count := 0
 	current := (gs.ButtonPosition + 1) % 9
 	for i := 0; i < 9; i++ {
@@ -449,8 +405,8 @@ func getInitialFoldVector(seats *[9]Seat) [9]bool {
 	return foldVector
 }
 
-func getZeroBetVector() [9]BetVectorNode {
-	var betVector [9]BetVectorNode
+func getZeroBetVector() BetVector {
+	var betVector BetVector
 	for i := range betVector {
 		betVector[i] = BetVectorNode{
 			Amount:  0,
@@ -460,7 +416,7 @@ func getZeroBetVector() [9]BetVectorNode {
 	return betVector
 }
 
-func getSum(a [9]BetVectorNode) int {
+func getSum(a BetVector) int {
 	count := 0
 	for _, node := range a {
 		count += node.Amount

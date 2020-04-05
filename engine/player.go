@@ -2,7 +2,7 @@ package engine
 
 import (
 	"errors"
-	"github.com/simster7/PocketRockets/backend/api/v1"
+	"github.com/simster7/PocketRockets/api/v1"
 )
 
 type Player struct {

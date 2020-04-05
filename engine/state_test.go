@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func getNewTestGameState() GameState {
+func getNewTestGameState() State {
 	jason := NewPlayer("Jason", 100)
 	simon := NewPlayer("Simon", 50)
 	chien := NewPlayer("Chien", 20)
@@ -24,14 +24,14 @@ func getNewTestGameState() GameState {
 
 	deck := getDeck()
 
-	gs, _ := GetNewHandGameState(seats, 2, 2, 1, deck)
+	gs, _ := GetNewHandState(seats, 2, 2, 1, deck)
 	return gs
 }
 
 func TestProcessPots(t *testing.T) {
 
 	// Test standard pot
-	betVector := [9]BetVectorNode{
+	betVector := BetVector{
 		{Amount: 0, IsAllIn: false},
 		{Amount: 0, IsAllIn: false},
 		{Amount: 10, IsAllIn: false},

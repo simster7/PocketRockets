@@ -2,9 +2,8 @@ package engine
 
 import (
 	"errors"
-	v1 "github.com/simster7/PocketRockets/backend/api/v1"
+	v1 "github.com/simster7/PocketRockets/api/v1"
 	"log"
-	"math/rand"
 )
 
 type Game struct {
@@ -12,9 +11,9 @@ type Game struct {
 	ButtonPosition int
 	SmallBlind     int
 	BigBlind       int
-	GameState      GameState
+	GameState      State
 	IsHandActive   bool
-	Shuffler       func() [52]Card
+	Shuffler       func() Deck
 }
 
 func NewGame(smallBlind, bigBlind int) Game {
@@ -131,7 +130,7 @@ func (g *Game) DealHand() error {
 
 	deck := g.Shuffler()
 
-	gameState, actionConsequences := GetNewHandGameState(g.Seats, g.ButtonPosition, g.BigBlind, g.SmallBlind, deck)
+	gameState, actionConsequences := GetNewHandState(g.Seats, g.ButtonPosition, g.BigBlind, g.SmallBlind, deck)
 
 	g.GameState = gameState
 	g.IsHandActive = true
@@ -140,7 +139,7 @@ func (g *Game) DealHand() error {
 		if err != nil {
 			log.Fatal("bug: unreachable: player must have had enough to bet")
 		}
-		g.Seats[action.PlayerIndex].Player.LastAction = Action{ActionType: Blind, Value: action.PlayerBet}
+		g.Seats[action.PlayerIndex].Player.LastAction = Action{ActionType: ActionTypeBlind, Value: action.PlayerBet}
 	}
 	return nil
 }
@@ -160,33 +159,4 @@ func (g *Game) numberActivePlayers() int {
 		}
 	}
 	return count
-}
-
-func getShuffledDeck() [52]Card {
-	var deck [52]Card
-	perm := rand.Perm(52)
-	for i := 0; i < 52; i++ {
-		deck[perm[i]] = Card(i)
-	}
-	return deck
-}
-
-func getDeck() [52]Card {
-	var deck [52]Card
-	for i := 0; i < 52; i++ {
-		deck[i] = Card(i)
-	}
-	return deck
-}
-
-func emptyTable() [9]Seat {
-	var seats [9]Seat
-	for i := 0; i < 9; i++ {
-		seats[i] = Seat{
-			Index:    i,
-			Occupied: false,
-			Player:   nil,
-		}
-	}
-	return seats
 }

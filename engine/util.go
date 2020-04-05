@@ -2,6 +2,7 @@ package engine
 
 import (
 	"container/heap"
+	"math/rand"
 	"strings"
 )
 
@@ -104,4 +105,33 @@ func cardSliceToInt32Slice(intSlice []Card) []int32 {
 		out[i] = int32(intSlice[i])
 	}
 	return out
+}
+
+func getShuffledDeck() Deck{
+	var deck Deck
+	perm := rand.Perm(52)
+	for i := 0; i < 52; i++ {
+		deck[perm[i]] = Card(i)
+	}
+	return deck
+}
+
+func getDeck() Deck {
+	var deck Deck
+	for i := 0; i < 52; i++ {
+		deck[i] = Card(i)
+	}
+	return deck
+}
+
+func emptyTable() [9]Seat {
+	var seats [9]Seat
+	for i := 0; i < 9; i++ {
+		seats[i] = Seat{
+			Index:    i,
+			Occupied: false,
+			Player:   nil,
+		}
+	}
+	return seats
 }
