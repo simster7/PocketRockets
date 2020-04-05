@@ -89,7 +89,7 @@ func (gs *State) TakeAction(action Action) error {
 
 func (gs *State) moveActingPlayer() bool {
 	gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
-	for (gs.Players[gs.ActingPlayer].Folded || gs.Players[gs.ActingPlayer].IsAllIn) && !gs.isRoundOver() {
+	for (gs.Players[gs.ActingPlayer] == nil || gs.Players[gs.ActingPlayer].Folded || gs.Players[gs.ActingPlayer].IsAllIn) && !gs.isRoundOver() {
 		gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
 	}
 
@@ -259,7 +259,7 @@ func (gs *State) isOnePlayerStanding(playersToConsider []int) (bool, int) {
 	playersInHand := 0
 	playerStanding := -1
 	for i, player := range gs.Players {
-		if !player.Folded && containsIntInIntSlice(playersToConsider, i) {
+		if player != nil && !player.Folded && containsIntInIntSlice(playersToConsider, i) {
 			playersInHand++
 			playerStanding = i
 		}

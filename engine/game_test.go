@@ -2,131 +2,142 @@ package engine
 
 //[a-z]+? := NewPlayer\((.+?), ([0-9]+?)\)
 //err \:{0,1}= game.SitPlayer\(&[a-z]+?, ([0-9])\)
-
 //err = game.SitPlayer($1, $2, $3)
 
-//import (
-//	"fmt"
-//	"github.com/stretchr/testify/assert"
-//	"testing"
-//)
-//
-//func TestGameBasicSplitPot(t *testing.T) {
-//	game := NewDeterministicGame(1, 2)
-//	grace := NewPlayer("Grace", 100)
-//	err := game.SitPlayer(&grace, 0)
-//	assert.NoError(t, err)
-//	jason := NewPlayer("Jason", 100)
-//	err = game.SitPlayer(&jason, 1)
-//	assert.NoError(t, err)
-//	simon := NewPlayer("Simon", 100)
-//	err = game.SitPlayer(&simon, 3)
-//	assert.NoError(t, err)
-//	hersh := NewPlayer("Hersh", 100)
-//	err = game.SitPlayer(&hersh, 4)
-//	assert.NoError(t, err)
-//	chien := NewPlayer("Chien", 100)
-//	err = game.SitPlayer(&chien, 5)
-//	assert.NoError(t, err)
-//	jarry := NewPlayer("Jarry", 100)
-//	err = game.SitPlayer(&jarry, 6)
-//	assert.NoError(t, err)
-//
-//	err = game.DealHand()
-//	assert.NoError(t, err)
-//
-//	// Pre flop
-//	assert.Equal(t, string(RoundPreFlop), game.GetPlayerState(&simon).BettingRound)
-//	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 0)
-//	// Can't play out of turn
-//	err = game.TakeAction(&jarry, Action{ActionType: ActionTypeBet, Value: 5})
-//	assert.Error(t, err)
-//	assert.Equal(t, int32(100), game.GetPlayerState(&jarry).Seats[jarry.SeatNumber].Player.Stack)
-//	err = game.TakeAction(&chien, Action{ActionType: ActionTypeBet, Value: 5})
-//	assert.NoError(t, err)
-//	assert.Equal(t, int32(93), game.GetPlayerState(&chien).Seats[chien.SeatNumber].Player.Stack)
-//	err = game.TakeAction(&jarry, Action{ActionType: ActionTypeCall})
-//	assert.NoError(t, err)
-//	assert.Equal(t, int32(93), game.GetPlayerState(&jarry).Seats[jarry.SeatNumber].Player.Stack)
-//	err = game.TakeAction(&grace, Action{ActionType: ActionTypeFold})
-//	assert.NoError(t, err)
-//	assert.Equal(t, int32(100), game.GetPlayerState(&grace).Seats[grace.SeatNumber].Player.Stack)
-//	assert.True(t, game.GetPlayerState(&grace).Seats[grace.SeatNumber].Player.Folded)
-//	err = game.TakeAction(&jason, Action{ActionType: ActionTypeCall})
-//	assert.NoError(t, err)
-//	err = game.TakeAction(&simon, Action{ActionType: ActionTypeCall})
-//	assert.NoError(t, err)
-//	err = game.TakeAction(&hersh, Action{ActionType: ActionTypeFold})
-//	assert.NoError(t, err)
-//	assert.True(t, game.GetPlayerState(&hersh).Seats[hersh.SeatNumber].Player.Folded)
-//
-//	// Flop
-//	assert.Equal(t, string(RoundFlop), game.GetPlayerState(&simon).BettingRound)
-//	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 3)
-//	assert.Equal(t, int32(30), game.GetPlayerState(&simon).Pots[0])
-//
-//	// Can't call at start of round
-//	err = game.TakeAction(&simon, Action{ActionType: ActionTypeCall})
-//	assert.Error(t, err)
-//	// Can't play when folded
-//	err = game.TakeAction(&hersh, Action{ActionType: ActionTypeCall})
-//	assert.Error(t, err)
-//	err = game.TakeAction(&simon, Action{ActionType: ActionTypeCheck})
-//	assert.NoError(t, err)
-//	err = game.TakeAction(&chien, Action{ActionType: ActionTypeCheck})
-//	assert.NoError(t, err)
-//	err = game.TakeAction(&jarry, Action{ActionType: ActionTypeBet, Value: 10})
-//	assert.NoError(t, err)
-//	assert.Equal(t, int32(83), game.GetPlayerState(&jarry).Seats[jarry.SeatNumber].Player.Stack)
-//	// Can't check a bet
-//	err = game.TakeAction(&jason, Action{ActionType: ActionTypeCheck})
-//	assert.Error(t, err)
-//	err = game.TakeAction(&jason, Action{ActionType: ActionTypeFold})
-//	assert.NoError(t, err)
-//	assert.True(t, game.GetPlayerState(&jason).Seats[jason.SeatNumber].Player.Folded)
-//	err = game.TakeAction(&simon, Action{ActionType: ActionTypeCall})
-//	assert.NoError(t, err)
-//	assert.Equal(t, int32(83), game.GetPlayerState(&simon).Seats[simon.SeatNumber].Player.Stack)
-//	err = game.TakeAction(&chien, Action{ActionType: ActionTypeCall})
-//	assert.NoError(t, err)
-//	assert.Equal(t, int32(83), game.GetPlayerState(&chien).Seats[chien.SeatNumber].Player.Stack)
-//
-//	// Turn
-//	assert.Equal(t, string(RoundTurn), game.GetPlayerState(&simon).BettingRound)
-//	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 4)
-//	assert.Equal(t, int32(60), game.GetPlayerState(&simon).Pots[0])
-//
-//	err = game.TakeAction(&simon, Action{ActionType: ActionTypeCheck})
-//	assert.NoError(t, err)
-//	err = game.TakeAction(&chien, Action{ActionType: ActionTypeCheck})
-//	assert.NoError(t, err)
-//	err = game.TakeAction(&jarry, Action{ActionType: ActionTypeCheck})
-//	assert.NoError(t, err)
-//
-//	// River
-//	assert.Equal(t, string(RoundRiver), game.GetPlayerState(&simon).BettingRound)
-//	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 5)
-//	assert.Equal(t, int32(60), game.GetPlayerState(&simon).Pots[0])
-//
-//	err = game.TakeAction(&simon, Action{ActionType: ActionTypeBet, Value: 10})
-//	assert.NoError(t, err)
-//	assert.Equal(t, int32(73), game.GetPlayerState(&simon).Seats[simon.SeatNumber].Player.Stack)
-//	err = game.TakeAction(&chien, Action{ActionType: ActionTypeFold})
-//	assert.NoError(t, err)
-//	assert.True(t, game.GetPlayerState(&chien).Seats[chien.SeatNumber].Player.Folded)
-//	err = game.TakeAction(&jarry, Action{ActionType: ActionTypeCall})
-//	assert.NoError(t, err)
-//
-//	// Post River
-//	// Board hits a flush, split pot
-//	assert.Equal(t, string(RoundHandEnd), game.GetPlayerState(&simon).BettingRound)
-//	assert.Equal(t, int32(80), game.GetPlayerState(&simon).Pots[0])
-//	assert.Len(t, game.GetPlayerState(&simon).CommunityCards, 5)
-//	assert.False(t, game.IsHandActive)
-//	assert.False(t, game.GameState.IsHandActive)
-//	assert.Equal(t, int32(113), game.GetPlayerState(&simon).Seats[simon.SeatNumber].Player.Stack)
-//	assert.Equal(t, int32(113), game.GetPlayerState(&jarry).Seats[jarry.SeatNumber].Player.Stack)
-//}
+//TakeAction\(&[a-z]+?,
+//TakeAction(
+
+//int32\(([0-9]+?)\)
+//$1
+
+//gs\.GetPlayerState\(&([a-z]+?)\)\.Seats\[[a-z]+?\.SeatNumber\]\.Player\.
+//gs.Players[$1].
+
+import (
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+func TestGameBasicSplitPot(t *testing.T) {
+	//game := NewDeterministicGame(1, 2)
+	//grace := NewPlayer("Grace", 100)
+	//err := game.SitPlayer(&grace, 0)
+	//assert.NoError(t, err)
+	//jason := NewPlayer("Jason", 100)
+	//err = game.SitPlayer(&jason, 1)
+	//assert.NoError(t, err)
+	//simon := NewPlayer("Simon", 100)
+	//err = game.SitPlayer(&simon, 3)
+	//assert.NoError(t, err)
+	//hersh := NewPlayer("Hersh", 100)
+	//err = game.SitPlayer(&hersh, 4)
+	//assert.NoError(t, err)
+	//chien := NewPlayer("Chien", 100)
+	//err = game.SitPlayer(&chien, 5)
+	//assert.NoError(t, err)
+	//jarry := NewPlayer("Jarry", 100)
+	//err = game.SitPlayer(&jarry, 6)
+	//assert.NoError(t, err)
+	
+	gs := getNewTestGameState([]int{0, 1, 3, 4, 5, 6})
+	
+
+	// Pre flop
+	assert.Equal(t, RoundPreFlop, gs.Round)
+	assert.Len(t, gs.getCommunityCards(), 0)
+	
+	// TODO
+	//// Can't play out of turn
+	//err = game.TakeAction(&jarry, Action{ActionType: ActionTypeBet, Value: 5})
+	//assert.Error(t, err)
+	//assert.Equal(t, int32(100), game.GetPlayerState(&jarry).Seats[jarry.SeatNumber].Player.Stack)
+	
+	err := gs.TakeAction(Action{ActionType: ActionTypeBet, Value: 5})
+	assert.NoError(t, err)
+	assert.Equal(t, 93, gs.Players[5].Stack)
+	err = gs.TakeAction(Action{ActionType: ActionTypeCall})
+	assert.NoError(t, err)
+	assert.Equal(t, 93, gs.Players[6].Stack)
+	err = gs.TakeAction(Action{ActionType: ActionTypeFold})
+	assert.NoError(t, err)
+	assert.Equal(t, 100, gs.Players[0].Stack)
+	assert.True(t, gs.Players[0].Folded)
+	err = gs.TakeAction(Action{ActionType: ActionTypeCall})
+	assert.NoError(t, err)
+	err = gs.TakeAction(Action{ActionType: ActionTypeCall})
+	assert.NoError(t, err)
+	err = gs.TakeAction(Action{ActionType: ActionTypeFold})
+	assert.NoError(t, err)
+	assert.True(t, gs.Players[4].Folded)
+
+	// Flop
+	assert.Equal(t, RoundFlop, gs.Round)
+	assert.Len(t, gs.getCommunityCards(), 3)
+	assert.Equal(t, 30, gs.Pots[0])
+
+	// Can't call at start of round
+	err = gs.TakeAction(Action{ActionType: ActionTypeCall})
+	assert.Error(t, err)
+	// TODO
+	//// Can't play when folded
+	//err = gs.TakeAction(Action{ActionType: ActionTypeCall})
+	//assert.Error(t, err)
+	err = gs.TakeAction(Action{ActionType: ActionTypeCheck})
+	assert.NoError(t, err)
+	err = gs.TakeAction(Action{ActionType: ActionTypeCheck})
+	assert.NoError(t, err)
+	err = gs.TakeAction(Action{ActionType: ActionTypeBet, Value: 10})
+	assert.NoError(t, err)
+	assert.Equal(t, 83, gs.Players[6].Stack)
+	// Can't check a bet
+	err = gs.TakeAction(Action{ActionType: ActionTypeCheck})
+	assert.Error(t, err)
+	err = gs.TakeAction(Action{ActionType: ActionTypeFold})
+	assert.NoError(t, err)
+	assert.True(t, gs.Players[1].Folded)
+	err = gs.TakeAction(Action{ActionType: ActionTypeCall})
+	assert.NoError(t, err)
+	assert.Equal(t, 83, gs.Players[3].Stack)
+	err = gs.TakeAction(Action{ActionType: ActionTypeCall})
+	assert.NoError(t, err)
+	assert.Equal(t, 83, gs.Players[5].Stack)
+
+	// Turn
+	assert.Equal(t, RoundTurn, gs.Round)
+	assert.Len(t, gs.getCommunityCards(), 4)
+	assert.Equal(t, 60, gs.Pots[0])
+
+	err = gs.TakeAction(Action{ActionType: ActionTypeCheck})
+	assert.NoError(t, err)
+	err = gs.TakeAction(Action{ActionType: ActionTypeCheck})
+	assert.NoError(t, err)
+	err = gs.TakeAction(Action{ActionType: ActionTypeCheck})
+	assert.NoError(t, err)
+
+	// River
+	assert.Equal(t, RoundRiver, gs.Round)
+	assert.Len(t, gs.getCommunityCards(), 5)
+	assert.Equal(t, 60, gs.Pots[0])
+
+	err = gs.TakeAction(Action{ActionType: ActionTypeBet, Value: 10})
+	assert.NoError(t, err)
+	assert.Equal(t, 73, gs.Players[3].Stack)
+	err = gs.TakeAction(Action{ActionType: ActionTypeFold})
+	assert.NoError(t, err)
+	assert.True(t, gs.Players[5].Folded)
+	err = gs.TakeAction(Action{ActionType: ActionTypeCall})
+	assert.NoError(t, err)
+
+	// Post River
+	// Board hits a flush, split pot
+	assert.Equal(t, RoundHandEnd, gs.Round)
+	assert.Len(t, gs.getCommunityCards(), 5)
+	assert.Equal(t, 80, gs.Pots[0])
+	assert.False(t, gs.IsHandActive)
+	assert.False(t, gs.IsHandActive)
+	assert.Equal(t, 113, gs.Players[3].Stack)
+	assert.Equal(t, 113, gs.Players[6].Stack)
+}
 //
 //func TestGameMultiround(t *testing.T) {
 //	game := NewDeterministicGame(1, 2)
