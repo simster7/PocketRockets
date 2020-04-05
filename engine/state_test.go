@@ -5,18 +5,20 @@ import (
 	"testing"
 )
 
-func getNewTestGameState(seats map[int]int, button int) State {
+var shuffler = NewDeterministicShuffler()
+
+func getNewTestGameState(seats map[int]int) State {
 	players := new(Players)
 	for seat, stack := range seats {
 		players[seat] = &Player{Name: string(seat), Stack: stack}
 	}
-	return GetNewHandState(*players, button, 2, 1, getDeck())
+	return NewHandState(*players, 0)
 }
 
 func TestProcessPots(t *testing.T) {
 
 	// Test standard pot
-	gs := getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100}, 2)
+	gs := getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100})
 	gs.Players[2].Bet = 10
 	gs.Players[5].Bet = 10
 	gs.Players[7].Bet = 10
@@ -30,7 +32,7 @@ func TestProcessPots(t *testing.T) {
 	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}}, gs.PotContenders)
 
 	// Test one all in
-	gs = getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100}, 2)
+	gs = getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100})
 	gs.Players[2].Bet = 30
 	gs.Players[5].Bet = 30
 	gs.Players[7].Bet = 20
@@ -45,7 +47,7 @@ func TestProcessPots(t *testing.T) {
 	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}}, gs.PotContenders)
 
 	// Test two all ins
-	gs = getNewTestGameState(map[int]int{0: 100, 2: 100, 5: 100, 7: 100}, 2)
+	gs = getNewTestGameState(map[int]int{0: 100, 2: 100, 5: 100, 7: 100})
 	gs.Players[0].Bet = 40
 	gs.Players[2].Bet = 40
 	gs.Players[5].Bet = 30
@@ -62,7 +64,7 @@ func TestProcessPots(t *testing.T) {
 	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}, {0, 1, 2, 3, 4, 6, 8}}, gs.PotContenders)
 
 	// Test two all ins with folds
-	gs = getNewTestGameState(map[int]int{0: 100, 2: 100, 3: 100, 5: 100, 7: 100}, 2)
+	gs = getNewTestGameState(map[int]int{0: 100, 2: 100, 3: 100, 5: 100, 7: 100})
 	gs.Players[0].Bet = 40
 	gs.Players[2].Bet = 40
 	gs.Players[3].Bet = 10
@@ -80,7 +82,7 @@ func TestProcessPots(t *testing.T) {
 	assert.Equal(t, [][]int{{0, 1, 2, 3, 4, 5, 6, 7, 8}, {0, 1, 2, 3, 4, 5, 6, 8}, {0, 1, 2, 3, 4, 6, 8}}, gs.PotContenders)
 
 	// Test all in with over-bet amount that can't be matched
-	gs = getNewTestGameState(map[int]int{5: 100, 7: 100}, 2)
+	gs = getNewTestGameState(map[int]int{5: 100, 7: 100})
 	gs.Players[5].Bet = 30
 	gs.Players[7].Bet = 10
 	gs.Players[7].IsAllIn = true
@@ -95,7 +97,8 @@ func TestProcessPots(t *testing.T) {
 }
 
 func TestGameBasicSplitPot(t *testing.T) {
-	gs := getNewTestGameState(map[int]int{0: 100, 1: 100, 3: 100, 4: 100, 5: 100, 6: 100}, 2)
+	gs := getNewTestGameState(map[int]int{0: 100, 1: 100, 3: 100, 4: 100, 5: 100, 6: 100})
+	gs.DealHand(2, 1, shuffler.Shuffle())
 
 	// Pre flop
 	assert.Equal(t, RoundPreFlop, gs.Round)
@@ -187,7 +190,8 @@ func TestGameBasicSplitPot(t *testing.T) {
 }
 
 func TestGameMultiround(t *testing.T) {
-	gs := getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100}, 2)
+	gs := getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100})
+	gs.DealHand(2, 1, shuffler.Shuffle())
 
 	// Pre flop
 	assert.Equal(t, RoundPreFlop, gs.Round)
@@ -240,7 +244,9 @@ func TestGameMultiround(t *testing.T) {
 
 	assert.False(t, gs.IsHandActive)
 
-	gs = getNewTestGameState(map[int]int{2: 90, 5: 80, 7: 130, 8: 100}, 5)
+	//gs = getNewTestGameState(map[int]int{2: 90, 5: 80, 7: 130, 8: 100})
+	gs.Players[8] = &Player{Name: "8", Stack: 100}
+	gs.DealHand(2, 1, shuffler.Shuffle())
 
 	// Pre flop
 	assert.Equal(t, RoundPreFlop, gs.Round)
@@ -299,7 +305,8 @@ func TestGameMultiround(t *testing.T) {
 	assert.Equal(t, 88, gs.Players[8].Stack)
 	assert.Equal(t, 129, gs.Players[7].Stack)
 
-	gs = getNewTestGameState(map[int]int{2: 68, 5: 115, 7: 129, 8: 88}, 7)
+	//gs = getNewTestGameState(map[int]int{2: 68, 5: 115, 7: 129, 8: 88})
+	gs.DealHand(2, 1, shuffler.Shuffle())
 
 	// Pre flop
 	assert.Equal(t, RoundPreFlop, gs.Round)
@@ -340,7 +347,7 @@ func TestGameMultiround(t *testing.T) {
 }
 
 func TestGameAllInSimple(t *testing.T) {
-	gs := getNewTestGameState(map[int]int{2: 20, 5: 50, 7: 100}, 2)
+	gs := getNewTestGameState(map[int]int{2: 20, 5: 50, 7: 100})
 
 	// Pre flop
 	// Bet is 10 each, 2 is left with 10 at round end
@@ -392,7 +399,7 @@ func TestGameAllInSimple(t *testing.T) {
 }
 
 func TestGameAllInTwoSidePots(t *testing.T) {
-	gs := getNewTestGameState(map[int]int{2: 20, 5: 50, 7: 100, 8: 30}, 2)
+	gs := getNewTestGameState(map[int]int{2: 20, 5: 50, 7: 100, 8: 30})
 
 	// Pre flop
 	// Bet is 10 each, 2 is left with 10 at round end and Jarry with 20
@@ -464,7 +471,7 @@ func TestGameAllInTwoSidePots(t *testing.T) {
 }
 
 func TestGameAllInWithFold(t *testing.T) {
-	gs := getNewTestGameState(map[int]int{2: 20, 5: 50, 7: 100, 8: 30}, 2)
+	gs := getNewTestGameState(map[int]int{2: 20, 5: 50, 7: 100, 8: 30})
 
 	// Pre flop
 	// Bet is 10 each, 2 is left with 10 at round end and 8 with 20
@@ -539,7 +546,7 @@ func TestGameAllInWithFold(t *testing.T) {
 }
 
 func TestGamePreFlopOption(t *testing.T) {
-	gs := getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100}, 2)
+	gs := getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100})
 
 	assert.Equal(t, RoundPreFlop, gs.Round)
 	err := gs.TakeAction(Action{ActionType: ActionTypeCall})
@@ -557,7 +564,7 @@ func TestGamePreFlopOption(t *testing.T) {
 	assert.Equal(t, 98, gs.Players[5].Stack)
 	assert.Equal(t, 98, gs.Players[7].Stack)
 
-	gs = getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100}, 2)
+	gs = getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100})
 
 	assert.Equal(t, RoundPreFlop, gs.Round)
 	err = gs.TakeAction(Action{ActionType: ActionTypeCall})
