@@ -5,41 +5,33 @@ import (
 )
 
 type Game struct {
-	SmallBlind   int
-	BigBlind     int
-	GameState    State
-	IsHandActive bool
-	Shuffler     Shuffler
+	Seats          Seats
+	ButtonPosition int
+	SmallBlind     int
+	BigBlind       int
+	GameState      State
+	IsHandActive   bool
+	Shuffler       func() Deck
 }
 
 func NewGame(smallBlind, bigBlind int) Game {
 	return Game{
+		Seats:        emptyTable(),
 		SmallBlind:   smallBlind,
 		BigBlind:     bigBlind,
-		GameState:    NewHandState(*new(Players), 0),
 		IsHandActive: false,
-		Shuffler:     &StandardShuffler{},
+		Shuffler:     getShuffledDeck,
 	}
 }
 
 func NewDeterministicGame(smallBlind, bigBlind int) Game {
 	return Game{
+		Seats:        emptyTable(),
 		SmallBlind:   smallBlind,
 		BigBlind:     bigBlind,
-		GameState:    NewHandState(*new(Players), 0),
 		IsHandActive: false,
-		Shuffler:     &DeterministicShuffler{},
+		Shuffler:     getDeck,
 	}
-}
-
-func (g *Game) SitPlayer(name string, stack, seat int) error {
-	if player := g.GameState.Players[seat]; player != nil {
-		return errors.New("cannot sit player; seat is occupied")
-	}
-	player := Player{Name: name, Stack: stack, Waiting: true}
-	g.GameState.Players[seat] = &player
-
-	return nil
 }
 
 func (g *Game) TakeAction(action Action) error {
@@ -57,17 +49,36 @@ func (g *Game) DealHand() error {
 		return errors.New("cannot deal a hand when only one player is active")
 	}
 
-	g.GameState.DealHand(g.BigBlind, g.SmallBlind, g.Shuffler.Shuffle())
+	g.moveButton()
+	gameState := GetNewHandState(g.getActivePlayers(), g.ButtonPosition, g.BigBlind, g.SmallBlind, g.Shuffler())
+	g.GameState = gameState
 	g.IsHandActive = true
 	return nil
 }
 
+func (g *Game) moveButton() {
+	g.ButtonPosition = (g.ButtonPosition + 1) % 9
+	for g.Seats[g.ButtonPosition] == nil || g.Seats[g.ButtonPosition].SittingOut {
+		g.ButtonPosition = (g.ButtonPosition + 1) % 9
+	}
+}
+
 func (g *Game) numberActivePlayers() int {
 	count := 0
-	for _, player := range g.GameState.Players {
-		if player != nil && !player.SittingOut {
+	for _, seat := range g.Seats {
+		if seat != nil && !seat.SittingOut {
 			count++
 		}
 	}
 	return count
+}
+
+func (g *Game) getActivePlayers() Players {
+	players := new(Players)
+	for i, seat := range g.Seats {
+		if seat != nil && !seat.SittingOut {
+			players[i] = &Player{Name: seat.Name, Stack: seat.Stack}
+		}
+	}
+	return *players
 }

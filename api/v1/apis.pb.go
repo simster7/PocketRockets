@@ -21,18 +21,18 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type PlayerState struct {
-	ButtonPosition       int32     `protobuf:"varint,1,opt,name=buttonPosition,proto3" json:"buttonPosition,omitempty"`
-	BettingRound         string    `protobuf:"bytes,2,opt,name=bettingRound,proto3" json:"bettingRound,omitempty"`
-	LeadPlayer           int32     `protobuf:"varint,3,opt,name=leadPlayer,proto3" json:"leadPlayer,omitempty"`
-	ActingPlayer         int32     `protobuf:"varint,4,opt,name=actingPlayer,proto3" json:"actingPlayer,omitempty"`
-	Pots                 []int32   `protobuf:"varint,5,rep,packed,name=pots,proto3" json:"pots,omitempty"`
-	PlayerCards          []int32   `protobuf:"varint,6,rep,packed,name=playerCards,proto3" json:"playerCards,omitempty"`
-	CommunityCards       []int32   `protobuf:"varint,7,rep,packed,name=communityCards,proto3" json:"communityCards,omitempty"`
-	Players              []*Player `protobuf:"bytes,8,rep,name=players,proto3" json:"players,omitempty"`
-	IsHandActive         bool      `protobuf:"varint,9,opt,name=isHandActive,proto3" json:"isHandActive,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
-	XXX_unrecognized     []byte    `json:"-"`
-	XXX_sizecache        int32     `json:"-"`
+	ButtonPosition       int32    `protobuf:"varint,1,opt,name=buttonPosition,proto3" json:"buttonPosition,omitempty"`
+	BettingRound         string   `protobuf:"bytes,2,opt,name=bettingRound,proto3" json:"bettingRound,omitempty"`
+	LeadPlayer           int32    `protobuf:"varint,3,opt,name=leadPlayer,proto3" json:"leadPlayer,omitempty"`
+	ActingPlayer         int32    `protobuf:"varint,4,opt,name=actingPlayer,proto3" json:"actingPlayer,omitempty"`
+	Pots                 []int32  `protobuf:"varint,5,rep,packed,name=pots,proto3" json:"pots,omitempty"`
+	PlayerCards          []int32  `protobuf:"varint,6,rep,packed,name=playerCards,proto3" json:"playerCards,omitempty"`
+	CommunityCards       []int32  `protobuf:"varint,7,rep,packed,name=communityCards,proto3" json:"communityCards,omitempty"`
+	Seats                []*Seat  `protobuf:"bytes,8,rep,name=seats,proto3" json:"seats,omitempty"`
+	IsHandActive         bool     `protobuf:"varint,9,opt,name=isHandActive,proto3" json:"isHandActive,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *PlayerState) Reset()         { *m = PlayerState{} }
@@ -109,9 +109,9 @@ func (m *PlayerState) GetCommunityCards() []int32 {
 	return nil
 }
 
-func (m *PlayerState) GetPlayers() []*Player {
+func (m *PlayerState) GetSeats() []*Seat {
 	if m != nil {
-		return m.Players
+		return m.Seats
 	}
 	return nil
 }
@@ -123,15 +123,69 @@ func (m *PlayerState) GetIsHandActive() bool {
 	return false
 }
 
+type Seat struct {
+	Index                int32    `protobuf:"varint,1,opt,name=index,proto3" json:"index,omitempty"`
+	Occupied             bool     `protobuf:"varint,2,opt,name=occupied,proto3" json:"occupied,omitempty"`
+	Player               *Player  `protobuf:"bytes,3,opt,name=player,proto3" json:"player,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Seat) Reset()         { *m = Seat{} }
+func (m *Seat) String() string { return proto.CompactTextString(m) }
+func (*Seat) ProtoMessage()    {}
+func (*Seat) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b480fce41873d8e6, []int{1}
+}
+
+func (m *Seat) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Seat.Unmarshal(m, b)
+}
+func (m *Seat) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Seat.Marshal(b, m, deterministic)
+}
+func (m *Seat) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Seat.Merge(m, src)
+}
+func (m *Seat) XXX_Size() int {
+	return xxx_messageInfo_Seat.Size(m)
+}
+func (m *Seat) XXX_DiscardUnknown() {
+	xxx_messageInfo_Seat.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Seat proto.InternalMessageInfo
+
+func (m *Seat) GetIndex() int32 {
+	if m != nil {
+		return m.Index
+	}
+	return 0
+}
+
+func (m *Seat) GetOccupied() bool {
+	if m != nil {
+		return m.Occupied
+	}
+	return false
+}
+
+func (m *Seat) GetPlayer() *Player {
+	if m != nil {
+		return m.Player
+	}
+	return nil
+}
+
 type Player struct {
 	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Stack                int32    `protobuf:"varint,2,opt,name=stack,proto3" json:"stack,omitempty"`
-	Bet                  int32    `protobuf:"varint,3,opt,name=bet,proto3" json:"bet,omitempty"`
+	SeatNumber           int32    `protobuf:"varint,3,opt,name=seatNumber,proto3" json:"seatNumber,omitempty"`
 	Folded               bool     `protobuf:"varint,4,opt,name=folded,proto3" json:"folded,omitempty"`
 	IsAllIn              bool     `protobuf:"varint,5,opt,name=isAllIn,proto3" json:"isAllIn,omitempty"`
 	SittingOut           bool     `protobuf:"varint,6,opt,name=sittingOut,proto3" json:"sittingOut,omitempty"`
-	Waiting              bool     `protobuf:"varint,7,opt,name=waiting,proto3" json:"waiting,omitempty"`
-	LastAction           *Action  `protobuf:"bytes,8,opt,name=lastAction,proto3" json:"lastAction,omitempty"`
+	LastAction           *Action  `protobuf:"bytes,7,opt,name=lastAction,proto3" json:"lastAction,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -141,7 +195,7 @@ func (m *Player) Reset()         { *m = Player{} }
 func (m *Player) String() string { return proto.CompactTextString(m) }
 func (*Player) ProtoMessage()    {}
 func (*Player) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b480fce41873d8e6, []int{1}
+	return fileDescriptor_b480fce41873d8e6, []int{2}
 }
 
 func (m *Player) XXX_Unmarshal(b []byte) error {
@@ -176,9 +230,9 @@ func (m *Player) GetStack() int32 {
 	return 0
 }
 
-func (m *Player) GetBet() int32 {
+func (m *Player) GetSeatNumber() int32 {
 	if m != nil {
-		return m.Bet
+		return m.SeatNumber
 	}
 	return 0
 }
@@ -204,73 +258,11 @@ func (m *Player) GetSittingOut() bool {
 	return false
 }
 
-func (m *Player) GetWaiting() bool {
-	if m != nil {
-		return m.Waiting
-	}
-	return false
-}
-
 func (m *Player) GetLastAction() *Action {
 	if m != nil {
 		return m.LastAction
 	}
 	return nil
-}
-
-type Persona struct {
-	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	GameId               int32    `protobuf:"varint,2,opt,name=gameId,proto3" json:"gameId,omitempty"`
-	SeatIndex            int32    `protobuf:"varint,3,opt,name=seatIndex,proto3" json:"seatIndex,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *Persona) Reset()         { *m = Persona{} }
-func (m *Persona) String() string { return proto.CompactTextString(m) }
-func (*Persona) ProtoMessage()    {}
-func (*Persona) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b480fce41873d8e6, []int{2}
-}
-
-func (m *Persona) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Persona.Unmarshal(m, b)
-}
-func (m *Persona) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Persona.Marshal(b, m, deterministic)
-}
-func (m *Persona) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Persona.Merge(m, src)
-}
-func (m *Persona) XXX_Size() int {
-	return xxx_messageInfo_Persona.Size(m)
-}
-func (m *Persona) XXX_DiscardUnknown() {
-	xxx_messageInfo_Persona.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Persona proto.InternalMessageInfo
-
-func (m *Persona) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *Persona) GetGameId() int32 {
-	if m != nil {
-		return m.GameId
-	}
-	return 0
-}
-
-func (m *Persona) GetSeatIndex() int32 {
-	if m != nil {
-		return m.SeatIndex
-	}
-	return 0
 }
 
 type Action struct {
@@ -430,51 +422,59 @@ func (m *StartGameRequest) GetDeterministic() bool {
 	return false
 }
 
-type AddPersonaRequest struct {
+type AddPlayerRequest struct {
 	PlayerId             int32    `protobuf:"varint,1,opt,name=playerId,proto3" json:"playerId,omitempty"`
 	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Stack                int32    `protobuf:"varint,3,opt,name=stack,proto3" json:"stack,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AddPersonaRequest) Reset()         { *m = AddPersonaRequest{} }
-func (m *AddPersonaRequest) String() string { return proto.CompactTextString(m) }
-func (*AddPersonaRequest) ProtoMessage()    {}
-func (*AddPersonaRequest) Descriptor() ([]byte, []int) {
+func (m *AddPlayerRequest) Reset()         { *m = AddPlayerRequest{} }
+func (m *AddPlayerRequest) String() string { return proto.CompactTextString(m) }
+func (*AddPlayerRequest) ProtoMessage()    {}
+func (*AddPlayerRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_b480fce41873d8e6, []int{6}
 }
 
-func (m *AddPersonaRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AddPersonaRequest.Unmarshal(m, b)
+func (m *AddPlayerRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AddPlayerRequest.Unmarshal(m, b)
 }
-func (m *AddPersonaRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AddPersonaRequest.Marshal(b, m, deterministic)
+func (m *AddPlayerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AddPlayerRequest.Marshal(b, m, deterministic)
 }
-func (m *AddPersonaRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AddPersonaRequest.Merge(m, src)
+func (m *AddPlayerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AddPlayerRequest.Merge(m, src)
 }
-func (m *AddPersonaRequest) XXX_Size() int {
-	return xxx_messageInfo_AddPersonaRequest.Size(m)
+func (m *AddPlayerRequest) XXX_Size() int {
+	return xxx_messageInfo_AddPlayerRequest.Size(m)
 }
-func (m *AddPersonaRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_AddPersonaRequest.DiscardUnknown(m)
+func (m *AddPlayerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AddPlayerRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AddPersonaRequest proto.InternalMessageInfo
+var xxx_messageInfo_AddPlayerRequest proto.InternalMessageInfo
 
-func (m *AddPersonaRequest) GetPlayerId() int32 {
+func (m *AddPlayerRequest) GetPlayerId() int32 {
 	if m != nil {
 		return m.PlayerId
 	}
 	return 0
 }
 
-func (m *AddPersonaRequest) GetName() string {
+func (m *AddPlayerRequest) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
+}
+
+func (m *AddPlayerRequest) GetStack() int32 {
+	if m != nil {
+		return m.Stack
+	}
+	return 0
 }
 
 type SitPlayerRequest struct {
@@ -730,12 +730,12 @@ func (m *DealHandRequest) GetGameId() int32 {
 
 func init() {
 	proto.RegisterType((*PlayerState)(nil), "v1.PlayerState")
+	proto.RegisterType((*Seat)(nil), "v1.Seat")
 	proto.RegisterType((*Player)(nil), "v1.Player")
-	proto.RegisterType((*Persona)(nil), "v1.Persona")
 	proto.RegisterType((*Action)(nil), "v1.Action")
 	proto.RegisterType((*GetPlayerStateRequest)(nil), "v1.GetPlayerStateRequest")
 	proto.RegisterType((*StartGameRequest)(nil), "v1.StartGameRequest")
-	proto.RegisterType((*AddPersonaRequest)(nil), "v1.AddPersonaRequest")
+	proto.RegisterType((*AddPlayerRequest)(nil), "v1.AddPlayerRequest")
 	proto.RegisterType((*SitPlayerRequest)(nil), "v1.SitPlayerRequest")
 	proto.RegisterType((*StandPlayerRequest)(nil), "v1.StandPlayerRequest")
 	proto.RegisterType((*TakeActionRequest)(nil), "v1.TakeActionRequest")
@@ -748,347 +748,50 @@ func init() {
 }
 
 var fileDescriptor_b480fce41873d8e6 = []byte{
-	// 726 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0xdd, 0x6e, 0xd3, 0x4c,
-	0x10, 0xad, 0x93, 0xc6, 0x49, 0x26, 0xfd, 0xfa, 0xb3, 0x5f, 0x5b, 0x99, 0x08, 0xa1, 0xc8, 0xaa,
-	0x50, 0xe0, 0xa2, 0x52, 0xcb, 0x0d, 0x42, 0xa8, 0x52, 0x29, 0x52, 0x89, 0x10, 0x34, 0x72, 0xfa,
-	0x02, 0x1b, 0x7b, 0x1a, 0x56, 0xb1, 0xd7, 0xc6, 0xbb, 0x0e, 0xf4, 0x1d, 0x78, 0x24, 0x6e, 0x79,
-	0x0b, 0x1e, 0x06, 0xed, 0x7a, 0x1d, 0xdb, 0x69, 0x53, 0x7a, 0xc3, 0xdd, 0xce, 0x99, 0xd9, 0xf9,
-	0x39, 0x73, 0xbc, 0x06, 0xa0, 0x09, 0x13, 0xc7, 0x49, 0x1a, 0xcb, 0x98, 0x34, 0x16, 0x27, 0xee,
-	0xaf, 0x06, 0xf4, 0xc6, 0x21, 0xbd, 0xc5, 0x74, 0x22, 0xa9, 0x44, 0xf2, 0x1c, 0xb6, 0xa7, 0x99,
-	0x94, 0x31, 0x1f, 0xc7, 0x82, 0x49, 0x16, 0x73, 0xc7, 0x1a, 0x58, 0xc3, 0x96, 0xb7, 0x82, 0x12,
-	0x17, 0xb6, 0xa6, 0x28, 0x25, 0xe3, 0x33, 0x2f, 0xce, 0x78, 0xe0, 0x34, 0x06, 0xd6, 0xb0, 0xeb,
-	0xd5, 0x30, 0xf2, 0x0c, 0x20, 0x44, 0x1a, 0xe4, 0xe9, 0x9d, 0xa6, 0xce, 0x53, 0x41, 0x54, 0x0e,
-	0xea, 0xab, 0x70, 0x13, 0xb1, 0xa9, 0x23, 0x6a, 0x18, 0x21, 0xb0, 0x99, 0xc4, 0x52, 0x38, 0xad,
-	0x41, 0x73, 0xd8, 0xf2, 0xf4, 0x99, 0x0c, 0xa0, 0x97, 0x68, 0xef, 0x05, 0x4d, 0x03, 0xe1, 0xd8,
-	0xda, 0x55, 0x85, 0xd4, 0x14, 0x7e, 0x1c, 0x45, 0x19, 0x67, 0xf2, 0x36, 0x0f, 0x6a, 0xeb, 0xa0,
-	0x15, 0x94, 0x1c, 0x41, 0x3b, 0xbf, 0x26, 0x9c, 0xce, 0xa0, 0x39, 0xec, 0x9d, 0xc2, 0xf1, 0xe2,
-	0xe4, 0x38, 0x2f, 0xed, 0x15, 0x2e, 0xd5, 0x27, 0x13, 0x1f, 0x28, 0x0f, 0xce, 0x7d, 0xc9, 0x16,
-	0xe8, 0x74, 0x07, 0xd6, 0xb0, 0xe3, 0xd5, 0x30, 0xf7, 0xb7, 0x05, 0x76, 0xd9, 0x32, 0xa7, 0x11,
-	0x6a, 0xe2, 0xba, 0x9e, 0x3e, 0x93, 0x7d, 0x68, 0x09, 0x49, 0xfd, 0xb9, 0xe6, 0xa9, 0xe5, 0xe5,
-	0x06, 0xd9, 0x85, 0xe6, 0x14, 0xa5, 0x61, 0x46, 0x1d, 0xc9, 0x21, 0xd8, 0x37, 0x71, 0x18, 0x60,
-	0xa0, 0xc9, 0xe8, 0x78, 0xc6, 0x22, 0x0e, 0xb4, 0x99, 0x38, 0x0f, 0xc3, 0x11, 0x77, 0x5a, 0xda,
-	0x51, 0x98, 0x8a, 0x64, 0xc1, 0x34, 0xe9, 0x57, 0x99, 0x74, 0x6c, 0xed, 0xac, 0x20, 0xea, 0xe6,
-	0x37, 0xca, 0x94, 0xe5, 0xb4, 0xf3, 0x9b, 0xc6, 0x24, 0x2f, 0x01, 0x42, 0x2a, 0xa4, 0x1a, 0x20,
-	0xe6, 0x4e, 0x67, 0x60, 0x15, 0xf3, 0xe7, 0x88, 0x57, 0xf1, 0xba, 0x13, 0x68, 0x8f, 0x31, 0x15,
-	0x31, 0xa7, 0xf7, 0x8e, 0x77, 0x08, 0xf6, 0x8c, 0x46, 0x38, 0x0a, 0xcc, 0x7c, 0xc6, 0x22, 0x4f,
-	0xa1, 0x2b, 0x90, 0xca, 0x11, 0x0f, 0xf0, 0xbb, 0x19, 0xb3, 0x04, 0xdc, 0x33, 0xb0, 0xf3, 0xf4,
-	0x6a, 0x08, 0xaa, 0x4f, 0xd7, 0xb7, 0x49, 0x91, 0xb9, 0x82, 0x28, 0xfa, 0x16, 0x34, 0xcc, 0xb0,
-	0xa0, 0x4f, 0x1b, 0xee, 0x47, 0x38, 0xb8, 0x44, 0x59, 0x51, 0xaf, 0x87, 0x5f, 0x33, 0x14, 0x92,
-	0xf4, 0xa1, 0x93, 0xef, 0x6e, 0x14, 0x18, 0xf9, 0x2e, 0xed, 0x75, 0xad, 0xba, 0x3f, 0x2c, 0xd8,
-	0x9d, 0x48, 0x9a, 0xca, 0x4b, 0x1a, 0x2d, 0x13, 0x95, 0xc1, 0x56, 0x6d, 0xae, 0x3e, 0x74, 0xa6,
-	0x6c, 0xf6, 0x2e, 0x64, 0xbc, 0x48, 0xb3, 0xb4, 0xf5, 0x42, 0x22, 0x1a, 0x86, 0xb9, 0xd7, 0xa8,
-	0xbe, 0x44, 0xc8, 0x11, 0xfc, 0x17, 0xa0, 0xc4, 0x34, 0x62, 0x9c, 0x09, 0xc9, 0x7c, 0xb3, 0xe9,
-	0x3a, 0xe8, 0x5e, 0xc0, 0xde, 0x79, 0x10, 0x18, 0xce, 0x1f, 0x33, 0x57, 0xb1, 0x96, 0x46, 0xb9,
-	0x16, 0xf7, 0x06, 0x76, 0x27, 0xcc, 0x10, 0xf4, 0x98, 0x1c, 0xaa, 0x75, 0xa4, 0xf2, 0x73, 0x16,
-	0x4d, 0x31, 0x35, 0x83, 0x55, 0x90, 0x0a, 0x1d, 0xcd, 0x1a, 0x77, 0x5f, 0x80, 0x4c, 0x24, 0xe5,
-	0xc1, 0xbf, 0xaf, 0x34, 0x87, 0xbd, 0x6b, 0x3a, 0x47, 0xa3, 0xd0, 0x47, 0x14, 0x72, 0xc1, 0xce,
-	0x75, 0xa4, 0x8b, 0xd4, 0x05, 0x6e, 0x3c, 0x6b, 0x8b, 0x7d, 0x82, 0xbd, 0xab, 0x04, 0x53, 0x9a,
-	0xd7, 0x12, 0x49, 0xcc, 0x05, 0xea, 0xce, 0x33, 0xdf, 0x47, 0x21, 0x6e, 0xb2, 0x50, 0x97, 0x53,
-	0xdf, 0xdb, 0x12, 0x51, 0xdf, 0x5b, 0x84, 0x42, 0xd0, 0x59, 0xb1, 0x8a, 0xc2, 0x74, 0x5f, 0xc0,
-	0xce, 0x7b, 0xa4, 0xa1, 0x7a, 0x34, 0xfe, 0xa2, 0xaf, 0xd3, 0x9f, 0x4d, 0xd8, 0x1a, 0xc7, 0x73,
-	0x4c, 0x27, 0x98, 0x2e, 0x98, 0x8f, 0xe4, 0x0d, 0x74, 0x97, 0xe2, 0x24, 0xfb, 0x6a, 0x86, 0x55,
-	0xad, 0xf6, 0x0f, 0x14, 0x7a, 0xa7, 0x5f, 0x77, 0x83, 0xbc, 0x05, 0x28, 0xa5, 0x44, 0x74, 0xd8,
-	0x1d, 0x69, 0xad, 0xbf, 0xad, 0x2a, 0x17, 0x1a, 0x32, 0x95, 0x57, 0x24, 0xb5, 0xfe, 0xee, 0x19,
-	0xf4, 0x2a, 0xba, 0x20, 0x87, 0xa6, 0xef, 0x15, 0xa1, 0x3c, 0xd8, 0x79, 0xb9, 0xed, 0xbc, 0xf3,
-	0x3b, 0xdb, 0x5f, 0x7f, 0xfb, 0x35, 0x74, 0x0a, 0xbe, 0xc9, 0xff, 0x2a, 0x68, 0x85, 0xfd, 0x87,
-	0xfa, 0xde, 0xae, 0x3f, 0x2c, 0xe4, 0x89, 0x0a, 0xbd, 0xf7, 0xb1, 0xe9, 0xef, 0x94, 0xbf, 0x0c,
-	0x8d, 0xbb, 0x1b, 0x53, 0x5b, 0xff, 0x5f, 0x5f, 0xfd, 0x09, 0x00, 0x00, 0xff, 0xff, 0x3c, 0x98,
-	0xaa, 0x9c, 0x6d, 0x07, 0x00, 0x00,
-}
-
-// Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
-
-// PokerServiceClient is the client API for PokerService service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type PokerServiceClient interface {
-	StartGame(ctx context.Context, in *StartGameRequest, opts ...grpc.CallOption) (*OperationResponse, error)
-	AddPersona(ctx context.Context, in *AddPersonaRequest, opts ...grpc.CallOption) (*OperationResponse, error)
-	SitPlayer(ctx context.Context, in *SitPlayerRequest, opts ...grpc.CallOption) (*OperationResponse, error)
-	StandPlayer(ctx context.Context, in *StandPlayerRequest, opts ...grpc.CallOption) (*OperationResponse, error)
-	TakeAction(ctx context.Context, in *TakeActionRequest, opts ...grpc.CallOption) (*OperationResponse, error)
-	DealHand(ctx context.Context, in *DealHandRequest, opts ...grpc.CallOption) (*OperationResponse, error)
-	GetPlayerState(ctx context.Context, in *GetPlayerStateRequest, opts ...grpc.CallOption) (*PlayerState, error)
-}
-
-type pokerServiceClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewPokerServiceClient(cc grpc.ClientConnInterface) PokerServiceClient {
-	return &pokerServiceClient{cc}
-}
-
-func (c *pokerServiceClient) StartGame(ctx context.Context, in *StartGameRequest, opts ...grpc.CallOption) (*OperationResponse, error) {
-	out := new(OperationResponse)
-	err := c.cc.Invoke(ctx, "/v1.PokerService/StartGame", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pokerServiceClient) AddPersona(ctx context.Context, in *AddPersonaRequest, opts ...grpc.CallOption) (*OperationResponse, error) {
-	out := new(OperationResponse)
-	err := c.cc.Invoke(ctx, "/v1.PokerService/AddPersona", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pokerServiceClient) SitPlayer(ctx context.Context, in *SitPlayerRequest, opts ...grpc.CallOption) (*OperationResponse, error) {
-	out := new(OperationResponse)
-	err := c.cc.Invoke(ctx, "/v1.PokerService/SitPlayer", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pokerServiceClient) StandPlayer(ctx context.Context, in *StandPlayerRequest, opts ...grpc.CallOption) (*OperationResponse, error) {
-	out := new(OperationResponse)
-	err := c.cc.Invoke(ctx, "/v1.PokerService/StandPlayer", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pokerServiceClient) TakeAction(ctx context.Context, in *TakeActionRequest, opts ...grpc.CallOption) (*OperationResponse, error) {
-	out := new(OperationResponse)
-	err := c.cc.Invoke(ctx, "/v1.PokerService/TakeAction", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pokerServiceClient) DealHand(ctx context.Context, in *DealHandRequest, opts ...grpc.CallOption) (*OperationResponse, error) {
-	out := new(OperationResponse)
-	err := c.cc.Invoke(ctx, "/v1.PokerService/DealHand", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *pokerServiceClient) GetPlayerState(ctx context.Context, in *GetPlayerStateRequest, opts ...grpc.CallOption) (*PlayerState, error) {
-	out := new(PlayerState)
-	err := c.cc.Invoke(ctx, "/v1.PokerService/GetPlayerState", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// PokerServiceServer is the server API for PokerService service.
-type PokerServiceServer interface {
-	StartGame(context.Context, *StartGameRequest) (*OperationResponse, error)
-	AddPersona(context.Context, *AddPersonaRequest) (*OperationResponse, error)
-	SitPlayer(context.Context, *SitPlayerRequest) (*OperationResponse, error)
-	StandPlayer(context.Context, *StandPlayerRequest) (*OperationResponse, error)
-	TakeAction(context.Context, *TakeActionRequest) (*OperationResponse, error)
-	DealHand(context.Context, *DealHandRequest) (*OperationResponse, error)
-	GetPlayerState(context.Context, *GetPlayerStateRequest) (*PlayerState, error)
-}
-
-// UnimplementedPokerServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedPokerServiceServer struct {
-}
-
-func (*UnimplementedPokerServiceServer) StartGame(ctx context.Context, req *StartGameRequest) (*OperationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StartGame not implemented")
-}
-func (*UnimplementedPokerServiceServer) AddPersona(ctx context.Context, req *AddPersonaRequest) (*OperationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddPersona not implemented")
-}
-func (*UnimplementedPokerServiceServer) SitPlayer(ctx context.Context, req *SitPlayerRequest) (*OperationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SitPlayer not implemented")
-}
-func (*UnimplementedPokerServiceServer) StandPlayer(ctx context.Context, req *StandPlayerRequest) (*OperationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StandPlayer not implemented")
-}
-func (*UnimplementedPokerServiceServer) TakeAction(ctx context.Context, req *TakeActionRequest) (*OperationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TakeAction not implemented")
-}
-func (*UnimplementedPokerServiceServer) DealHand(ctx context.Context, req *DealHandRequest) (*OperationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DealHand not implemented")
-}
-func (*UnimplementedPokerServiceServer) GetPlayerState(ctx context.Context, req *GetPlayerStateRequest) (*PlayerState, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPlayerState not implemented")
-}
-
-func RegisterPokerServiceServer(s *grpc.Server, srv PokerServiceServer) {
-	s.RegisterService(&_PokerService_serviceDesc, srv)
-}
-
-func _PokerService_StartGame_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StartGameRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PokerServiceServer).StartGame(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/v1.PokerService/StartGame",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PokerServiceServer).StartGame(ctx, req.(*StartGameRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PokerService_AddPersona_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddPersonaRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PokerServiceServer).AddPersona(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/v1.PokerService/AddPersona",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PokerServiceServer).AddPersona(ctx, req.(*AddPersonaRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PokerService_SitPlayer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SitPlayerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PokerServiceServer).SitPlayer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/v1.PokerService/SitPlayer",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PokerServiceServer).SitPlayer(ctx, req.(*SitPlayerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PokerService_StandPlayer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StandPlayerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PokerServiceServer).StandPlayer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/v1.PokerService/StandPlayer",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PokerServiceServer).StandPlayer(ctx, req.(*StandPlayerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PokerService_TakeAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TakeActionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PokerServiceServer).TakeAction(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/v1.PokerService/TakeAction",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PokerServiceServer).TakeAction(ctx, req.(*TakeActionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PokerService_DealHand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DealHandRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PokerServiceServer).DealHand(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/v1.PokerService/DealHand",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PokerServiceServer).DealHand(ctx, req.(*DealHandRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _PokerService_GetPlayerState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPlayerStateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(PokerServiceServer).GetPlayerState(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/v1.PokerService/GetPlayerState",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PokerServiceServer).GetPlayerState(ctx, req.(*GetPlayerStateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _PokerService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "v1.PokerService",
-	HandlerType: (*PokerServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "StartGame",
-			Handler:    _PokerService_StartGame_Handler,
-		},
-		{
-			MethodName: "AddPersona",
-			Handler:    _PokerService_AddPersona_Handler,
-		},
-		{
-			MethodName: "SitPlayer",
-			Handler:    _PokerService_SitPlayer_Handler,
-		},
-		{
-			MethodName: "StandPlayer",
-			Handler:    _PokerService_StandPlayer_Handler,
-		},
-		{
-			MethodName: "TakeAction",
-			Handler:    _PokerService_TakeAction_Handler,
-		},
-		{
-			MethodName: "DealHand",
-			Handler:    _PokerService_DealHand_Handler,
-		},
-		{
-			MethodName: "GetPlayerState",
-			Handler:    _PokerService_GetPlayerState_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "apis.proto",
+	// 720 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0xcb, 0x6e, 0xd3, 0x40,
+	0x14, 0x6d, 0x92, 0xda, 0x75, 0x6e, 0x4a, 0x1f, 0x43, 0x5b, 0x99, 0x2e, 0xaa, 0x68, 0x84, 0x50,
+	0x60, 0x51, 0xa9, 0x65, 0x83, 0x10, 0xaa, 0x54, 0x40, 0x2a, 0x15, 0x82, 0x56, 0x4e, 0x17, 0x2c,
+	0xd8, 0x4c, 0xec, 0x69, 0x18, 0xc5, 0x1e, 0x1b, 0xcf, 0x38, 0xa2, 0xff, 0xc0, 0x17, 0xb1, 0xe1,
+	0x17, 0xf8, 0x24, 0x34, 0x0f, 0xbf, 0xd2, 0x07, 0xd9, 0xb0, 0x9b, 0x7b, 0xee, 0xfb, 0xcc, 0xf1,
+	0x18, 0x80, 0x64, 0x4c, 0x1c, 0x66, 0x79, 0x2a, 0x53, 0xd4, 0x9d, 0x1f, 0xe1, 0xdf, 0x5d, 0x18,
+	0x5c, 0xc6, 0xe4, 0x86, 0xe6, 0x63, 0x49, 0x24, 0x45, 0xcf, 0x60, 0x63, 0x52, 0x48, 0x99, 0xf2,
+	0xcb, 0x54, 0x30, 0xc9, 0x52, 0xee, 0x77, 0x86, 0x9d, 0x91, 0x13, 0x2c, 0xa0, 0x08, 0xc3, 0xfa,
+	0x84, 0x4a, 0xc9, 0xf8, 0x34, 0x48, 0x0b, 0x1e, 0xf9, 0xdd, 0x61, 0x67, 0xd4, 0x0f, 0x5a, 0x18,
+	0x3a, 0x00, 0x88, 0x29, 0x89, 0x4c, 0x79, 0xbf, 0xa7, 0xeb, 0x34, 0x10, 0x55, 0x83, 0x84, 0x2a,
+	0xdc, 0x46, 0xac, 0xea, 0x88, 0x16, 0x86, 0x10, 0xac, 0x66, 0xa9, 0x14, 0xbe, 0x33, 0xec, 0x8d,
+	0x9c, 0x40, 0x9f, 0xd1, 0x10, 0x06, 0x99, 0xf6, 0xbe, 0x23, 0x79, 0x24, 0x7c, 0x57, 0xbb, 0x9a,
+	0x90, 0xda, 0x22, 0x4c, 0x93, 0xa4, 0xe0, 0x4c, 0xde, 0x98, 0xa0, 0x35, 0x1d, 0xb4, 0x80, 0xa2,
+	0x03, 0x70, 0x04, 0x25, 0x52, 0xf8, 0xde, 0xb0, 0x37, 0x1a, 0x1c, 0x7b, 0x87, 0xf3, 0xa3, 0xc3,
+	0x31, 0x25, 0x32, 0x30, 0xb0, 0x9a, 0x90, 0x89, 0x0f, 0x84, 0x47, 0xa7, 0xa1, 0x64, 0x73, 0xea,
+	0xf7, 0x87, 0x9d, 0x91, 0x17, 0xb4, 0x30, 0xfc, 0x15, 0x56, 0x55, 0x0a, 0xda, 0x01, 0x87, 0xf1,
+	0x88, 0xfe, 0xb0, 0x84, 0x19, 0x03, 0xed, 0x83, 0x97, 0x86, 0x61, 0x91, 0x31, 0x6a, 0x38, 0xf2,
+	0x82, 0xca, 0x46, 0x18, 0xdc, 0xac, 0xe6, 0x66, 0x70, 0x0c, 0xaa, 0xbd, 0xd9, 0x3b, 0xb0, 0x1e,
+	0xfc, 0xa7, 0x03, 0x6e, 0x4d, 0x05, 0x27, 0x09, 0xd5, 0xf5, 0xfb, 0x81, 0x3e, 0xab, 0xa6, 0x42,
+	0x92, 0x70, 0xa6, 0x6b, 0x3b, 0x81, 0x31, 0x14, 0xf1, 0x6a, 0xfe, 0xcf, 0x45, 0x32, 0xa9, 0x89,
+	0xaf, 0x11, 0xb4, 0x07, 0xee, 0x75, 0x1a, 0x47, 0x34, 0xd2, 0x94, 0x7b, 0x81, 0xb5, 0x90, 0x0f,
+	0x6b, 0x4c, 0x9c, 0xc6, 0xf1, 0x39, 0xf7, 0x1d, 0xed, 0x28, 0x4d, 0x5d, 0x91, 0xe9, 0xab, 0xbd,
+	0x28, 0xa4, 0xef, 0x6a, 0x67, 0x03, 0x41, 0x2f, 0x00, 0x62, 0x22, 0xa4, 0xa2, 0x24, 0xe5, 0xfe,
+	0x5a, 0xbd, 0x8e, 0x41, 0x82, 0x86, 0x17, 0x9f, 0x80, 0x6b, 0x4e, 0xaa, 0x2a, 0xd1, 0xa7, 0xab,
+	0x9b, 0xac, 0xdc, 0xab, 0x81, 0xa8, 0xed, 0xe6, 0x24, 0x2e, 0x68, 0xb9, 0x9d, 0x36, 0xf0, 0x47,
+	0xd8, 0x3d, 0xa3, 0xb2, 0x21, 0xda, 0x80, 0x7e, 0x2f, 0xa8, 0x90, 0x8a, 0x6b, 0xc3, 0xda, 0x79,
+	0x64, 0x2f, 0xa1, 0xb2, 0xd5, 0xca, 0x53, 0x92, 0xd0, 0xf3, 0xc8, 0xd6, 0xb2, 0x16, 0xfe, 0xd9,
+	0x81, 0xad, 0xb1, 0x24, 0xb9, 0x3c, 0x23, 0x49, 0x55, 0xa8, 0x0e, 0xee, 0x34, 0x83, 0x55, 0x83,
+	0x09, 0x9b, 0xbe, 0x8d, 0x19, 0x2f, 0xcb, 0x54, 0xb6, 0x66, 0x28, 0x21, 0x71, 0x6c, 0xbc, 0x25,
+	0xe7, 0x15, 0x82, 0x9e, 0xc2, 0xa3, 0x88, 0x4a, 0x9a, 0x27, 0x8c, 0x33, 0x21, 0x59, 0x68, 0xa9,
+	0x6f, 0x83, 0xf8, 0x0b, 0x6c, 0x9d, 0x46, 0xf6, 0xfb, 0x58, 0x66, 0xad, 0x52, 0x13, 0xdd, 0xbb,
+	0x34, 0xd1, 0x6b, 0x68, 0x02, 0x5f, 0xc3, 0xd6, 0x98, 0xc9, 0xe5, 0x2b, 0xb7, 0x35, 0xd4, 0xbd,
+	0x4b, 0x43, 0x96, 0xa3, 0x5e, 0x8b, 0xd0, 0x6f, 0x80, 0xc6, 0x92, 0xf0, 0xe8, 0xff, 0x77, 0x9a,
+	0xc1, 0xf6, 0x15, 0x99, 0x51, 0xab, 0xb0, 0x25, 0x1a, 0x61, 0x70, 0x8d, 0xb8, 0x74, 0x93, 0xb6,
+	0x40, 0xad, 0xe7, 0xde, 0x66, 0x9f, 0x60, 0xfb, 0x22, 0xa3, 0x39, 0x31, 0xbd, 0x44, 0x96, 0x72,
+	0x41, 0xf5, 0xe4, 0x45, 0x18, 0x52, 0x21, 0xae, 0x8b, 0x58, 0xb7, 0x53, 0x5f, 0x45, 0x85, 0xa8,
+	0xef, 0x29, 0xa1, 0x42, 0x90, 0x69, 0x79, 0x41, 0xa5, 0x89, 0x9f, 0xc3, 0xe6, 0x7b, 0x4a, 0x62,
+	0xf5, 0x8c, 0xfc, 0x43, 0x74, 0xc7, 0xbf, 0x7a, 0xb0, 0x7e, 0x99, 0xce, 0x68, 0x3e, 0xa6, 0xf9,
+	0x9c, 0x85, 0x14, 0xbd, 0x86, 0x7e, 0xa5, 0x58, 0xb4, 0xa3, 0x9f, 0xac, 0x05, 0x01, 0xef, 0xef,
+	0x2a, 0xf4, 0xd6, 0xbc, 0x78, 0x45, 0xe5, 0x56, 0xfa, 0x32, 0xb9, 0x8b, 0x72, 0x7b, 0x30, 0xb7,
+	0x52, 0x90, 0xed, 0xbb, 0x20, 0xa8, 0xfb, 0x73, 0x4f, 0x60, 0xd0, 0x50, 0x05, 0xda, 0xb3, 0x53,
+	0xf3, 0x65, 0x7b, 0xbf, 0x01, 0xa8, 0xef, 0x1a, 0xe9, 0xb0, 0x5b, 0x77, 0x7f, 0x7f, 0xf6, 0x2b,
+	0xf0, 0x4a, 0xb6, 0xd1, 0x63, 0x15, 0xb4, 0xc0, 0xfd, 0x43, 0x73, 0x6f, 0xb4, 0xdf, 0x1a, 0xf4,
+	0x44, 0x85, 0xde, 0xf9, 0xfe, 0xec, 0x6f, 0xd6, 0xef, 0xb7, 0xc6, 0xf1, 0xca, 0xc4, 0xd5, 0x7f,
+	0xda, 0x97, 0x7f, 0x03, 0x00, 0x00, 0xff, 0xff, 0x7e, 0x51, 0xc8, 0x5d, 0x77, 0x07, 0x00, 0x00,
 }

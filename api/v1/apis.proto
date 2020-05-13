@@ -9,25 +9,24 @@ message PlayerState {
     repeated int32 pots = 5;
     repeated int32 playerCards = 6;
     repeated int32 communityCards = 7;
-    repeated Player players = 8;
+    repeated Seat seats = 8;
     bool isHandActive = 9;
+}
+
+message Seat {
+    int32 index = 1;
+    bool occupied = 2;
+    Player player = 3;
 }
 
 message Player {
     string name = 1;
     int32 stack = 2;
-    int32 bet = 3;
+    int32 seatNumber = 3;
     bool folded = 4;
     bool isAllIn = 5;
     bool sittingOut = 6;
-    bool waiting = 7;
-    Action lastAction = 8;
-}
-
-message Persona {
-    string name = 1;
-    int32 gameId = 2;
-    int32 seatIndex = 3;
+    Action lastAction = 7;
 }
 
 message Action {
@@ -47,9 +46,10 @@ message StartGameRequest {
     bool deterministic = 4;
 }
 
-message AddPersonaRequest {
+message AddPlayerRequest {
     int32 playerId = 1;
     string name = 2;
+    int32 stack = 3;
 }
 
 message SitPlayerRequest {
@@ -80,11 +80,11 @@ message DealHandRequest {
 }
 
 service PokerService {
-    rpc StartGame (StartGameRequest) returns (OperationResponse) {}
-    rpc AddPersona (AddPersonaRequest) returns (OperationResponse) {}
-    rpc SitPlayer (SitPlayerRequest) returns (OperationResponse) {}
-    rpc StandPlayer (StandPlayerRequest) returns (OperationResponse) {}
-    rpc TakeAction (TakeActionRequest) returns (OperationResponse) {}
-    rpc DealHand (DealHandRequest) returns (OperationResponse) {}
-    rpc GetPlayerState (GetPlayerStateRequest) returns (PlayerState) {}
+    rpc StartGame(StartGameRequest) returns (OperationResponse) {}
+    rpc AddPlayer(AddPlayerRequest) returns (OperationResponse) {}
+    rpc SitPlayer(SitPlayerRequest) returns (OperationResponse) {}
+    rpc StandPlayer(StandPlayerRequest) returns (OperationResponse) {}
+    rpc TakeAction(TakeActionRequest) returns (OperationResponse) {}
+    rpc DealHand(DealHandRequest) returns (OperationResponse) {}
+    rpc GetPlayerState(GetPlayerStateRequest) returns (PlayerState) {}
 }

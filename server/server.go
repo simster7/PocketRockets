@@ -5,8 +5,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/simster7/PocketRockets/api/v1"
-	"github.com/simster7/PocketRockets/engine"
+	"github.com/simster7/PocketRockets/backend/api/v1"
+	"github.com/simster7/PocketRockets/backend/engine"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
@@ -14,19 +14,19 @@ import (
 )
 
 type PokerServer struct {
-	Games    map[int32]*engine.Game
-	Personas map[int32]*engine.Persona
+	Games   map[int32]*engine.Game
+	Players map[int32]*engine.Player
 }
 
 func NewPokerServer() PokerServer {
 	return PokerServer{
-		Games:    make(map[int32]*engine.Game),
-		Personas: make(map[int32]*engine.Persona),
+		Games:   make(map[int32]*engine.Game),
+		Players: make(map[int32]*engine.Player),
 	}
 }
 
 func (s *PokerServer) StartGame(_ context.Context, request *v1.StartGameRequest) (*v1.OperationResponse, error) {
-	if _, ok := s.Personas[request.GameId]; ok {
+	if _, ok := s.Players[request.GameId]; ok {
 		return nil, errors.New("cannot create a game that already exists")
 	}
 	var newGame engine.Game
@@ -39,33 +39,33 @@ func (s *PokerServer) StartGame(_ context.Context, request *v1.StartGameRequest)
 	return &v1.OperationResponse{Successful: true, Message: "Successfully created game"}, nil
 }
 
-func (s *PokerServer) AddPersona(_ context.Context, request *v1.AddPersonaRequest) (*v1.OperationResponse, error) {
-	if _, ok := s.Personas[request.PlayerId]; ok {
-		return nil, errors.New("cannot add persona that already exists")
+func (s *PokerServer) AddPlayer(_ context.Context, request *v1.AddPlayerRequest) (*v1.OperationResponse, error) {
+	if _, ok := s.Players[request.PlayerId]; ok {
+		return nil, errors.New("cannot add player that is already in game")
 	}
-	newPlayer := engine.Persona{Name: request.Name}
-	s.Personas[request.PlayerId] = &newPlayer
+	newPlayer := engine.Player{Name: request.Name, Stack: int(request.Stack)}
+	s.Players[request.PlayerId] = &newPlayer
 	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Successfully added '%s'", newPlayer.Name)}, nil
 }
 
 func (s *PokerServer) SitPlayer(_ context.Context, request *v1.SitPlayerRequest) (*v1.OperationResponse, error) {
-	persona, ok := s.Personas[request.PlayerId]
+	player, ok := s.Players[request.PlayerId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("persona with Persona ID '%d' not found", request.PlayerId))
+		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
 	}
 	game, ok := s.Games[request.GameId]
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("game with Game ID '%d' not found", request.GameId))
 	}
-	err := game.SitPlayer(persona, int(request.SeatNumber))
+	err := game.SitPlayer(player, int(request.SeatNumber))
 	if err != nil {
 		return nil, err
 	}
-	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Succesfully sat '%s' in seat %d", persona.Name, persona.SeatNumber)}, nil
+	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Succesfully sat '%s' in seat %d", player.Name, player.SeatNumber)}, nil
 }
 
 func (s *PokerServer) StandPlayer(_ context.Context, request *v1.StandPlayerRequest) (*v1.OperationResponse, error) {
-	player, ok := s.Personas[request.PlayerId]
+	player, ok := s.Players[request.PlayerId]
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
 	}
@@ -93,7 +93,7 @@ func (s *PokerServer) DealHand(_ context.Context, request *v1.DealHandRequest) (
 }
 
 func (s *PokerServer) TakeAction(_ context.Context, request *v1.TakeActionRequest) (*v1.OperationResponse, error) {
-	player, ok := s.Personas[request.PlayerId]
+	player, ok := s.Players[request.PlayerId]
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
 	}
@@ -112,7 +112,7 @@ func (s *PokerServer) TakeAction(_ context.Context, request *v1.TakeActionReques
 }
 
 func (s *PokerServer) GetPlayerState(_ context.Context, request *v1.GetPlayerStateRequest) (*v1.PlayerState, error) {
-	player, ok := s.Personas[request.PlayerId]
+	player, ok := s.Players[request.PlayerId]
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
 	}
