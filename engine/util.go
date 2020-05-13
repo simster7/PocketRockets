@@ -90,24 +90,3 @@ func containsIntInIntSlice(slice []int, i int) bool {
 	}
 	return false
 }
-
-func getShuffledDeck() Deck{
-	var deck Deck
-	perm := rand.Perm(52)
-	for i := 0; i < 52; i++ {
-		deck[perm[i]] = Card(i)
-	}
-	return deck
-}
-
-func getDeck() Deck {
-	var deck Deck
-	for i := 0; i < 52; i++ {
-		deck[i] = Card(i)
-	}
-	return deck
-}
-
-func emptyTable() Seats {
-	return *new(Seats)
-}
