@@ -61,7 +61,7 @@ func (s *PokerServer) SitPlayer(_ context.Context, request *v1.SitPlayerRequest)
 	if err != nil {
 		return nil, err
 	}
-	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Succesfully sat '%s' in seat %d", persona.Name, persona.SeatNumber)}, nil
+	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Succesfully sat '%s' in seat %d", persona.Name, request.SeatNumber)}, nil
 }
 
 func (s *PokerServer) StandPlayer(_ context.Context, request *v1.StandPlayerRequest) (*v1.OperationResponse, error) {
