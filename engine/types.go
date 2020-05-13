@@ -59,7 +59,7 @@ func (p *Player) InHand() bool {
 }
 
 func (p *Player) ActiveInHand() bool {
-	return p.InHand() && !p.Folded
+	return p.InHand() && !p.Folded && !p.IsAllIn
 }
 
 type Persona struct {

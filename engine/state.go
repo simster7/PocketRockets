@@ -89,14 +89,14 @@ func (gs *State) TakeAction(action Action) error {
 		gs.LeadingPlayer = gs.ActingPlayer
 	}
 	gs.Players[gs.ActingPlayer].LastAction = action
-	endsHand := gs.moveActingPlayer()
-	if endsHand {
+	gs.moveActingPlayer()
+	if gs.isHandOver() {
 		gs.processEndGame()
 	}
 	return nil
 }
 
-func (gs *State) moveActingPlayer() bool {
+func (gs *State) moveActingPlayer() {
 	gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
 	for !gs.Players[gs.ActingPlayer].ActiveInHand() && !gs.isRoundOver() {
 		gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
@@ -109,18 +109,6 @@ func (gs *State) moveActingPlayer() bool {
 		gs.processPots()
 		gs.Round = gs.Round.GetNextRound()
 	}
-
-	if gs.isHandOver() {
-		gs.IsHandActive = false
-		for _, player := range gs.Players {
-			if player != nil {
-				player.Folded = false
-				player.IsAllIn = false
-			}
-		}
-		return true
-	}
-	return false
 }
 
 func (gs *State) processPots() {
@@ -237,6 +225,14 @@ func (gs *State) processEndGame() {
 			}
 			// TODO
 			//consequence.PotRemainder += gs.Pots[potIndex] % numberOfWinners
+		}
+	}
+
+	gs.IsHandActive = false
+	for _, player := range gs.Players {
+		if player != nil {
+			player.Folded = false
+			player.IsAllIn = false
 		}
 	}
 }

@@ -348,6 +348,7 @@ func TestGameMultiround(t *testing.T) {
 
 func TestGameAllInSimple(t *testing.T) {
 	gs := getNewTestGameState(map[int]int{2: 20, 5: 50, 7: 100})
+	gs.DealHand(2, 1, shuffler.Shuffle())
 
 	// Pre flop
 	// Bet is 10 each, 2 is left with 10 at round end
@@ -372,6 +373,7 @@ func TestGameAllInSimple(t *testing.T) {
 	err = gs.TakeAction(Action{ActionType: ActionTypeCall})
 	assert.NoError(t, err)
 	assert.Equal(t, 60, gs.Players[7].Stack)
+	assert.Equal(t, RoundFlop, gs.Round)
 	err = gs.TakeAction(Action{ActionType: ActionTypeCall})
 	assert.NoError(t, err)
 	assert.Equal(t, 0, gs.Players[2].Stack)
@@ -400,6 +402,7 @@ func TestGameAllInSimple(t *testing.T) {
 
 func TestGameAllInTwoSidePots(t *testing.T) {
 	gs := getNewTestGameState(map[int]int{2: 20, 5: 50, 7: 100, 8: 30})
+	gs.DealHand(2, 1, shuffler.Shuffle())
 
 	// Pre flop
 	// Bet is 10 each, 2 is left with 10 at round end and Jarry with 20
@@ -472,6 +475,7 @@ func TestGameAllInTwoSidePots(t *testing.T) {
 
 func TestGameAllInWithFold(t *testing.T) {
 	gs := getNewTestGameState(map[int]int{2: 20, 5: 50, 7: 100, 8: 30})
+	gs.DealHand(2, 1, shuffler.Shuffle())
 
 	// Pre flop
 	// Bet is 10 each, 2 is left with 10 at round end and 8 with 20
@@ -547,6 +551,7 @@ func TestGameAllInWithFold(t *testing.T) {
 
 func TestGamePreFlopOption(t *testing.T) {
 	gs := getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100})
+	gs.DealHand(2, 1, shuffler.Shuffle())
 
 	assert.Equal(t, RoundPreFlop, gs.Round)
 	err := gs.TakeAction(Action{ActionType: ActionTypeCall})
@@ -565,6 +570,7 @@ func TestGamePreFlopOption(t *testing.T) {
 	assert.Equal(t, 98, gs.Players[7].Stack)
 
 	gs = getNewTestGameState(map[int]int{2: 100, 5: 100, 7: 100})
+	gs.DealHand(2, 1, shuffler.Shuffle())
 
 	assert.Equal(t, RoundPreFlop, gs.Round)
 	err = gs.TakeAction(Action{ActionType: ActionTypeCall})
