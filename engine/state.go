@@ -19,36 +19,33 @@ type State struct {
 	currentAction  Action
 }
 
-func NewHandState(players Players, buttonPosition int) State {
-	return State{
+func GetNewHandState(players Players, buttonPosition, bigBlind, smallBlind int, deck Deck) State {
+	newState := State{
 		Players:        players,
 		ButtonPosition: buttonPosition,
+		Pots:           []int{0},
+		PotContenders:  [][]int{AllPlayers},
+		Deck:           deck,
+		Round:          RoundPreFlop,
 	}
-}
 
-func (gs *State) DealHand(bigBlind, smallBlind int, deck Deck) {
-	gs.moveButton()
+	smallBlindIndex := newState.getNActivePlayerIndexFromIndex(buttonPosition, 1)
+	bigBlindIndex := newState.getNActivePlayerIndexFromIndex(buttonPosition, 2)
+	utgIndex := newState.getNActivePlayerIndexFromIndex(buttonPosition, 3)
 
-	gs.Deck = deck
-	gs.Pots = []int{0}
-	gs.PotContenders =  [][]int{AllPlayers}
-	gs.Round = RoundPreFlop
+	newState.Players[bigBlindIndex].Bet = bigBlind
+	newState.Players[bigBlindIndex].Stack -= bigBlind
+	newState.Players[bigBlindIndex].LastAction = Action{ActionType: ActionTypeBlind, Value: bigBlind}
+	newState.Players[smallBlindIndex].Bet = smallBlind
+	newState.Players[smallBlindIndex].Stack -= smallBlind
+	newState.Players[smallBlindIndex].LastAction = Action{ActionType: ActionTypeBlind, Value: smallBlind}
 
-	smallBlindIndex := gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 1)
-	bigBlindIndex := gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 2)
-	utgIndex := gs.getNActivePlayerIndexFromIndex(gs.ButtonPosition, 3)
+	newState.ActingPlayer = utgIndex
+	newState.LeadingPlayer = bigBlindIndex
 
-	gs.Players[bigBlindIndex].Bet = bigBlind
-	gs.Players[bigBlindIndex].Stack -= bigBlind
-	gs.Players[bigBlindIndex].LastAction = Action{ActionType: ActionTypeBlind, Value: bigBlind}
-	gs.Players[smallBlindIndex].Bet = smallBlind
-	gs.Players[smallBlindIndex].Stack -= smallBlind
-	gs.Players[smallBlindIndex].LastAction = Action{ActionType: ActionTypeBlind, Value: smallBlind}
+	newState.IsHandActive = true
 
-	gs.ActingPlayer = utgIndex
-	gs.LeadingPlayer = bigBlindIndex
-
-	gs.IsHandActive = true
+	return newState
 }
 
 func (gs *State) TakeAction(action Action) error {
@@ -89,16 +86,16 @@ func (gs *State) TakeAction(action Action) error {
 		gs.LeadingPlayer = gs.ActingPlayer
 	}
 	gs.Players[gs.ActingPlayer].LastAction = action
-	gs.moveActingPlayer()
-	if gs.isHandOver() {
+	endsHand := gs.moveActingPlayer()
+	if endsHand {
 		gs.processEndGame()
 	}
 	return nil
 }
 
-func (gs *State) moveActingPlayer() {
+func (gs *State) moveActingPlayer() bool {
 	gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
-	for !gs.Players[gs.ActingPlayer].ActiveInHand() && !gs.isRoundOver() {
+	for (gs.Players[gs.ActingPlayer] == nil || gs.Players[gs.ActingPlayer].Folded || gs.Players[gs.ActingPlayer].IsAllIn) && !gs.isRoundOver() {
 		gs.ActingPlayer = (gs.ActingPlayer + 1) % 9
 	}
 
@@ -109,6 +106,12 @@ func (gs *State) moveActingPlayer() {
 		gs.processPots()
 		gs.Round = gs.Round.GetNextRound()
 	}
+
+	if gs.isHandOver() {
+		gs.IsHandActive = false
+		return true
+	}
+	return false
 }
 
 func (gs *State) processPots() {
@@ -223,16 +226,7 @@ func (gs *State) processEndGame() {
 			for i := 0; i < numberOfWinners; i++ {
 				gs.Players[rankedHands[i].PlayerIndex].Stack += gs.Pots[potIndex] / numberOfWinners
 			}
-			// TODO
 			//consequence.PotRemainder += gs.Pots[potIndex] % numberOfWinners
-		}
-	}
-
-	gs.IsHandActive = false
-	for _, player := range gs.Players {
-		if player != nil {
-			player.Folded = false
-			player.IsAllIn = false
 		}
 	}
 }
@@ -243,7 +237,7 @@ func (gs *State) getNActivePlayerIndexFromIndex(base, n int) int {
 	count := 0
 	for count != n {
 		index = (index + 1) % 9
-		for !gs.Players[index].ActiveInHand() {
+		for gs.Players[index] == nil || gs.Players[index].Folded {
 			index = (index + 1) % 9
 		}
 		count += 1
@@ -311,7 +305,7 @@ func (gs *State) getCommunityCards() []Card {
 func (gs *State) getNumberOfPlayersInHand() int {
 	count := 0
 	for _, player := range gs.Players {
-		if player.InHand() {
+		if player != nil && !player.SittingOut {
 			count++
 		}
 	}
@@ -326,7 +320,7 @@ func (gs *State) getPlayerIndexInHand(seatIndex int) int {
 		if current == seatIndex {
 			return count
 		}
-		if gs.Players[current].InHand() {
+		if gs.Players[current] != nil {
 			count++
 		}
 		current = (current + 1) % 9
@@ -337,7 +331,7 @@ func (gs *State) getPlayerIndexInHand(seatIndex int) int {
 
 func (gs *State) moveButton() {
 	gs.ButtonPosition = (gs.ButtonPosition + 1) % 9
-	for !gs.Players[gs.ButtonPosition].InHand() {
+	for gs.Players[gs.ButtonPosition] == nil || gs.Players[gs.ButtonPosition].SittingOut {
 		gs.ButtonPosition = (gs.ButtonPosition + 1) % 9
 	}
 }
