@@ -51,13 +51,13 @@ func (s *PokerServer) AddPersona(_ context.Context, request *v1.AddPersonaReques
 func (s *PokerServer) SitPlayer(_ context.Context, request *v1.SitPlayerRequest) (*v1.OperationResponse, error) {
 	persona, ok := s.Personas[request.PlayerId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("persona with Persona ID '%d' not found", request.PlayerId))
+		return nil, fmt.Errorf("persona with Persona ID '%d' not found", request.PlayerId)
 	}
 	game, ok := s.Games[request.GameId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("game with Game ID '%d' not found", request.GameId))
+		return nil, fmt.Errorf("game with Game ID '%d' not found", request.GameId)
 	}
-	err := game.SitPlayer(persona, int(request.SeatNumber))
+	err := game.SitPlayer(persona.Name, 100, int(request.SeatNumber))
 	if err != nil {
 		return nil, err
 	}
@@ -67,23 +67,23 @@ func (s *PokerServer) SitPlayer(_ context.Context, request *v1.SitPlayerRequest)
 func (s *PokerServer) StandPlayer(_ context.Context, request *v1.StandPlayerRequest) (*v1.OperationResponse, error) {
 	player, ok := s.Personas[request.PlayerId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
+		return nil, fmt.Errorf("player with Player ID '%d' not found", request.PlayerId)
 	}
 	game, ok := s.Games[request.GameId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("game with Game ID '%d' not found", request.GameId))
+		return nil, fmt.Errorf("game with Game ID '%d' not found", request.GameId)
 	}
-	err := game.StandPlayer(player, int(request.SeatNumber))
+	err := game.StandPlayer(int(request.SeatNumber))
 	if err != nil {
 		return nil, err
 	}
-	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Succesfully stood '%s' from seat %d", player.Name, player.SeatNumber)}, nil
+	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Succesfully stood '%s' from seat %d", player.Name, request.SeatNumber)}, nil
 }
 
 func (s *PokerServer) DealHand(_ context.Context, request *v1.DealHandRequest) (*v1.OperationResponse, error) {
 	game, ok := s.Games[request.GameId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("game with Game ID '%d' not found", request.GameId))
+		return nil, fmt.Errorf("game with Game ID '%d' not found", request.GameId)
 	}
 	err := game.DealHand()
 	if err != nil {
@@ -93,15 +93,15 @@ func (s *PokerServer) DealHand(_ context.Context, request *v1.DealHandRequest) (
 }
 
 func (s *PokerServer) TakeAction(_ context.Context, request *v1.TakeActionRequest) (*v1.OperationResponse, error) {
-	player, ok := s.Personas[request.PlayerId]
+	_, ok := s.Personas[request.PlayerId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
+		return nil, fmt.Errorf("player with Player ID '%d' not found", request.PlayerId)
 	}
 	game, ok := s.Games[request.GameId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("game with Game ID '%d' not found", request.GameId))
+		return nil, fmt.Errorf("game with Game ID '%d' not found", request.GameId)
 	}
-	err := game.TakeAction(player, engine.Action{
+	err := game.TakeAction(engine.Action{
 		ActionType: engine.ActionType(request.Action.ActionType),
 		Value:      int(request.Action.Value),
 	})
@@ -112,15 +112,15 @@ func (s *PokerServer) TakeAction(_ context.Context, request *v1.TakeActionReques
 }
 
 func (s *PokerServer) GetPlayerState(_ context.Context, request *v1.GetPlayerStateRequest) (*v1.PlayerState, error) {
-	player, ok := s.Personas[request.PlayerId]
+	_, ok := s.Personas[request.PlayerId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
+		return nil, fmt.Errorf("player with Player ID '%d' not found", request.PlayerId)
 	}
-	game, ok := s.Games[request.GameId]
+	_, ok = s.Games[request.GameId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("game with Game ID '%d' not found", request.GameId))
+		return nil, fmt.Errorf("game with Game ID '%d' not found", request.GameId)
 	}
-	return game.GetPlayerState(player), nil
+	return nil, nil
 }
 
 func StartDevServer() {

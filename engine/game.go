@@ -36,8 +36,16 @@ func (g *Game) SitPlayer(name string, stack, seat int) error {
 	if player := g.GameState.Players[seat]; player != nil {
 		return errors.New("cannot sit player; seat is occupied")
 	}
-	player := Player{Name: name, Stack: stack, Waiting: true}
+	player := Player{Name: name, Stack: stack, Waiting: false}
 	g.GameState.Players[seat] = &player
+
+	return nil
+}
+func (g *Game) StandPlayer(seat int) error {
+	if player := g.GameState.Players[seat]; player == nil {
+		return errors.New("cannot stand player; seat is not occupied")
+	}
+	g.GameState.Players[seat] = nil
 
 	return nil
 }

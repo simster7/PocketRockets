@@ -206,7 +206,7 @@ func (gs *State) processEndGame() {
 			var showdownHands []HandForEvaluation
 			communityCards := gs.getCommunityCards()
 			for i, player := range gs.Players {
-				if player != nil && !player.SittingOut && gs.Players[i].Folded == false && containsIntInIntSlice(gs.PotContenders[potIndex], i) {
+				if player != nil && !player.SittingOut && !gs.Players[i].Folded && containsIntInIntSlice(gs.PotContenders[potIndex], i) {
 					showdownHands = append(showdownHands, HandForEvaluation{
 						Hand:        append(gs.getPlayerCards(i), communityCards...),
 						PlayerIndex: i,

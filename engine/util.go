@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"container/heap"
-	"math/rand"
 	"strings"
 )
 
@@ -50,13 +48,6 @@ func (pq *ProcessPotsPQ) Pop() interface{} {
 	item.index = -1 // for safety
 	*pq = old[0 : n-1]
 	return item
-}
-
-// update modifies the allInAmount and playerIndex of an ProcessPotsPQItem in the queue.
-func (pq *ProcessPotsPQ) update(item *ProcessPotsPQItem, value int, priority int) {
-	item.playerIndex = value
-	item.allInAmount = priority
-	heap.Fix(pq, item.index)
 }
 
 func maxMin(a, b int) (int, int) {
