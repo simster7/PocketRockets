@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"container/heap"
-	"math/rand"
 	"strings"
 )
 
@@ -52,13 +50,6 @@ func (pq *ProcessPotsPQ) Pop() interface{} {
 	return item
 }
 
-// update modifies the allInAmount and playerIndex of an ProcessPotsPQItem in the queue.
-func (pq *ProcessPotsPQ) update(item *ProcessPotsPQItem, value int, priority int) {
-	item.playerIndex = value
-	item.allInAmount = priority
-	heap.Fix(pq, item.index)
-}
-
 func maxMin(a, b int) (int, int) {
 	if a >= b {
 		return a, b
@@ -89,25 +80,4 @@ func containsIntInIntSlice(slice []int, i int) bool {
 		}
 	}
 	return false
-}
-
-func getShuffledDeck() Deck{
-	var deck Deck
-	perm := rand.Perm(52)
-	for i := 0; i < 52; i++ {
-		deck[perm[i]] = Card(i)
-	}
-	return deck
-}
-
-func getDeck() Deck {
-	var deck Deck
-	for i := 0; i < 52; i++ {
-		deck[i] = Card(i)
-	}
-	return deck
-}
-
-func emptyTable() Seats {
-	return *new(Seats)
 }

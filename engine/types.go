@@ -1,8 +1,10 @@
 package engine
 
-type Deck [52]Card
+type Shuffler interface {
+	Shuffle() Deck
+}
 
-type FoldVector [9]bool
+type Deck [52]Card
 
 type Round string
 
@@ -49,14 +51,19 @@ type Player struct {
 	IsAllIn    bool
 	LastAction Action
 	SittingOut bool
+	Waiting    bool
 }
 
-type Seats [9]*Seat
+func (p *Player) InHand() bool {
+	return p != nil && !p.SittingOut && !p.Waiting
+}
 
-type Seat struct {
-	Name       string
-	Stack      int
-	SittingOut bool
+func (p *Player) ActiveInHand() bool {
+	return p.InHand() && !p.Folded && !p.IsAllIn
+}
+
+type Persona struct {
+	Name string
 }
 
 type ActionType string

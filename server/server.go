@@ -5,8 +5,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/simster7/PocketRockets/backend/api/v1"
-	"github.com/simster7/PocketRockets/backend/engine"
+	"github.com/simster7/PocketRockets/api/v1"
+	"github.com/simster7/PocketRockets/engine"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
@@ -14,19 +14,19 @@ import (
 )
 
 type PokerServer struct {
-	Games   map[int32]*engine.Game
-	Players map[int32]*engine.Player
+	Games    map[int32]*engine.Game
+	Personas map[int32]*engine.Persona
 }
 
 func NewPokerServer() PokerServer {
 	return PokerServer{
-		Games:   make(map[int32]*engine.Game),
-		Players: make(map[int32]*engine.Player),
+		Games:    make(map[int32]*engine.Game),
+		Personas: make(map[int32]*engine.Persona),
 	}
 }
 
 func (s *PokerServer) StartGame(_ context.Context, request *v1.StartGameRequest) (*v1.OperationResponse, error) {
-	if _, ok := s.Players[request.GameId]; ok {
+	if _, ok := s.Personas[request.GameId]; ok {
 		return nil, errors.New("cannot create a game that already exists")
 	}
 	var newGame engine.Game
@@ -39,51 +39,51 @@ func (s *PokerServer) StartGame(_ context.Context, request *v1.StartGameRequest)
 	return &v1.OperationResponse{Successful: true, Message: "Successfully created game"}, nil
 }
 
-func (s *PokerServer) AddPlayer(_ context.Context, request *v1.AddPlayerRequest) (*v1.OperationResponse, error) {
-	if _, ok := s.Players[request.PlayerId]; ok {
-		return nil, errors.New("cannot add player that is already in game")
+func (s *PokerServer) AddPersona(_ context.Context, request *v1.AddPersonaRequest) (*v1.OperationResponse, error) {
+	if _, ok := s.Personas[request.PlayerId]; ok {
+		return nil, errors.New("cannot add persona that already exists")
 	}
-	newPlayer := engine.Player{Name: request.Name, Stack: int(request.Stack)}
-	s.Players[request.PlayerId] = &newPlayer
+	newPlayer := engine.Persona{Name: request.Name}
+	s.Personas[request.PlayerId] = &newPlayer
 	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Successfully added '%s'", newPlayer.Name)}, nil
 }
 
 func (s *PokerServer) SitPlayer(_ context.Context, request *v1.SitPlayerRequest) (*v1.OperationResponse, error) {
-	player, ok := s.Players[request.PlayerId]
+	persona, ok := s.Personas[request.PlayerId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
+		return nil, fmt.Errorf("persona with Persona ID '%d' not found", request.PlayerId)
 	}
 	game, ok := s.Games[request.GameId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("game with Game ID '%d' not found", request.GameId))
+		return nil, fmt.Errorf("game with Game ID '%d' not found", request.GameId)
 	}
-	err := game.SitPlayer(player, int(request.SeatNumber))
+	err := game.SitPlayer(persona.Name, 100, int(request.SeatNumber))
 	if err != nil {
 		return nil, err
 	}
-	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Succesfully sat '%s' in seat %d", player.Name, player.SeatNumber)}, nil
+	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Succesfully sat '%s' in seat %d", persona.Name, request.SeatNumber)}, nil
 }
 
 func (s *PokerServer) StandPlayer(_ context.Context, request *v1.StandPlayerRequest) (*v1.OperationResponse, error) {
-	player, ok := s.Players[request.PlayerId]
+	player, ok := s.Personas[request.PlayerId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
+		return nil, fmt.Errorf("player with Player ID '%d' not found", request.PlayerId)
 	}
 	game, ok := s.Games[request.GameId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("game with Game ID '%d' not found", request.GameId))
+		return nil, fmt.Errorf("game with Game ID '%d' not found", request.GameId)
 	}
-	err := game.StandPlayer(player, int(request.SeatNumber))
+	err := game.StandPlayer(int(request.SeatNumber))
 	if err != nil {
 		return nil, err
 	}
-	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Succesfully stood '%s' from seat %d", player.Name, player.SeatNumber)}, nil
+	return &v1.OperationResponse{Successful: true, Message: fmt.Sprintf("Succesfully stood '%s' from seat %d", player.Name, request.SeatNumber)}, nil
 }
 
 func (s *PokerServer) DealHand(_ context.Context, request *v1.DealHandRequest) (*v1.OperationResponse, error) {
 	game, ok := s.Games[request.GameId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("game with Game ID '%d' not found", request.GameId))
+		return nil, fmt.Errorf("game with Game ID '%d' not found", request.GameId)
 	}
 	err := game.DealHand()
 	if err != nil {
@@ -93,15 +93,15 @@ func (s *PokerServer) DealHand(_ context.Context, request *v1.DealHandRequest) (
 }
 
 func (s *PokerServer) TakeAction(_ context.Context, request *v1.TakeActionRequest) (*v1.OperationResponse, error) {
-	player, ok := s.Players[request.PlayerId]
+	_, ok := s.Personas[request.PlayerId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
+		return nil, fmt.Errorf("player with Player ID '%d' not found", request.PlayerId)
 	}
 	game, ok := s.Games[request.GameId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("game with Game ID '%d' not found", request.GameId))
+		return nil, fmt.Errorf("game with Game ID '%d' not found", request.GameId)
 	}
-	err := game.TakeAction(player, engine.Action{
+	err := game.TakeAction(engine.Action{
 		ActionType: engine.ActionType(request.Action.ActionType),
 		Value:      int(request.Action.Value),
 	})
@@ -112,15 +112,15 @@ func (s *PokerServer) TakeAction(_ context.Context, request *v1.TakeActionReques
 }
 
 func (s *PokerServer) GetPlayerState(_ context.Context, request *v1.GetPlayerStateRequest) (*v1.PlayerState, error) {
-	player, ok := s.Players[request.PlayerId]
+	_, ok := s.Personas[request.PlayerId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("player with Player ID '%d' not found", request.PlayerId))
+		return nil, fmt.Errorf("player with Player ID '%d' not found", request.PlayerId)
 	}
-	game, ok := s.Games[request.GameId]
+	_, ok = s.Games[request.GameId]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("game with Game ID '%d' not found", request.GameId))
+		return nil, fmt.Errorf("game with Game ID '%d' not found", request.GameId)
 	}
-	return game.GetPlayerState(player), nil
+	return nil, nil
 }
 
 func StartDevServer() {
