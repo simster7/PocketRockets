@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"log"
 	"sort"
 )
 
@@ -57,8 +56,7 @@ func getHandStrength(hand []Card) HandStrength {
 			return append([]int{handScore}, result...)
 		}
 	}
-	log.Fatal("Bug in getHandStrength")
-	return nil
+	panic("Bug in getHandStrength")
 }
 
 func getHandName(handScore int) string {
@@ -167,7 +165,7 @@ func CheckStraight(hand []Card) (bool, Tiebreakers) {
 	}
 	for i := 0; i < len(handRanks)-4; i++ {
 		startsStraight := true
-		for j := i; j < 4; j++ {
+		for j := i; j < i + 4; j++ {
 			if handRanks[j]-handRanks[j+1] != 1 {
 				startsStraight = false
 				break

@@ -91,6 +91,11 @@ func TestCheckTwoPair(t *testing.T) {
 	match, result = CheckTwoPair(hand)
 	assert.False(t, match)
 	assert.Nil(t, result)
+
+	hand = GenerateHand("AC JS AS QH QC 7C 8D")
+	match, result = CheckTwoPair(hand)
+	assert.True(t, match)
+	assert.Equal(t, Tiebreakers{12, 10, 9}, result)
 }
 
 func TestCheckThreeOfAKind(t *testing.T) {
@@ -159,6 +164,11 @@ func TestCheckStraight(t *testing.T) {
 
 	// No straight wrap-around
 	hand = GenerateHand("8S QH KC 6D AC 2C JS")
+	match, result = CheckStraight(hand)
+	assert.False(t, match)
+	assert.Nil(t, result)
+
+	hand = GenerateHand("AC JS AS QH QC 7C 8D")
 	match, result = CheckStraight(hand)
 	assert.False(t, match)
 	assert.Nil(t, result)
