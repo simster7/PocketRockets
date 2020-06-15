@@ -103,7 +103,13 @@ func CheckFourOfAKind(hand []Card) (bool, Tiebreakers) {
 	if len(quads) != 1 {
 		return false, nil
 	}
-	return true, Tiebreakers{quads[0]}
+	kicker := 0
+	for _, rank := range handRanks {
+		if rank != quads[0] && rank > kicker {
+			kicker = rank
+		}
+	}
+	return true, Tiebreakers{quads[0], kicker}
 }
 
 // Returns True if the hand contains a full house, hand could be better than a full house and check_full_house would
