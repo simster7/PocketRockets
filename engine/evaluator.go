@@ -159,6 +159,9 @@ func CheckStraight(hand []Card) (bool, Tiebreakers) {
 	handRanks := getCardRankIdSlice(hand)
 	descendingSort(handRanks)
 	handRanks = deduplicateInts(handRanks)
+	if len(handRanks) < 5 {
+		return false, nil
+	}
 	// If the highest hand rank is 12 (i.e. an ace) add a -1 to allow for
 	// low end straights
 	if handRanks[0] == 12 {
@@ -303,17 +306,14 @@ func deduplicateInts(in []int) []int {
 	if len(in) == 0 {
 		return in
 	}
-
-	currMax := in[0]
 	dedup := []int{in[0]}
 	for i := 0; i < len(in); i++ {
-		if in[i] > currMax {
+		if in[i] > dedup[len(dedup)-1] {
 			panic("input to deduplicateInts must be sorted in decreasing order")
 		}
 		if in[i] == dedup[len(dedup)-1] {
 			continue
 		}
-		currMax = in[i]
 		dedup = append(dedup, in[i])
 	}
 	return dedup
