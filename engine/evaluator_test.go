@@ -172,6 +172,11 @@ func TestCheckStraight(t *testing.T) {
 	match, result = CheckStraight(hand)
 	assert.False(t, match)
 	assert.Nil(t, result)
+
+	hand = GenerateHand("KS JH AH QH QC TH QS")
+	match, result = CheckStraight(hand)
+	assert.True(t, match)
+	assert.Equal(t, Tiebreakers{12}, result)
 }
 
 func TestCheckFlush(t *testing.T) {
@@ -279,6 +284,18 @@ func TestCheckStraightFlush(t *testing.T) {
 }
 
 func TestEvaluator(t *testing.T) {
+	handsToEvaluate := []HandForEvaluation{
+		{
+			Hand:        GenerateHand("KS JH AH QH QC TH QS"),
+			PlayerIndex: 0,
+		},
+	}
+	evaluatedHands := EvaluateHands(handsToEvaluate)
+	assert.Len(t, evaluatedHands, 1)
+	assert.Equal(t, "Straight", evaluatedHands[0].HandName)
+}
+
+func TestEvaluatorGame(t *testing.T) {
 	board := "9S TS JS AH AC"
 	flushAJ := "6S 8S " + board
 	flushAK := "KS 8S " + board
@@ -330,4 +347,12 @@ func TestEvaluator(t *testing.T) {
 		},
 	}
 	assert.Equal(t, expectedResult, evaluatedHands)
+}
+
+func TestDeduplicateInts(t *testing.T) {
+	assert.Equal(t, []int{12, 11, 10, 9, 8}, deduplicateInts([]int{12, 11, 10, 10, 10, 9, 8}))
+	assert.Equal(t, []int{12, 11, 10, 9, 8, 1, 0}, deduplicateInts([]int{12, 12, 11, 10, 10, 10, 9, 8, 1, 1, 0}))
+	assert.Panics(t, func() {
+		deduplicateInts([]int{1, 2, 3})
+	})
 }
